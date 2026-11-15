@@ -137,3 +137,14 @@ Thư mục `android/` chứa wrapper WebView Android cho V5.2, đóng gói asset
 - Không lưu toàn văn TCVN bản quyền; chỉ trỏ nguồn VSQI, Bộ Xây dựng và Cổng văn bản Chính phủ.
 - Sửa vị trí các ghim tại bàn làm việc thật; QA/QC MEP và Quản lý hiện trường XD hiện chưa có vùng riêng trên ảnh nên cung cấp nút chọn bổ sung.
 - Những kết luận pháp lý vẫn cần kiểm tra theo thời điểm áp dụng và điều khoản chuyển tiếp.
+
+
+## V5.4 — Thư viện TCVN theo QLDA_ver612_VPS và Tiếng Việt / English (15/11/2026)
+
+- Nút chọn `Tiếng Việt / English` trên thanh công cụ đổi nhãn giao diện mà không thay đổi nhiệm vụ, hồ sơ hay dữ liệu gốc. Ngôn ngữ được nhớ trong `localStorage` riêng. **Tên nguyên bản tiếng Việt của văn bản pháp lý luôn được giữ trong dữ liệu**; những tiêu chuẩn đã có bản dịch tên sẽ hiển thị tên tiếng Anh khi chọn English.
+- Nguồn nghiên cứu **phương pháp**: [`Manhhung114/QLDA_ver612_VPS`](https://github.com/Manhhung114/QLDA_ver612_VPS), tệp `src/qlda/runtime_core/legal_standards_backfill.py`: truy vấn nhóm, tra đúng số hiệu ưu tiên, loại dự thảo, loại trùng. Không dùng GitHub như một nguồn ban hành pháp luật hay tiêu chuẩn.
+- Danh mục bổ sung gồm **16 bản ghi TCVN** tại `data/legal/TCVN_QLDA_VPS_verified.json`; tất cả đều dẫn đến [VSQI](https://tieuchuan.vsqi.gov.vn/) với thời điểm đối chiếu 15/11/2026. Bao gồm bản lịch sử TCVN 9362:2012 (đã bị thay thế bởi TCVN 9362:2026). TCVN 5738:2021 đã được đánh dấu trong danh mục V5.3 là hết hiệu lực.
+- Tại **Pháp luật & tiêu chuẩn**: `Cập nhật từ GitHub` tải phiên bản JSON mới qua mạng; `Nhập JSON` nạp các mục từ tập tin theo `data/legal/TCVN_UPDATE_TEMPLATE.json`; `Đặt lại danh mục` xóa bộ nhớ cập nhật riêng, khôi phục danh mục đóng gói. Tệp thủ công được đánh dấu **Chờ đối chiếu nguồn**; ứng dụng từ chối đường dẫn không phải cổng chính thống hoặc mục dự thảo. Cập nhật mạng không chạy trong nền, không ảnh hưởng dữ liệu cũ.
+- Xuất bản Excel `data/legal/Thu_vien_phap_luat_V5_4_TCVN_QLDA_VPS.xlsx`: sheet danh mục cũ, sheet TCVN bổ sung và sheet hướng dẫn cập nhật.
+- **Giới hạn:** Giao diện hai ngôn ngữ là bản thử nghiệm; các thuật ngữ kỹ thuật, mô tả mẫu, hồ sơ và tiêu đề nguồn pháp lý vẫn có thể được giữ bằng tiếng Việt để bảo toàn căn cứ gốc. Không tự tải nội dung thương mại của TCVN hoặc tự kết luận tính bắt buộc của tiêu chuẩn.
+- **Ứng dụng Android:** APK được đóng gói lại bằng workflow GitHub sau khi push; `versionCode=54`, `versionName=5.4.0-demo`. Nếu bản debug khác chữ ký thì không thể cài đè; sao lưu trước, không gỡ khi chưa bảo toàn hồ sơ.

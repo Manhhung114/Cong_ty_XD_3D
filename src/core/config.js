@@ -81,5 +81,8 @@ export const ROADMAP = [
   {version:'V3.0',title:'Hồ sơ bản vẽ / BOQ / BIM',state:'Quản lý nền tảng',summary:'Phân loại tệp, mã hồ sơ, revision, upload/download, mẫu CSV. Chưa tự bóc tách.'},
   {version:'V4.0',title:'Bảng điều hành',state:'Dashboard demo',summary:'Tổng hợp KPI, tiến độ, hồ sơ và xuất dữ liệu JSON. Chưa có phân quyền/server.'},
   {version:'V5.0',title:'Nhánh Xây dựng',state:'Đã tích hợp demo',summary:'2 tầng MEP + Xây dựng, 16 phòng, 18 Agent, công việc và tệp riêng theo nhánh; chưa AI thật.'},
-  {version:'V5.1',title:'Phối cảnh văn phòng chi tiết',state:'Có thể chạy thử',summary:'Ảnh phối cảnh isometric 3D có 16 điểm chọn phòng; chuyển qua WebGL tương tác khi cần; chưa phải 3D photoreal-time.'}
+  {version:'V5.1',title:'Phối cảnh văn phòng chi tiết',state:'Có thể chạy thử',summary:'Ảnh phối cảnh isometric 3D có 16 điểm chọn phòng; chuyển qua WebGL tương tác khi cần; chưa phải 3D photoreal-time.'},
+  {version:'V5.2',title:'Văn phòng WebGL ba tầng',state:'Có thể thử',summary:'Điều khiển camera, phóng to, hai khối MEP/Xây dựng và tầng điều hành.'},
+  {version:'V5.3',title:'Pháp luật và Việt hóa',state:'Đã tích hợp',summary:'Vị trí ghim MEP chính xác hơn, danh mục pháp luật từ nguồn chính thống.'},
+  {version:'V5.4',title:'Song ngữ & danh mục TCVN',state:'Đã tích hợp bản thử',summary:'Tiếng Việt / English; tra cứu VSQI, cập nhật JSON trên GitHub/nhập thủ công, giữ hồ sơ gốc.'}
 ];

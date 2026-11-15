@@ -1,6 +1,6 @@
 {
   "project": "Công ty Xây dựng & MEP AI 3D",
-  "artifact_version": "0.5.3-demo",
+  "artifact_version": "0.5.4-demo",
   "release_date": "2026-11-15",
   "modules": [
     {
@@ -50,6 +50,12 @@
       "area": "Vietnamese localization + corrected illustration hotspots + official legal standards library",
       "entry": "data/legal/danh_muc_van_ban_chinh_thong.json",
       "status": "verified_official_metadata_with_manual_effective_check"
+    },
+    {
+      "label": "V5.4",
+      "area": "VN/EN interface and manually refreshable, official-source TCVN/QCVN register",
+      "entry": "src/core/standards.js",
+      "status": "verified_metadata_plus_review_required_for_new_imports"
     }
   ],
   "data_categories": {
@@ -65,7 +71,9 @@
     "frontend": "Vanilla ES modules + isometric render/hotspots + WebGL 1 low-poly (SVG fallback)",
     "local_server": "Node.js/Python standard library",
     "database": "localStorage + IndexedDB",
-    "cloud": false
+    "cloud": false,
+    "language": "Vietnamese and English (local browser preference)",
+    "standards_updates": "bundled JSON + optional GitHub refresh + manual JSON import"
   },
   "warnings": [
     "No real AI agents connected",
@@ -73,12 +81,13 @@
     "Browser data can be cleared",
     "Sample calculations are not engineering deliverables",
     "Construction calculations and approvals are demo only",
-    "Detailed isometric visual is a rendered 2D asset, not a real-time 3D mesh"
+    "Detailed isometric visual is a rendered 2D asset, not a real-time 3D mesh",
+    "TCVN metadata/status checked on 2026-11-15; verify against VSQI before design/acceptance."
   ],
   "divisions": {
     "shared": "Ban giám đốc",
     "mep": "Cơ điện",
     "construction": "Xây dựng"
   },
-  "current_version": "V5.3"
+  "current_version": "V5.4"
 }

@@ -73,8 +73,20 @@ public class MainActivity extends Activity {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 Uri url = request.getUrl();
-                return !"appassets.androidplatform.net".equalsIgnoreCase(url.getHost())
-                        || !"https".equalsIgnoreCase(url.getScheme());
+                if ("appassets.androidplatform.net".equalsIgnoreCase(url.getHost())
+                        && "https".equalsIgnoreCase(url.getScheme())) return false;
+                if ("https".equalsIgnoreCase(url.getScheme())) {
+                    String host = url.getHost() == null ? "" : url.getHost().toLowerCase(java.util.Locale.ROOT);
+                    boolean official = host.endsWith(".gov.vn") || host.equals("gov.vn")
+                            || host.equals("github.com") || host.equals("raw.githubusercontent.com");
+                    if (official) {
+                        try { startActivity(new Intent(Intent.ACTION_VIEW, url)); }
+                        catch (ActivityNotFoundException ex) {
+                            Toast.makeText(MainActivity.this, "Không tìm thấy trình duyệt để mở nguồn", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                }
+                return true; // Never render unrelated web content inside the trusted local WebView.
             }
         });
         webView.setWebChromeClient(new WebChromeClient() {

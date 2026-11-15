@@ -1,3 +1,11 @@
+## 2026-11-15 — V5.4 Danh mục TCVN mở rộng & giao diện song ngữ
+
+- Nghiên cứu `Manhhung114/QLDA_ver612_VPS` theo mã gốc (legal_standards_backfill.py, legal_qlda.py); kế thừa nguyên tắc tra đúng số hiệu và chống bỏ sót, không sao chép dữ liệu chưa kiểm chứng.
+- Bổ sung 16 bản ghi VSQI (MEPF/PCCC và Xây dựng), gồm cập nhật 9362:2026 thay 9362:2012; giữ nguồn VSQI, ngày rà soát và cảnh báo hiệu lực.
+- Thư viện TCVN có thể cập nhật thủ công từ GitHub hoặc nhập JSON có kiểm tra miền nguồn; mục thủ công chờ xác minh và không ghi đè mục đã đối chiếu.
+- Nút Tiếng Việt / English hoạt động trên các trang, form, bộ lọc và danh mục. Không thay đổi dữ liệu người dùng.
+- Bảng Excel đa sheet bổ sung nguồn chính thống, bản dịch tiêu đề và hướng dẫn cập nhật. Android build nâng versionCode 54.
+
 # CHANGELOG — Công ty Xây dựng & MEP AI 3D
 
 ## 2026-11-15 — V5.3 Tiếng Việt, hiệu chỉnh điểm phòng và pháp lý
