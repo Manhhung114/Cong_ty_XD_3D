@@ -11,7 +11,7 @@ android {
         minSdk 24
         targetSdk 35
         versionCode 63
-        versionName '5.7.8'
+        versionName '5.7.8-test'
     }
 
     compileOptions {
