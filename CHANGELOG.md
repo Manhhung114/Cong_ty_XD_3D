@@ -1,5 +1,11 @@
 # CHANGELOG — Công ty Xây dựng & MEP AI 3D
 
+## 2026-11-15 — Android V5.2.1 Debug APK
+
+- Thêm dự án Android WebView đóng gói assets V5.2, chọn tệp Android và workflow build APK.
+- Chưa ký phát hành, chưa xác minh thiết bị Android thật. Không thay đổi nghiệp vụ và dữ liệu phiên bản cũ.
+
+
 ## 2026-11-15 — V5.2 WebGL ba tầng và điều khiển camera
 
 - Cảnh WebGL 3 tầng (MEP + Xây dựng + điều hành), bàn họp, màn hình, nội thất và nhân vật hoạt động theo trạng thái nhiệm vụ.

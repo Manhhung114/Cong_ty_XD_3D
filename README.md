@@ -123,3 +123,8 @@ Vào **Văn phòng 3D → 3D tương tác** để xem văn phòng ba tầng. S�
 Để triển khai GitHub Pages: mở Settings → Pages → Source: GitHub Actions; theo dõi workflow **Publish Web 3D (Pages)** và chỉ dùng link sau khi workflow thành công. Repository này không chứa hồ sơ khách hàng.
 
 Đây vẫn là prototype chạy front-end, 18 Agent chưa gọi API AI thật và hồ sơ chưa đồng bộ cloud.
+
+
+## Android APK V5.2.1 (bản thử)
+
+Thư mục `android/` chứa wrapper WebView Android cho V5.2, đóng gói asset tĩnh offline qua HTTPS nội bộ. Vào GitHub Actions `Build Android APK - XD MEP AI 3D` để tải `app-debug.apk` khi build PASS. Xem `android/README_ANDROID.md` và `versions/V5_2_1_ANDROID_APK.md` về cách cài đặt, dữ liệu và giới hạn. **Chưa có signing key cố định và chưa đủ điều kiện phát hành Play Store.**

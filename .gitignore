@@ -6,3 +6,9 @@ node_modules/
 !*.env.example
 project_private/
 real_customer_data/
+# Android build outputs and signing credentials
+android/.gradle/
+android/**/build/
+android/app/src/main/assets/www/
+*.jks
+*.keystore
