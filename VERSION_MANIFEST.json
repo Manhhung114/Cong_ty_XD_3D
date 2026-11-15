@@ -1,6 +1,6 @@
 {
   "project": "Công ty Xây dựng & MEP AI 3D",
-  "artifact_version": "0.5.7.2",
+  "artifact_version": "0.5.7.4-offline",
   "release_date": "2026-11-15",
   "modules": [
     {
@@ -86,6 +86,18 @@
       "area": "Single office navigation and shared management across both divisions",
       "entry": "src/core/config.js",
       "status": "tested_ui_filter_only"
+    },
+    {
+      "label": "V5.7.3",
+      "area": "Local projects/reviews without login + API settings",
+      "entry": "src/local_portal.js",
+      "status": "offline_local_storage_provider_test_only"
+    },
+    {
+      "label": "V5.7.4",
+      "area": "Deduplicated task action across sheets",
+      "entry": "src/local_portal.js",
+      "status": "task_creation_only_in_tasks_page"
     }
   ],
   "data_categories": {
@@ -103,29 +115,34 @@
     "database": "localStorage + IndexedDB",
     "cloud": false,
     "language": "Vietnamese and English (local browser preference)",
-    "standards_updates": "bundled JSON + optional GitHub refresh + manual JSON import"
+    "standards_updates": "bundled JSON + optional GitHub refresh + manual JSON import",
+    "active_mode": "offline_no_login_no_rbac"
   },
   "warnings": [
     "No real AI agents connected",
     "No BIM IFC viewer connected",
     "Browser data can be cleared",
     "Sample calculations are not engineering deliverables",
-    "Construction calculations and approvals are demo only",
     "Detailed isometric visual is a rendered 2D asset, not a real-time 3D mesh",
     "TCVN metadata/status checked on 2026-11-15; verify against VSQI before design/acceptance.",
-    "Android stable release signing requires four GitHub Secrets; previous debug APK signing cannot be migrated automatically"
+    "Android stable release signing requires four GitHub Secrets; previous debug APK signing cannot be migrated automatically",
+    "Local approvals have no identity verification and are not legally binding",
+    "API keys may be encrypted on device with user passphrase; no server secret vault active",
+    "No server-side synchronization or access control in offline mode"
   ],
   "divisions": {
     "shared": "Ban giám đốc",
     "mep": "Cơ điện",
     "construction": "Xây dựng"
   },
-  "current_version": "V5.7.2",
+  "current_version": "V5.7.4",
   "backend": {
     "framework": "FastAPI",
     "database": "PostgreSQL or SQLite local",
     "authentication": "revocable opaque sessions",
     "approval": "three human stages",
-    "real_ai_execution": false
+    "real_ai_execution": false,
+    "active_in_ui": false,
+    "available_as_source_for_future": true
   }
 }

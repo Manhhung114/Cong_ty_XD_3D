@@ -31,6 +31,17 @@
 
 # CHANGELOG — Công ty Xây dựng & MEP AI 3D
 
+## 2026-11-15 — V5.7.3: Cục bộ không đăng nhập, có Cài đặt API
+
+- Bỏ mục Tài khoản & quyền trên giao diện; thêm mục Cài đặt. Không yêu cầu server/login cho Dự án, Công việc, Kho tài liệu, Chờ phê duyệt và Nhật ký.
+- Quản lý nhiều dự án trên thiết bị, nhiệm vụ và báo cáo theo từng dự án; lưu hồ sơ trong IndexedDB có revision riêng theo dự án.
+- Duyệt nội bộ theo tên người kiểm tra, không giả mạo xác thực; giữ thông báo giới hạn phê duyệt.
+- Cấu hình OpenAI/Gemini, model theo 18 Agent và phép thử danh sách model. Khóa API không hard-code; hỗ trợ lưu mã hóa bằng passphrase.
+- Giữ backend/RBAC để bật lại sau; phiên bản hiện tại chưa đồng bộ server hay chạy AI thực sự.
+- VersionCode 60, cùng applicationId và workflow ký phát hành nếu có GitHub Secrets.
+- Bảo vệ server static khỏi truy cập trực tiếp thư mục backend và tệp riêng tư.
+
+
 ## 2026-11-15 — V5.5 Approvals / English / Stable Android signing
 
 - Thêm trang duyệt hồ sơ có bằng chứng, báo cáo thực hiện, lịch sử duyệt và trả lại với lý do; không cho duyệt khi thiếu báo cáo/hồ sơ.

@@ -1,3 +1,23 @@
+# CÔNG TY XÂY DỰNG & MEP AI 3D — V5.7.3 (CHẾ ĐỘ CỤC BỘ)
+
+**Bản hiện tại không cần đăng nhập hoặc kết nối máy chủ.** Các mục Dự án, Công việc, Chờ phê duyệt, Kho tài liệu, Nhật ký và Cài đặt hoạt động trong một thiết bị. Backend V5.7 vẫn được giữ trong mã nguồn để triển khai và bật lại phân quyền khi có máy chủ.
+
+## Sử dụng V5.7.3
+
+1. Mở **Quản lý dự án → Tạo dự án mới** (mã `DA-001`, tên dự án). Có thể tạo nhiều dự án và chọn dự án đang làm việc.
+2. Mở **Công việc** để giao việc và gửi báo cáo. **Chờ phê duyệt** để kiểm tra, chấp thuận hoặc trả lại nội bộ. Đây chưa phải chữ ký hoặc phê duyệt có xác thực.
+3. Vào **Kho tài liệu** để upload bản vẽ/BOQ/IFC và tải về, lưu tệp trong IndexedDB theo mã dự án + khối chuyên môn + mã hồ sơ; không ghi đè revision.
+4. Vào **Cài đặt → Kết nối nhà cung cấp** để chọn OpenAI hoặc Google Gemini, nhập API key và bấm **Kiểm tra kết nối API**. Bài thử chỉ xác minh truy cập danh sách model, **không tự động điều hành Agent**.
+5. Vào **Cài đặt → Chọn model cho từng Agent** để lưu provider và mã model cho từng nhân viên; Giám đốc và Trưởng ban QLDA dùng chung cho MEP/Xây dựng.
+6. API key mặc định chỉ tồn tại trong bộ nhớ phiên ứng dụng, không nhúng vào APK hoặc GitHub; để giữ sau khi đóng app, chọn lưu có mã hóa bằng mật khẩu riêng. Dùng khóa hạn mức thấp và không lưu thông tin bí mật của khách hàng trên bản thử.
+7. Nút **Sao lưu dữ liệu thiết bị** xuất metadata dự án/nhiệm vụ/nhật ký, không bao gồm nội dung tệp gốc hoặc API key. Tải riêng từng tệp quan trọng trước khi gỡ app hoặc chuyển máy.
+
+**Quan trọng:** Không có máy chủ nghĩa là không có đồng bộ đa thiết bị, không có quyền truy cập đáng tin cậy và không xác minh được người phê duyệt. Bản này chỉ dùng để thử nghiệm vận hành nội bộ.
+
+[Chi tiết bản cập nhật V5.7.3](versions/V5_7_3_LOCAL_NO_LOGIN_API_SETTINGS.md)
+
+---
+
 # V5.7.2 – Một menu Văn phòng 3D, ban điều hành chung (15/11/2026)
 
 - Bỏ mục **Khối Xây dựng** trong menu bên trái; giữ bộ lọc **Toàn công ty / Cơ điện MEP / Xây dựng** bên trong Văn phòng 3D và Nhân viên AI.

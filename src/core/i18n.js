@@ -416,6 +416,20 @@ Object.assign(STRINGS,{
  'Hai khối chuyên môn và một ban điều hành chung: Giám đốc công ty và Trưởng ban QLDA phụ trách cả MEP lẫn Xây dựng.':'Two professional divisions with one shared management team: the Company Director and Project Management Lead oversee both MEP and Construction.',
  'Chọn MEP hoặc Xây dựng để xem chuyên môn; Giám đốc và Trưởng ban QLDA thuộc Ban điều hành chung trong cả hai khối. AI chưa kết nối.':'Choose MEP or Construction to filter staff; the Company Director and Project Management Lead appear in both as shared management. AI is not connected.'
 });
+// V5.7.3: local-first workspace and settings navigation.
+Object.assign(STRINGS,{
+ 'Cài đặt':'Settings',
+ 'LƯU CỤC BỘ':'LOCAL STORAGE',
+ '● LƯU CỤC BỘ · CHƯA CÓ DỰ ÁN':'● LOCAL STORAGE · NO PROJECT',
+ 'Trên thiết bị':'On this device',
+ 'Kiểm tra nội bộ trên thiết bị':'Local review only',
+ 'Chưa kích hoạt thực thi AI':'AI execution not enabled',
+ 'Dữ liệu chưa đồng bộ máy chủ':'Data is not synchronized with a server',
+ 'Làm việc cục bộ, không cần đăng nhập. Dữ liệu chưa đồng bộ máy chủ.':'Work locally without signing in. Data is not synced to a server.',
+ 'Phê duyệt nội bộ':'Local approval',
+ 'Cài đặt API & AI Agent':'API & AI Agent Settings'
+});
+
 const rules=Object.entries(STRINGS).sort((a,b)=>b[0].length-a[0].length);
 export function translateText(original,lang=getLanguage()){
   if(lang!=='en')return String(original??'');
@@ -451,3 +465,4 @@ export function translateDom(root=document.body,lang=getLanguage()){
   }
  }
 }
+

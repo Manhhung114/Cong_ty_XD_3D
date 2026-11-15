@@ -30,16 +30,17 @@ test('V5.7.1 has a single server-backed approval page and no simulator',()=>{
  assert.match(portal,/this\.canReviewTask\(t\)/);
  assert.doesNotMatch(app,/BOQ_DEMO\.csv/);
 });
-test('V5.7.1 requires server login for tasks, approvals and documents',()=>{
- const app=read('src/app.js'),portal=read('src/portal.js');
+test('V5.7.3 opens tasks, approvals and documents without server login',()=>{
+ const app=read('src/app.js'),portal=read('src/portal.js'),local=read('src/local_portal.js');
+ assert.match(app,/new LocalProjectPortal/);assert.doesNotMatch(app,/new ProjectPortal\(/);
  for(const tab of ['reviews','tasks','documents'])assert.ok(app.includes(`${tab}:()=>portal.render('${tab}')`),tab);
- assert.match(portal,/if\(!this\.user\)return this\.loginPage\(\)/);
- assert.match(portal,/canReviewTask/);
+ assert.match(portal,/if\(!this\.user\)return this\.loginPage\(\)/);assert.doesNotMatch(local,/loginPage\(/);
+ assert.match(portal,/canReviewTask/);assert.match(local,/reviewTaskInStore/);
  assert.ok(portal.includes("kind==='documents'?this.documentsPage()"));
 });
 test('V5.7.1 Android keeps package ID, updates version and omits sample assets',()=>{
  const gradle=read('android/app/build.gradle');const workflow=read('.github/workflows/build-android-apk.yml');
  assert.match(gradle,/applicationId 'vn\.congtyxd3d\.app'/);
- assert.match(gradle,/versionCode 59/);
+ assert.ok(Number(gradle.match(/versionCode (\d+)/)?.[1])>=60,'Android versionCode must not decrease');
  assert.match(workflow,/rm -rf android\/app\/src\/main\/assets\/www\/data\/samples/);
 });

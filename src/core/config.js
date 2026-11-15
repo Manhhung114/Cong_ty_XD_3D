@@ -94,7 +94,8 @@ export const ROADMAP = [
   {version:'V5.3',title:'Pháp luật và Việt hóa',state:'Đã tích hợp',summary:'Vị trí ghim MEP chính xác hơn, danh mục pháp luật từ nguồn chính thống.'},
   {version:'V5.4',title:'Song ngữ & danh mục TCVN',state:'Đã tích hợp',summary:'Tiếng Việt / English; tra cứu VSQI, cập nhật JSON trên GitHub/nhập thủ công, giữ hồ sơ gốc.'},
   {version:'V5.5',title:'Chờ duyệt và quản lý cập nhật Android',state:'Đã tích hợp',summary:'Quy trình xem báo cáo và phê duyệt đã chuyển sang máy chủ, song ngữ và ký APK cố định.'},
-  {version:'V5.6',title:'Quản lý nhiều dự án',state:'Có máy chủ API',summary:'Dự án, người dùng, nhiệm vụ và hồ sơ được lưu trên máy chủ và theo quyền truy cập.'},
-  {version:'V5.7',title:'Phân quyền và phê duyệt',state:'Đã tích hợp',summary:'Đăng nhập, quản lý thành viên, duyệt nhiều cấp theo dự án và nhật ký trên máy chủ.'},
-  {version:'V5.7.1',title:'Một luồng duyệt, không dữ liệu giả',state:'Đã tích hợp',summary:'Chỉ một hàng chờ phê duyệt có xác thực; bỏ dữ liệu và kịch bản mô phỏng.'}
+  {version:'V5.6',title:'Quản lý nhiều dự án',state:'Đã có chế độ cục bộ',summary:'Quản lý nhiều dự án theo thiết bị; backend còn trong mã nguồn để kích hoạt khi triển khai máy chủ.'},
+  {version:'V5.7',title:'Phân quyền và phê duyệt',state:'Tạm tắt xác thực',summary:'Tạm tắt đăng nhập và phân quyền; có duyệt nội bộ trên thiết bị, chưa có xác thực người duyệt.'},
+  {version:'V5.7.1',title:'Một luồng duyệt, không dữ liệu giả',state:'Đã tích hợp',summary:'Chỉ một hàng chờ phê duyệt; bỏ dữ liệu và kịch bản mô phỏng.'},
+  {version:'V5.7.3',title:'Chế độ cục bộ và Cài đặt API',state:'Có thể thử',summary:'Không cần đăng nhập; dự án, công việc, hồ sơ và duyệt lưu trên thiết bị. Cấu hình API được quản lý riêng và khóa có thể lưu mã hóa.'}
 ];
