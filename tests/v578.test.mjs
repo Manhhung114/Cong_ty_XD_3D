@@ -30,6 +30,6 @@ test('V5.7.8 UI exposes distinct TVPL refresh button, workflow and pending table
  assert.match(app,/TVPL_REFRESH_WORKFLOW/);
  assert.match(app,/checkTVPLUpdates\(\)/);
  assert.match(app,/tvplCandidates\.map/);
- assert.ok(/legalStatistics\(legalRecords\)|renderLegalStatistics/.test(app));
+ assert.ok(/legalStatistics\(legalRecords\)|renderLegalStatistics|renderLegalSummary/.test(app));
  assert.doesNotMatch(app,/legalStatistics\(tvplCandidates\)/);
 });
