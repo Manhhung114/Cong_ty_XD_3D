@@ -1,6 +1,6 @@
 {
   "project": "Công ty Xây dựng & MEP AI 3D",
-  "artifact_version": "0.5.0-demo",
+  "artifact_version": "0.5.1-demo",
   "release_date": "2026-11-15",
   "modules": [
     {
@@ -32,6 +32,12 @@
       "area": "Construction branch + 2-storey 3D office",
       "entry": "src/core/config.js",
       "status": "prototype_16_departments_18_agents"
+    },
+    {
+      "label": "V5.1",
+      "area": "Detailed isometric image and interactive room hotspots, WebGL mode retained",
+      "entry": "src/3d/illustrated.js",
+      "status": "illustration_with_hotspots_and_webgl_lowpoly_option"
     }
   ],
   "data_categories": {
@@ -44,7 +50,7 @@
     "construction": "project_templates/XD_PROJECT_001"
   },
   "runtime": {
-    "frontend": "Vanilla ES modules + WebGL 1 (fallback SVG)",
+    "frontend": "Vanilla ES modules + isometric render/hotspots + WebGL 1 low-poly (SVG fallback)",
     "local_server": "Node.js/Python standard library",
     "database": "localStorage + IndexedDB",
     "cloud": false
@@ -54,11 +60,13 @@
     "No BIM IFC viewer connected",
     "Browser data can be cleared",
     "Sample calculations are not engineering deliverables",
-    "Construction calculations and approvals are demo only"
+    "Construction calculations and approvals are demo only",
+    "Detailed isometric visual is a rendered 2D asset, not a real-time 3D mesh"
   ],
   "divisions": {
     "shared": "Ban giám đốc",
     "mep": "Cơ điện",
     "construction": "Xây dựng"
-  }
+  },
+  "current_version": "V5.1"
 }

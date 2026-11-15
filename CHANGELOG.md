@@ -1,5 +1,13 @@
 # CHANGELOG — Công ty Xây dựng & MEP AI 3D
 
+## 2026-11-15 — V5.1 Phối cảnh 3D cao cấp
+
+- Bổ sung ảnh isometric 3 tầng có phòng ban MEP và Xây dựng, khu giám đốc, phòng họp và bảng điều hành trung tâm.
+- Bổ sung 16 điểm chọn phòng trên phối cảnh; giữ liên kết với inspector và dữ liệu công việc.
+- Chế độ “Phối cảnh chi tiết” mặc định; giữ nút “3D tương tác” (WebGL) và chế độ dự phòng SVG.
+- Tối ưu vuốt ngang khi xem trên điện thoại; giữ nguyên BOQ, bản vẽ, revision và nhiệm vụ đang lưu.
+- Ảnh phối cảnh là hình dựng minh họa, **không phải mô hình WebGL 3D**; AI vẫn là mô phỏng.
+
 ## 2026-11-15 — V5.0: Bổ sung nhánh Xây dựng
 
 - Thêm 8 phòng chuyên môn Xây dựng, 8 Agent ảo và 6 nhiệm vụ demo; giữ khối MEP, tổng 16 phòng/18 Agent.

@@ -105,3 +105,12 @@ Cần bổ sung backend, khóa API lưu phía server, điều phối Agent, côn
 3. Trong **Kho tài liệu**, chọn khối rồi tải bản vẽ, kết cấu, BOQ, kế hoạch, vật tư hoặc checklist; mã giống ở hai khối được quản lý độc lập.
 4. Trong **BOQ / Dự toán**, dùng nút BOQ MEP / BOQ Xây dựng và tệp CSV mẫu riêng.
 5. Các bản demo đều không thay thế kết quả tính toán hay phê duyệt của kỹ sư có chuyên môn.
+
+
+## V5.1 — Phối cảnh văn phòng chi tiết (15/11/2026)
+
+Mặc định hiển thị hình dựng isometric ba tầng, gần phong cách ảnh mẫu: ban điều hành, MEP, Xây dựng, phòng họp và màn hình điều hành trung tâm. Bấm vào **điểm tròn** trên mỗi khu vực để xem nhân sự, nhiệm vụ và giao việc.
+
+Nút **3D tương tác** chuyển lại WebGL gốc để xoay/zoom. Nút **Phối cảnh chi tiết** trở lại ảnh chất lượng cao có điểm chọn phòng. Trên điện thoại vuốt ngang để xem toàn bộ tòa nhà.
+
+**Phân biệt rõ:** Phối cảnh chi tiết là ảnh 3D-rendered dạng tĩnh có hotspot; chế độ 3D tương tác mới là WebGL. Không tuyên bố đồ họa 3D ảnh tĩnh có thể xoay mọi góc. Không ảnh hưởng tệp hồ sơ, revision, BOQ hoặc dữ liệu cũ trong IndexedDB/localStorage.

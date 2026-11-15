@@ -80,5 +80,6 @@ export const ROADMAP = [
   {version:'V2.0',title:'Điều phối công việc',state:'Demo chức năng',summary:'Tạo nhiệm vụ, đổi trạng thái, nhật ký thao tác. Chưa có LLM hoặc tính toán chuyên ngành.'},
   {version:'V3.0',title:'Hồ sơ bản vẽ / BOQ / BIM',state:'Quản lý nền tảng',summary:'Phân loại tệp, mã hồ sơ, revision, upload/download, mẫu CSV. Chưa tự bóc tách.'},
   {version:'V4.0',title:'Bảng điều hành',state:'Dashboard demo',summary:'Tổng hợp KPI, tiến độ, hồ sơ và xuất dữ liệu JSON. Chưa có phân quyền/server.'},
-  {version:'V5.0',title:'Nhánh Xây dựng',state:'Đã tích hợp demo',summary:'2 tầng MEP + Xây dựng, 16 phòng, 18 Agent, công việc và tệp riêng theo nhánh; chưa AI thật.'}
+  {version:'V5.0',title:'Nhánh Xây dựng',state:'Đã tích hợp demo',summary:'2 tầng MEP + Xây dựng, 16 phòng, 18 Agent, công việc và tệp riêng theo nhánh; chưa AI thật.'},
+  {version:'V5.1',title:'Phối cảnh văn phòng chi tiết',state:'Có thể chạy thử',summary:'Ảnh phối cảnh isometric 3D có 16 điểm chọn phòng; chuyển qua WebGL tương tác khi cần; chưa phải 3D photoreal-time.'}
 ];

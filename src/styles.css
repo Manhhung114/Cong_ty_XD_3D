@@ -32,3 +32,34 @@
 
 /* Keep the office interaction tip clear of the floor legend. */
 .office-hint{bottom:50px}
+
+
+/* V5.1 · Illustrated isometric building with interactive rooms. */
+.office-display-options{display:flex;align-items:center;gap:8px;padding:11px 15px;border-bottom:1px solid #2c5266;background:#142e40;flex-wrap:wrap}
+.office-display-options button{background:#1d4054;color:#bfdbe4;border:1px solid #386177;padding:8px 13px;border-radius:9px;font-size:11px;font-weight:800;transition:background .2s}
+.office-display-options button:hover{background:#2b5a70;color:white}
+.office-display-options button.active{background:#91e2eb;color:#083c4b;border-color:#b8fbff;box-shadow:0 2px 12px #59c9e044}
+.office-display-options>span{font-size:10px;margin-left:auto;color:#8cb0bf}
+.office-shell.illustrated-mode{background:linear-gradient(145deg,#d3efff,#8fc7e8);touch-action:pan-x;overflow:hidden}
+.illustrated-viewport{position:absolute;inset:0;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:#4d91b0 transparent}
+.illustrated-stage{position:relative;height:100%;width:100%;min-width:0;overflow:hidden}
+.illustrated-art{display:block;width:100%;height:100%;object-fit:fill;user-select:none;pointer-events:none}
+.illustrated-pin{--pin-color:#50c4d6;position:absolute;z-index:3;transform:translate(-50%,-50%);background:#064b73bd;border:2px solid #e2ffff;border-radius:100px;color:#efffff;padding:0;width:20px;height:20px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px #2ad4ec33,0 0 14px #0f517b88;transition:transform .16s,background .16s;cursor:pointer}
+.illustrated-pin-dot{height:6px;width:6px;border-radius:50%;background:var(--pin-color);display:block;box-shadow:0 0 8px var(--pin-color)}
+.illustrated-pin-label{position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);background:#0a2845e9;border:1px solid #75cfdaac;border-radius:6px;padding:5px 7px;white-space:nowrap;font-size:10px;font-weight:800;opacity:0;pointer-events:none;color:white}
+.illustrated-pin:hover,.illustrated-pin:focus-visible,.illustrated-pin.selected{background:#056a83;transform:translate(-50%,-50%) scale(1.25);z-index:5;outline:none}
+.illustrated-pin:hover .illustrated-pin-label,.illustrated-pin:focus-visible .illustrated-pin-label,.illustrated-pin.selected .illustrated-pin-label{opacity:1}
+.illustrated-current{position:absolute;z-index:3;bottom:12px;left:50%;transform:translateX(-50%);background:#092f4bd9;color:#e2faff;border:1px solid #9de8f9ad;border-radius:100px;font-size:10px;font-weight:800;white-space:nowrap;padding:8px 12px;box-shadow:0 3px 16px #132d4d33;pointer-events:none;max-width:58%;overflow:hidden;text-overflow:ellipsis}
+.office-shell.illustrated-mode .office-hint{top:13px;bottom:auto;left:13px;background:#063954d8;border-color:#79cbe2;color:#edffff}
+.office-shell.illustrated-mode .office-level-legend{bottom:12px;left:12px;z-index:5}
+.office-shell.illustrated-mode .reset-camera{z-index:5;right:12px;bottom:12px;background:#073754e9;color:white;border-color:#77d2e7}
+@media(min-width:751px){.office-shell.illustrated-mode{height:490px}}
+@media(max-width:750px){
+  .office-display-options{gap:6px;padding:9px 10px}
+  .office-display-options button{padding:7px 9px;font-size:10px;flex:1}
+  .office-display-options>span{flex-basis:100%;font-size:9px}
+  .office-shell.illustrated-mode{height:445px}
+  .illustrated-stage{width:690px;min-width:690px}
+  .office-shell.illustrated-mode .office-hint{font-size:9px;max-width:85%;padding:7px 9px}
+  .illustrated-current{font-size:9px;bottom:53px;max-width:75%}
+}
