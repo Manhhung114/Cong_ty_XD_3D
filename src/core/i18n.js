@@ -391,6 +391,20 @@ Object.assign(STRINGS,{
   "đang mô phỏng":"is simulated"
 });
 Object.assign(STRINGS,{'Tiến độ':'Schedule','Chờ duyệt và quản lý cập nhật Android':'Approvals and Android Updates','Xem báo cáo/hồ sơ, ghi quyết định có tên người duyệt, song ngữ hai chiều và chuẩn bị APK ký cố định.':'Review reports and documents, record named human decisions, switch language both ways and prepare stable signed APK updates.'});
+Object.assign(STRINGS,{
+ 'Quản lý dự án':'Project Management',
+ 'Duyệt dự án thật':'Server Approvals',
+ 'Tài khoản & quyền':'Accounts & Permissions',
+ 'Chờ phê duyệt (Demo)':'Pending Approvals (Demo)',
+ 'Dự án đang làm việc':'Active project',
+ 'Máy chủ dự án':'Project server',
+ 'DỰ ÁN DEMO / MÁY CHỦ':'DEMO / SERVER PROJECT',
+ 'Quản lý nhiều dự án trên máy chủ; mỗi tài khoản chỉ thấy dự án được cấp quyền.':'Manage multiple server projects; each account sees only assigned projects.',
+ 'Phê duyệt theo tài khoản và theo ba cấp QA/QC, Trưởng bộ môn, Quản lý dự án.':'Account-based QA/QC, discipline lead and project manager approvals.',
+ 'Quản lý tài khoản, phân quyền và cấu hình AI Agent an toàn.':'Manage user accounts, project access and secure agent configuration.',
+ 'Chạm từng phòng ban · Vuốt ngang để xem toàn cảnh':'Tap a department · Swipe horizontally to explore the office',
+ 'V5.5 · VĂN PHÒNG SỐ ĐA NGÀNH':'V5.7 · MULTIDISCIPLINARY DIGITAL OFFICE',
+});
 const rules=Object.entries(STRINGS).sort((a,b)=>b[0].length-a[0].length);
 export function translateText(original,lang=getLanguage()){
   if(lang!=='en')return String(original??'');
