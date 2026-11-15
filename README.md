@@ -1,4 +1,11 @@
-# CÔNG TY XÂY DỰNG & MEP AI 3D — V5.7.3 (CHẾ ĐỘ CỤC BỘ)
+## V5.7.4 – Mục Công việc chỉ xuất hiện đúng vị trí
+
+- Trang **Công việc** là nơi duy nhất có biểu mẫu giao việc, bắt đầu xử lý và gửi báo cáo.
+- Trang **Quản lý dự án** chỉ tạo/chọn dự án, xem thống kê; không lặp biểu mẫu công việc.
+- Văn phòng 3D chỉ xem nhiệm vụ liên quan theo phòng. Các mục Cài đặt, BOQ, Kho tài liệu, BIM, Pháp luật, Nhật ký và Phiên bản không còn nút `+ Công việc` toàn trang.
+- Dữ liệu lưu cục bộ, báo cáo, phê duyệt, API Settings và tiếng Việt/English vẫn được giữ nguyên.
+
+# CÔNG TY XÂY DỰNG & MEP AI 3D — V5.7.4 (CHẾ ĐỘ CỤC BỘ)
 
 **Bản hiện tại không cần đăng nhập hoặc kết nối máy chủ.** Các mục Dự án, Công việc, Chờ phê duyệt, Kho tài liệu, Nhật ký và Cài đặt hoạt động trong một thiết bị. Backend V5.7 vẫn được giữ trong mã nguồn để triển khai và bật lại phân quyền khi có máy chủ.
 

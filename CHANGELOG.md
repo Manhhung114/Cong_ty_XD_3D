@@ -1,3 +1,13 @@
+# CHANGELOG — Công ty XD & MEP AI 3D
+
+## 2026-11-15 — V5.7.4: Bỏ mục Công việc trùng lặp
+
+- Bỏ nút `＋ Công việc` cố định ở tất cả các sheet.
+- Để biểu mẫu tạo/xử lý công việc duy nhất trong trang **Công việc**.
+- Trang **Quản lý dự án** chỉ giữ tạo/chọn dự án, bộ lọc và các số liệu tổng hợp.
+- Văn phòng 3D chỉ hiển thị nhiệm vụ theo phòng, không còn nút tạo/giao trùng.
+- Không thay đổi cơ sở dữ liệu cục bộ, hồ sơ, revision, phê duyệt hoặc cấu hình Agent.
+
 ## 2026-11-15 – V5.7.2: Ban điều hành chung & đơn giản hóa menu
 
 - Bỏ tab Khối Xây dựng riêng, dùng bộ lọc MEP / Xây dựng trong Văn phòng 3D và Nhân viên AI.
