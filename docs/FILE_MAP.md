@@ -15,3 +15,14 @@
 | Nhật ký phiên bản | `versions/*.md`, `CHANGELOG.md` | — | Bổ sung thay đổi, không viết đè nội dung lịch sử |
 
 **Đáng chú ý:** `data/templates/` là file mẫu phát hành trong ZIP. **Các tệp người dùng tải lên** được lưu trong IndexedDB, không ghi lên thư mục hệ thống. Để lưu hồ sơ trong kho chung phải triển khai backend và kho object storage.
+
+## V5: Xây dựng độc lập với MEP
+
+| Hạng mục | Tệp |
+|---|---|
+| Phòng Xây dựng / nhân viên AI | `src/core/config.js` |
+| Trụ sở 3D hai tầng | `src/3d/scene.js`, `src/styles.css` |
+| Revision theo khối (MEP/XD) | `src/core/documents.js` |
+| Mẫu bản vẽ / BOQ / tiến độ / vật tư / HSE XD | `data/templates/CONSTRUCTION_*.csv`, `data/templates/BOQ_XAY_DUNG_TEMPLATE.csv` |
+| Thư mục hồ sơ chờ cập nhật | `project_templates/XD_PROJECT_001/` |
+| Ghi chú triển khai | `versions/V5_0_CONSTRUCTION_BRANCH.md` |

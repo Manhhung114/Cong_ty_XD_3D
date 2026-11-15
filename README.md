@@ -1,4 +1,4 @@
-# MEP AI COMPANY 3D — Prototype V1.0–V4.0
+# CÔNG TY XÂY DỰNG & MEP AI 3D — Prototype V1.0–V5.0
 
 **Bản bàn giao:** 2026-11-15  
 **Loại:** Ứng dụng web 3D chạy cục bộ, không cần Node package, npm hoặc API key.  
@@ -35,10 +35,11 @@ python -m http.server 8766
 
 | Mốc | Tính năng hiện có | Chưa có |
 |---|---|---|
-| V1.0 | WebGL 3D, 8 phòng, 10 nhân viên avatar; click phòng/Agent, xoay, zoom; SVG isometric dự phòng | Mô hình nội thất 3D chất lượng thương mại, hoạt cảnh thực tế cao |
+| V1.0 | WebGL 3D, 16 phòng trên 2 tầng và 18 nhân viên avatar; click phòng/Agent, xoay, zoom; SVG isometric dự phòng | Mô hình nội thất 3D chất lượng thương mại, hoạt cảnh thực tế cao |
 | V2.0 | Tạo nhiệm vụ, giao Agent theo phòng ban, chuyển trạng thái, mô phỏng luồng và nhật ký | LLM API, thuật toán kỹ thuật, quy trình agent tự thực thi |
 | V3.0 | Nhóm hồ sơ, tải tệp và giữ revision bằng IndexedDB, mẫu bản vẽ/BOQ/BIM/PCCC; CSV BOQ có tính tổng | Đọc DWG/RVT/IFC, Excel XLSX trực tiếp, tách khối lượng từ mô hình |
 | V4.0 | KPI, màn hình tiến độ, sự kiện và xuất JSON metadata | CSDL đa người dùng, SSO, quyền duyệt, sao lưu máy chủ, dashboard số liệu thực |
+| V5.0 | Nhánh Xây dựng có 8 phòng/8 Agent, phân loại MEP–XD, BOQ/khối, revision hồ sơ riêng và văn phòng 3D hai tầng | AI kỹ thuật thực và mô hình 3D chi tiết như ảnh thiết kế |
 
 ## Cấu trúc thư mục tách biệt
 
@@ -61,16 +62,17 @@ mep_ai_company_3d/
 ├── data/
 │   ├── samples/                        # Dữ liệu DEMO, có thể xóa khi đưa vào sản xuất
 │   └── templates/                      # Từng mẫu nghiệp vụ độc lập
-├── project_templates/MEP_PROJECT_001/  # 6 thư mục dành cho hồ sơ thực tế sau này
-├── versions/                           # Ghi chú V1.0, V2.0, V3.0, V4.0 riêng
+├── project_templates/MEP_PROJECT_001/  # 6 thư mục hồ sơ MEP
+├── project_templates/XD_PROJECT_001/   # 8 thư mục hồ sơ Xây dựng
+├── versions/                           # Ghi chú V1.0–V5.0 riêng
 ├── docs/                               # Hướng dẫn, kiểm thử và quy ước cập nhật
 └── tests/                              # Bộ kiểm thử core bằng Node built-in
 ```
 
 ## Quy tắc cập nhật hồ sơ
 
-1. Mỗi tài liệu có **mã cố định** như `DRW-E-001`, `BOQ-MEP-001`, `BIM-MEP-001`.
-2. Tải tệp lần đầu tạo `R01`. Khi thay đổi, tải tệp mới **cùng mã**, hệ thống tạo `R02`, `R03`… (không ghi đè tệp cũ).
+1. Chọn khối **MEP** hoặc **Xây dựng**. Mỗi tài liệu có **mã cố định** như `DRW-E-001`, `BOQ-MEP-001`, `BIM-MEP-001`.
+2. Mỗi cặp `(khối, mã hồ sơ)` có chuỗi revision độc lập. Tải tệp lần đầu tạo `R01`. Khi thay đổi, tải tệp mới **cùng mã**, hệ thống tạo `R02`, `R03`… (không ghi đè tệp cũ).
 3. Ghi mô tả thay đổi; ở màn hình hồ sơ, bấm **Lịch sử** để xem revision và tải từng tệp gốc.
 4. Các loại hồ sơ khác nhau có thể có cùng phiên bản R01 nhưng mã hồ sơ khác nhau. **Hệ thống không tự so sánh nội dung DWG/PDF/XLSX.**
 5. Tệp upload hiện lưu trong **IndexedDB của trình duyệt hiện tại**, không tự đi vào `data/` hoặc `project_templates/`, cũng không tự đồng bộ lên Google Drive. Xóa dữ liệu trang web có thể làm mất file đã upload. Cần giữ file gốc bên ngoài ứng dụng.
@@ -81,11 +83,11 @@ Tệp ví dụ: `data/samples/BOQ_DEMO.csv`.
 
 5 cột bắt buộc/khuyến nghị: `code,description,unit,quantity,unitPrice`. Cần `quantity` và `unitPrice` để tính. Ứng dụng hỗ trợ phân cách dấu phẩy hoặc chấm phẩy, số thập phân kiểu Việt Nam. Thành tiền = khối lượng × đơn giá; **chưa** tính VAT, chiết khấu hay kiểm tra đơn giá thực tế.
 
-Nhập CSV qua **BOQ / Dự toán → Đọc CSV**. Nếu muốn lưu nguyên tệp dưới dạng hồ sơ có revision, tiếp tục dùng **Kho tài liệu → BOQ / Dự toán**.
+Chọn **BOQ MEP** hoặc **BOQ Xây dựng**, sau đó nhập CSV qua **BOQ / Dự toán → Đọc CSV**. Nếu muốn lưu nguyên tệp dưới dạng hồ sơ có revision, tiếp tục dùng **Kho tài liệu → BOQ / Dự toán**.
 
 ## Kiểm thử đã thực hiện
 
-- Lệnh `npm test` (không cần cài gói): 6/6 test logic PASS.
+- Lệnh `npm test` (không cần cài gói): kiểm thử logic V5.
 - Kiểm tra cú pháp JS bằng `node --check`: PASS.
 - Kiểm tra giao diện mô phỏng bằng trình duyệt giới hạn: phần UI, điều hướng, tạo nhiệm vụ, chọn phòng, mở form upload, BOQ mẫu và SVG isometric dự phòng có thể hiển thị; không phát hiện lỗi JS trong lần thử đó.
 - **Chưa xác minh** khởi tạo WebGL trên thiết bị thực, tải IndexedDB trên trình duyệt có origin thông thường, và độ ổn định khi nhiều file lớn. Các chức năng này cần kiểm thử trên thiết bị đích trước nghiệm thu.
@@ -95,3 +97,11 @@ Nhập CSV qua **BOQ / Dự toán → Đọc CSV**. Nếu muốn lưu nguyên t�
 Cần bổ sung backend, khóa API lưu phía server, điều phối Agent, công cụ tính toán kỹ thuật đã kiểm định, kho tệp phía server, phân quyền theo dự án, phê duyệt bởi kỹ sư, nhật ký bất biến và kết nối BIM. Xem `docs/AI_BACKEND_CONTRACT.md`.
 
 **Bảo mật:** Mã nguồn demo chạy hoàn toàn trên trình duyệt và không gửi tệp lên server. Không lưu hồ sơ dự án bảo mật hoặc thông tin cá nhân trong demo. Mọi dữ liệu trong `data/samples` đều là minh họa, không dùng cho thiết kế hoặc nghiệm thu.
+
+## V5.0 – Cách sử dụng nhánh Xây dựng
+
+1. Truy cập **Khối Xây dựng** ở sidebar để quan sát 8 phòng trên tầng trên của văn phòng.
+2. Trong **Nhân viên AI** và **Công việc**, chọn Toàn công ty / MEP / Xây dựng để xem đúng khối.
+3. Trong **Kho tài liệu**, chọn khối rồi tải bản vẽ, kết cấu, BOQ, kế hoạch, vật tư hoặc checklist; mã giống ở hai khối được quản lý độc lập.
+4. Trong **BOQ / Dự toán**, dùng nút BOQ MEP / BOQ Xây dựng và tệp CSV mẫu riêng.
+5. Các bản demo đều không thay thế kết quả tính toán hay phê duyệt của kỹ sư có chuyên môn.

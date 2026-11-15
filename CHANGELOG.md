@@ -1,4 +1,13 @@
-# CHANGELOG — MEP AI Company 3D
+# CHANGELOG — Công ty Xây dựng & MEP AI 3D
+
+## 2026-11-15 — V5.0: Bổ sung nhánh Xây dựng
+
+- Thêm 8 phòng chuyên môn Xây dựng, 8 Agent ảo và 6 nhiệm vụ demo; giữ khối MEP, tổng 16 phòng/18 Agent.
+- Mở rộng văn phòng WebGL/SVG thành 2 tầng có chế độ xem toàn công ty / từng khối.
+- Phân khối hồ sơ và revision độc lập cho MEP và Xây dựng; thêm 5 mẫu CSV và cây thư mục XD_PROJECT_001.
+- Hai bảng BOQ demo riêng. Đã thêm migration localStorage cho nhiệm vụ cũ; không xóa hồ sơ đã lưu.
+- AI thực, BIM IFC viewer và tự tính toán vẫn chưa triển khai.
+
 
 ## 2026-11-15 — Initial prototype V1.0–V4.0 foundation
 
