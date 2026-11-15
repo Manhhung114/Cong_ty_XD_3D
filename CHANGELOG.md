@@ -1,5 +1,12 @@
 # CHANGELOG — Công ty Xây dựng & MEP AI 3D
 
+## 2026-11-15 — V5.3 Tiếng Việt, hiệu chỉnh điểm phòng và pháp lý
+
+- Sửa ghim theo vị trí thực của ảnh, tách phòng chưa có hình minh họa khỏi ghim.
+- Việt hóa tên nhân viên AI, nhãn giao diện, tạo trang Pháp luật & tiêu chuẩn riêng.
+- Danh mục 29 văn bản từ cổng chính thức, có phân loại lĩnh vực, nguồn, lưu ý hiệu lực và Excel tải về.
+- Không xóa dữ liệu demo và lịch sử hồ sơ đã lưu.
+
 ## 2026-11-15 — Android V5.2.1 Debug APK
 
 - Thêm dự án Android WebView đóng gói assets V5.2, chọn tệp Android và workflow build APK.

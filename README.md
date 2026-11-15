@@ -128,3 +128,12 @@ Vào **Văn phòng 3D → 3D tương tác** để xem văn phòng ba tầng. S�
 ## Android APK V5.2.1 (bản thử)
 
 Thư mục `android/` chứa wrapper WebView Android cho V5.2, đóng gói asset tĩnh offline qua HTTPS nội bộ. Vào GitHub Actions `Build Android APK - XD MEP AI 3D` để tải `app-debug.apk` khi build PASS. Xem `android/README_ANDROID.md` và `versions/V5_2_1_ANDROID_APK.md` về cách cài đặt, dữ liệu và giới hạn. **Chưa có signing key cố định và chưa đủ điều kiện phát hành Play Store.**
+
+
+## V5.3 – Thư viện văn bản pháp luật và tiếng Việt
+
+- Mục **Pháp luật & tiêu chuẩn** trên menu có bộ lọc hai lĩnh vực, tìm theo số hiệu, nguồn và liên kết văn bản chính thống.
+- Sheet Excel: `data/legal/Thu_vien_phap_luat_MEPF_PCCC_Xay_dung_QLDA_2026.xlsx`, dữ liệu JSON/CSV cùng thư mục để cập nhật độc lập.
+- Không lưu toàn văn TCVN bản quyền; chỉ trỏ nguồn VSQI, Bộ Xây dựng và Cổng văn bản Chính phủ.
+- Sửa vị trí các ghim tại bàn làm việc thật; QA/QC MEP và Quản lý hiện trường XD hiện chưa có vùng riêng trên ảnh nên cung cấp nút chọn bổ sung.
+- Những kết luận pháp lý vẫn cần kiểm tra theo thời điểm áp dụng và điều khoản chuyển tiếp.

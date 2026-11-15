@@ -25,24 +25,24 @@ export const FLOOR_HEIGHT=4.35;
 export const departmentDivision=dept=>dept?.division==='shared'?'shared':dept?.division||'mep';
 export const visibleDepartments=view=>DEPARTMENTS.filter(d=>view==='all'||d.division===view||(view==='mep'&&d.division==='shared'));
 export const AGENTS = [
-  {id:'CEO',name:'Company Director',role:'Giám đốc công ty AI',dept:'director',tag:'Điều phối liên ngành'},
-  {id:'PM',name:'Project Manager',role:'Quản lý dự án AI',dept:'director',tag:'Tiến độ tổng thể'},
-  {id:'ELE',name:'Electrical Engineer',role:'Kỹ sư Điện AI',dept:'electrical',tag:'Tính toán điện'},
-  {id:'HVA',name:'HVAC Engineer',role:'Kỹ sư HVAC AI',dept:'hvac',tag:'Tải lạnh'},
-  {id:'PLU',name:'Plumbing Engineer',role:'Kỹ sư CTN AI',dept:'plumbing',tag:'Lưu lượng'},
-  {id:'FIR',name:'Fire Engineer',role:'Kỹ sư PCCC AI',dept:'fire',tag:'Kiểm tra PCCC'},
-  {id:'BIM',name:'MEP BIM Coordinator',role:'Điều phối BIM MEP AI',dept:'bim',tag:'Mô hình cơ điện'},
-  {id:'QSU',name:'MEP Quantity Surveyor',role:'Kỹ sư QS MEP AI',dept:'qs',tag:'BOQ cơ điện'},
-  {id:'QAC',name:'MEP QA/QC Reviewer',role:'Kiểm soát MEP AI',dept:'qa',tag:'QA/QC'},
-  {id:'DOC',name:'Document Controller',role:'Quản lý hồ sơ AI',dept:'qa',tag:'Tài liệu'},
-  {id:'ARC',name:'Architectural Engineer',role:'Kỹ sư Kiến trúc AI',dept:'architecture',tag:'Bản vẽ kiến trúc'},
-  {id:'STR',name:'Structural Engineer',role:'Kỹ sư Kết cấu AI',dept:'structure',tag:'Cột, dầm, sàn'},
-  {id:'XBI',name:'Construction BIM',role:'BIM xây dựng AI',dept:'xd_bim',tag:'Mô hình kiến trúc/kết cấu'},
-  {id:'XQS',name:'Construction Quantity Surveyor',role:'Kỹ sư QS xây dựng AI',dept:'xd_qs',tag:'BOQ xây dựng'},
-  {id:'PLN',name:'Construction Planner',role:'Kỹ sư Kế hoạch AI',dept:'xd_planning',tag:'Tiến độ thi công'},
-  {id:'SIT',name:'Site Engineer',role:'Kỹ sư Hiện trường AI',dept:'xd_site',tag:'Theo dõi thi công'},
-  {id:'HSE',name:'Construction QA/HSE',role:'An toàn & QA/QC XD AI',dept:'xd_safety',tag:'Chất lượng/An toàn'},
-  {id:'MAT',name:'Material Controller',role:'Kỹ sư Vật tư AI',dept:'xd_material',tag:'Vật liệu xây dựng'}
+  {id:'CEO',name:'Giám đốc công ty',role:'Giám đốc công ty AI',dept:'director',tag:'Điều phối liên ngành'},
+  {id:'PM',name:'Trưởng ban quản lý dự án',role:'Quản lý dự án AI',dept:'director',tag:'Tiến độ tổng thể'},
+  {id:'ELE',name:'Kỹ sư điện',role:'Kỹ sư Điện AI',dept:'electrical',tag:'Tính toán điện'},
+  {id:'HVA',name:'Kỹ sư điều hòa và thông gió',role:'Kỹ sư HVAC AI',dept:'hvac',tag:'Tải lạnh'},
+  {id:'PLU',name:'Kỹ sư cấp thoát nước',role:'Kỹ sư CTN AI',dept:'plumbing',tag:'Lưu lượng'},
+  {id:'FIR',name:'Kỹ sư phòng cháy chữa cháy',role:'Kỹ sư PCCC AI',dept:'fire',tag:'Kiểm tra PCCC'},
+  {id:'BIM',name:'Điều phối mô hình MEP',role:'Điều phối BIM MEP AI',dept:'bim',tag:'Mô hình cơ điện'},
+  {id:'QSU',name:'Kỹ sư khối lượng MEP',role:'Kỹ sư QS MEP AI',dept:'qs',tag:'BOQ cơ điện'},
+  {id:'QAC',name:'Kỹ sư kiểm soát chất lượng MEP',role:'Kiểm soát MEP AI',dept:'qa',tag:'QA/QC'},
+  {id:'DOC',name:'Nhân viên quản lý hồ sơ',role:'Quản lý hồ sơ AI',dept:'qa',tag:'Tài liệu'},
+  {id:'ARC',name:'Kỹ sư kiến trúc',role:'Kỹ sư Kiến trúc AI',dept:'architecture',tag:'Bản vẽ kiến trúc'},
+  {id:'STR',name:'Kỹ sư kết cấu',role:'Kỹ sư Kết cấu AI',dept:'structure',tag:'Cột, dầm, sàn'},
+  {id:'XBI',name:'Kỹ sư mô hình xây dựng',role:'BIM xây dựng AI',dept:'xd_bim',tag:'Mô hình kiến trúc/kết cấu'},
+  {id:'XQS',name:'Kỹ sư khối lượng xây dựng',role:'Kỹ sư QS xây dựng AI',dept:'xd_qs',tag:'BOQ xây dựng'},
+  {id:'PLN',name:'Kỹ sư kế hoạch thi công',role:'Kỹ sư Kế hoạch AI',dept:'xd_planning',tag:'Tiến độ thi công'},
+  {id:'SIT',name:'Kỹ sư hiện trường',role:'Kỹ sư Hiện trường AI',dept:'xd_site',tag:'Theo dõi thi công'},
+  {id:'HSE',name:'Kỹ sư chất lượng và an toàn xây dựng',role:'An toàn & QA/QC XD AI',dept:'xd_safety',tag:'Chất lượng/An toàn'},
+  {id:'MAT',name:'Kỹ sư quản lý vật tư',role:'Kỹ sư Vật tư AI',dept:'xd_material',tag:'Vật liệu xây dựng'}
 ];
 export const CATEGORIES = [
   {id:'drawings',title:'Bản vẽ',icon:'▤',desc:'PDF, DWG, DXF, bản vẽ thiết kế',formats:'.pdf,.dwg,.dxf,.png,.jpg,.jpeg,.ifc'},

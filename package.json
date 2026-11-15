@@ -1,6 +1,6 @@
 {
   "name": "construction-mep-ai-company-3d",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "private": true,
   "type": "module",
   "description": "Two-branch Construction + MEP AI Company with detailed isometric office and interactive WebGL option",

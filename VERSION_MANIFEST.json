@@ -1,6 +1,6 @@
 {
   "project": "Công ty Xây dựng & MEP AI 3D",
-  "artifact_version": "0.5.2-demo",
+  "artifact_version": "0.5.3-demo",
   "release_date": "2026-11-15",
   "modules": [
     {
@@ -44,6 +44,12 @@
       "area": "Three-level interactive WebGL office and camera/quality controls",
       "entry": "src/3d/scene.js",
       "status": "prototype_no_ai_backend"
+    },
+    {
+      "label": "V5.3",
+      "area": "Vietnamese localization + corrected illustration hotspots + official legal standards library",
+      "entry": "data/legal/danh_muc_van_ban_chinh_thong.json",
+      "status": "verified_official_metadata_with_manual_effective_check"
     }
   ],
   "data_categories": {
@@ -74,5 +80,5 @@
     "mep": "Cơ điện",
     "construction": "Xây dựng"
   },
-  "current_version": "V5.2"
+  "current_version": "V5.3"
 }
