@@ -1,9 +1,9 @@
-// Official-source metadata from QLDA_ver612_VPS, maintained independently of app releases.
+// Independent official-source metadata owned by Cong_ty_XD_3D; QLDA provided methodology only.
 // A GitHub repository is the distribution channel, never the issuing authority.
 import {isOfficialUrl,standardKey} from './standards.js';
 export const MEP_SOURCE_LOCAL='./data/legal/MEP_XD_official_catalog.json';
 export const MEP_SOURCE_REMOTE='https://raw.githubusercontent.com/Manhhung114/Cong_ty_XD_3D/main/data/legal/MEP_XD_official_catalog.json';
-const CACHE_KEY='xd-mep-mepxd-official-legal-v1';
+const CACHE_KEY='xd-mep-official-sources-v1';
 const GROUPS=['Xây dựng – Quản lý dự án','MEPF – Phòng cháy chữa cháy'];
 const LEGAL_NUMBER=/^(?:\d+[\w./-]*\/\d{4}\/[\wÀ-Ỹ.-]+|TCVN\s*\d+(?:-\d+)*:\d{4}|QCVN\s*\d+(?:[-.]\d+)?:\d{4}\/[A-Z]+)$/i;
 export function validateMEPCatalog(value){

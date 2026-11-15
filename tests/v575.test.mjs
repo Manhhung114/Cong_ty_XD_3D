@@ -5,7 +5,7 @@ import {validateMEPCatalog,updateMEPCatalog,MEP_SOURCE_REMOTE} from '../src/core
 const root=new URL('../',import.meta.url);
 const read=p=>readFileSync(new URL(p,root),'utf8');
 const catalog=JSON.parse(read('data/legal/MEP_XD_official_catalog.json'));
-test('V5.7.5 verifies QLDA official-source seed for both branches',()=>{
+test('V5.7.6 verifies independent official-source catalog for both branches',()=>{
  const rows=validateMEPCatalog(catalog).vanBan;
  assert.ok(rows.some(x=>x.soHieu==='207/2026/NĐ-CP'));
  assert.ok(rows.some(x=>x.soHieu==='TCVN 2737:2023'));
