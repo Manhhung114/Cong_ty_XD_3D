@@ -29,3 +29,6 @@
 /* V5 stage composition: taller office viewport follows the stacked-floor reference. */
 @media(min-width:751px){.office-shell{height:490px}}
 @media(max-width:750px){.office-shell{height:395px}}
+
+/* Keep the office interaction tip clear of the floor legend. */
+.office-hint{bottom:50px}

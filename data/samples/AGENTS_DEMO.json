@@ -1,1 +1,114 @@
-{"project":"MEP-DEMO-001","agents":[{"id":"CEO","role":"Director","department":"director"},{"id":"PM","role":"Project Manager","department":"director"},{"id":"ELE","role":"Electrical Engineer","department":"electrical"},{"id":"HVA","role":"HVAC Engineer","department":"hvac"},{"id":"PLU","role":"Plumbing Engineer","department":"plumbing"},{"id":"FIR","role":"Fire Engineer","department":"fire"},{"id":"BIM","role":"BIM Coordinator","department":"bim"},{"id":"QSU","role":"Quantity Surveyor","department":"qs"},{"id":"QAC","role":"QA Reviewer","department":"qa"},{"id":"DOC","role":"Document Controller","department":"qa"}],"warning":"Demo role catalog - AI runtimes not connected"}
+{
+  "project": "COMPANY-DEMO-001",
+  "agents": [
+    {
+      "id": "CEO",
+      "role": "Director",
+      "department": "director",
+      "division": "shared"
+    },
+    {
+      "id": "PM",
+      "role": "Project Manager",
+      "department": "director",
+      "division": "shared"
+    },
+    {
+      "id": "ELE",
+      "role": "Electrical Engineer",
+      "department": "electrical",
+      "division": "mep"
+    },
+    {
+      "id": "HVA",
+      "role": "HVAC Engineer",
+      "department": "hvac",
+      "division": "mep"
+    },
+    {
+      "id": "PLU",
+      "role": "Plumbing Engineer",
+      "department": "plumbing",
+      "division": "mep"
+    },
+    {
+      "id": "FIR",
+      "role": "Fire Engineer",
+      "department": "fire",
+      "division": "mep"
+    },
+    {
+      "id": "BIM",
+      "role": "BIM Coordinator",
+      "department": "bim",
+      "division": "mep"
+    },
+    {
+      "id": "QSU",
+      "role": "MEP Quantity Surveyor",
+      "department": "qs",
+      "division": "mep"
+    },
+    {
+      "id": "QAC",
+      "role": "MEP QA Reviewer",
+      "department": "qa",
+      "division": "mep"
+    },
+    {
+      "id": "DOC",
+      "role": "Document Controller",
+      "department": "qa",
+      "division": "mep"
+    },
+    {
+      "id": "ARC",
+      "role": "Architectural Engineer",
+      "department": "architecture",
+      "division": "construction"
+    },
+    {
+      "id": "STR",
+      "role": "Structural Engineer",
+      "department": "structure",
+      "division": "construction"
+    },
+    {
+      "id": "XBI",
+      "role": "Construction BIM",
+      "department": "xd_bim",
+      "division": "construction"
+    },
+    {
+      "id": "XQS",
+      "role": "Construction Quantity Surveyor",
+      "department": "xd_qs",
+      "division": "construction"
+    },
+    {
+      "id": "PLN",
+      "role": "Construction Planner",
+      "department": "xd_planning",
+      "division": "construction"
+    },
+    {
+      "id": "SIT",
+      "role": "Site Engineer",
+      "department": "xd_site",
+      "division": "construction"
+    },
+    {
+      "id": "HSE",
+      "role": "Construction QA/HSE",
+      "department": "xd_safety",
+      "division": "construction"
+    },
+    {
+      "id": "MAT",
+      "role": "Material Controller",
+      "department": "xd_material",
+      "division": "construction"
+    }
+  ],
+  "warning": "Demo role catalog - AI runtimes not connected"
+}
