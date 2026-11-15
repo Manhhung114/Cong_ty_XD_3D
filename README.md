@@ -1,3 +1,17 @@
+# Công ty Xây dựng & MEP AI 3D — V5.7.1
+
+**Bản chuẩn hóa giao diện và phê duyệt:** Không tự sinh nhiệm vụ hay chạy kịch bản AI. Menu chỉ có một **Chờ phê duyệt** sử dụng backend có xác thực và phân quyền. Bỏ **Duyệt dự án thật** và các biểu ngữ/số liệu minh họa.
+
+Đăng nhập trong **Quản lý dự án**, **Công việc**, **Chờ phê duyệt** hoặc **Kho tài liệu**. Nếu dùng APK Android, nhập địa chỉ HTTPS của máy chủ. Chưa kết nối máy chủ, các màn hình này chỉ hiển thị đăng nhập (không hiển thị dữ liệu giả). Hướng dẫn backend: `docs/V56_V57_SETUP.md`.
+
+**Dữ liệu cũ:** Tác vụ mẫu được nhận diện theo mã/tên/bộ môn và loại bỏ một lần; tác vụ do người dùng tạo hay đã có báo cáo xét duyệt được bảo toàn. Hồ sơ nhị phân trước đây vẫn nằm trong IndexedDB, có thể tải từ **Kho tài liệu → Hồ sơ cũ trên thiết bị (chưa đồng bộ)**. Bản xuất JSON từ trước chỉ có metadata, phải sao lưu file gốc riêng.
+
+**APK:** `applicationId=vn.congtyxd3d.app`, `versionCode=58`, `versionName=5.7.1`. Chỉ bản release được ký bằng khóa cố định mới có khả năng cài đè các bản release cùng chữ ký, không bảo đảm cài đè bản debug cũ.
+
+**Chưa tích hợp:** API thực thi AI kỹ thuật, BIM IFC viewer, công cụ bóc tách tự động. Không diễn giải Agent là đã làm việc khi chưa có kết nối.
+
+---
+
 # V5.6 + V5.7 — ĐA DỰ ÁN, BACKEND VÀ PHÊ DUYỆT
 
 **Bản nâng cấp thực thi** từ V5.5; giữ nguyên demo localStorage/IndexedDB và chữ ký Android ổn định.

@@ -6,7 +6,7 @@ import {translateText,getLanguage} from '../src/core/i18n.js';
 const map=new Map();globalThis.localStorage={getItem:k=>map.get(k)||null,setItem:(k,v)=>map.set(k,v)};
 const source=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 test('V5.5 reviews require actual submitted report or referenced document',()=>{
- map.clear();const state=loadState();const id='TASK-003';const t=state.tasks.find(t=>t.id===id);assert.equal(t.status,'review');
+ map.clear();const state=loadState();const t=createTask(state,{title:'Đối chiếu hồ sơ điện thực tế',dept:'electrical'});const id=t.id;changeTaskStatus(state,id,'review');assert.equal(t.status,'review');
  assert.throws(()=>decideTaskReview(state,id,{decision:'approve',reviewer:'Engineer A'}),/Chưa có báo cáo/);
  assert.throws(()=>submitReviewMaterial(state,id,{summary:'short'}),/12 ký tự/);
  submitReviewMaterial(state,id,{summary:'Đã đối chiếu BOQ với bản vẽ và ghi sai lệch.',findings:'Thiếu 2 thiết bị điện'});
@@ -16,14 +16,14 @@ test('V5.5 reviews require actual submitted report or referenced document',()=>{
  assert.equal(loadState().tasks.find(x=>x.id===id).reviewHistory.length,t.reviewHistory.length);
 });
 test('V5.5 rejection returns task to working and records reason',()=>{
- map.clear();const state=loadState();const id='TASK-009';
+ map.clear();const state=loadState();const t=createTask(state,{title:'Kiểm tra vật tư xây dựng',dept:'xd_material'});const id=t.id;changeTaskStatus(state,id,'review');
  assert.throws(()=>decideTaskReview(state,id,{decision:'reject',reviewer:'Engineer B',comment:'No'}),/lý do/);
  decideTaskReview(state,id,{decision:'reject',reviewer:'Engineer B',comment:'Check BOQ against revised drawing'});
  assert.equal(state.tasks.find(x=>x.id===id).status,'working');
  assert.equal(state.tasks.find(x=>x.id===id).reviewHistory.at(-1).decision,'reject');
 });
 test('V5.5 prevents completing unreviewed tasks by changing status directly',()=>{
- map.clear();const state=loadState();const id=state.tasks.find(x=>x.status==='working').id;
+ map.clear();const state=loadState();const t=createTask(state,{title:'Thiết kế hồ sơ kết cấu',dept:'structure'});const id=t.id;changeTaskStatus(state,id,'working');
  assert.throws(()=>changeTaskStatus(state,id,'done'),/phê duyệt/);
  assert.equal(state.tasks.find(x=>x.id===id).status,'working');
 });
@@ -37,16 +37,18 @@ test('V5.5 supports English for all 18 seeded agent names and descriptions',()=>
  assert.match(agents,/V5\.5/);
  assert.equal(getLanguage(),'vi');
 });
-test('V5.5 review UI links from agent, tasks and approval KPI',()=>{
- const js=source('src/app.js');const css=source('src/styles.css');
- assert.match(js,/function reviewsPage/);assert.match(js,/function taskReviewModal/);
- assert.match(js,/data-review-agent/);assert.match(js,/class="metric review-metric"/);
- assert.match(js,/data-open-task/);assert.match(js,/decideTaskReview\(/);
- assert.match(css,/review-modal-content/);
+test('V5.7.1 keeps one authenticated approval queue and removes simulation mode',()=>{
+ const js=source('src/app.js'),portal=source('src/portal.js'),html=source('index.html');
+ assert.match(js,/id:'reviews'/);assert.doesNotMatch(js,/id:'portalApprovals'/);
+ assert.match(js,/reviews:\(\)=>portal\.render\('reviews'\)/);
+ assert.match(portal,/approvalsPage\(\)/);
+ assert.match(portal,/canReviewTask\(t\)/);
+ assert.doesNotMatch(html,/id="demoBtn"/);
+ assert.doesNotMatch(html,/DỰ ÁN MÔ PHỎNG 001/);
 });
 test('V5.5 signed Android builds require secret-backed keystore outside public source',()=>{
  const gradle=source('android/app/build.gradle');const workflow=source('.github/workflows/build-android-apk.yml');
- assert.match(gradle,/versionCode (?:55|56|57)/);assert.match(gradle,/applicationId 'vn\.congtyxd3d\.app'/);
+ assert.match(gradle,/versionCode (?:55|56|57|58)/);assert.match(gradle,/applicationId 'vn\.congtyxd3d\.app'/);
  assert.match(gradle,/signingConfig signingConfigs.stableRelease/);
  assert.match(workflow,/secrets.XD_MEP_KEYSTORE_BASE64/);
  assert.match(workflow,/secrets.XD_MEP_STORE_PASSWORD/);

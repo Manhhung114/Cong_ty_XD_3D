@@ -5,6 +5,8 @@ export const LANGUAGES = ['vi','en'];
 export function getLanguage(){try{return localStorage.getItem(STORAGE_KEY)==='en'?'en':'vi';}catch{return 'vi';}}
 export function setLanguage(v){const lang=v==='en'?'en':'vi';try{localStorage.setItem(STORAGE_KEY,lang);}catch{}document.documentElement.lang=lang;return lang;}
 const STRINGS = {
+ 'Sao lưu dữ liệu thiết bị':'Back up device data','Chưa kết nối máy chủ':'Server not connected','Chưa kết nối AI':'AI service not connected','AI chưa kết nối':'AI service not connected','VĂN PHÒNG 3D':'3D OFFICE','Đăng nhập để xem':'Sign in to view','Trên máy chủ':'On server','Chưa nhập BOQ.':'No BOQ imported.','Dữ liệu từ tệp đã nhập':'Imported file data','Chờ phê duyệt':'Pending Approvals','HỆ THỐNG DỰ ÁN':'PROJECT WORKSPACE',
+
  'CÔNG TY AI':'AI COMPANY','TRUNG TÂM ĐIỀU HÀNH 3D':'3D COMMAND CENTER','KHÔNG GIAN LÀM VIỆC':'WORKSPACE',
  'Văn phòng 3D':'3D Office','Khối Xây dựng':'Construction Division','Nhân viên AI':'AI Staff','Công việc':'Tasks','Kho tài liệu':'Document Library',
  'BOQ / Dự toán':'BOQ / Cost Estimate','BIM / Mô hình':'BIM / Model','Pháp luật & tiêu chuẩn':'Laws & Standards',

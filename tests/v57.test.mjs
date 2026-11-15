@@ -17,7 +17,7 @@ test('V5.7 all sixteen departments have unique clickable positions',()=>{
 });
 test('V5.7 UI has distinct online projects, approval and account pages',()=>{
  const app=read('src/app.js'),portal=read('src/portal.js'),html=read('index.html');
- for(const id of ['projects','portalApprovals','portalAdmin'])assert.ok(app.includes(`id:'${id}'`));
+ for(const id of ['projects','reviews','portalAdmin'])assert.ok(app.includes(`id:'${id}'`));
  for(const x of ['/api/projects','/api/auth/login','/tasks','/review','/documents','/members','/api/admin/agents'])assert.ok(portal.includes(x),x);
  assert.match(portal,/HTTPS required/);
  assert.match(portal,/sessionStorage/);
@@ -27,7 +27,7 @@ test('V5.7 UI has distinct online projects, approval and account pages',()=>{
 test('V5.7 build remains update-compatible with same applicationId and signing secret names',()=>{
  const gradle=read('android/app/build.gradle'),action=read('.github/workflows/build-android-apk.yml');
  assert.match(gradle,/applicationId 'vn\.congtyxd3d\.app'/);
- assert.match(gradle,/versionCode 57/);
+ assert.match(gradle,/versionCode 58/);
  assert.match(action,/secrets.XD_MEP_KEYSTORE_BASE64/);
  assert.match(action,/python -m pytest backend\/tests/);
 });

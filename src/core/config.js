@@ -76,14 +76,17 @@ export const CONSTRUCTION_SAMPLE_TASKS = [
   {id:'TASK-012',title:'Đối chiếu vật tư xây dựng đã trình duyệt',dept:'xd_material',status:'todo',assignee:'MAT',priority:'Trung bình',docCode:'XD-MAT-001'}
 ];
 export const ROADMAP = [
-  {version:'V1.0',title:'Văn phòng 3D',state:'Có thể chạy thử',summary:'WebGL, mô hình phòng ban, nhân viên 3D, xoay/zoom/chọn phòng, trạng thái mô phỏng.'},
-  {version:'V2.0',title:'Điều phối công việc',state:'Demo chức năng',summary:'Tạo nhiệm vụ, đổi trạng thái, nhật ký thao tác. Chưa có LLM hoặc tính toán chuyên ngành.'},
+  {version:'V1.0',title:'Văn phòng 3D',state:'Có thể chạy thử',summary:'WebGL, chọn phòng, xoay/zoom và danh mục Agent.'},
+  {version:'V2.0',title:'Điều phối công việc',state:'Đã có nền tảng',summary:'Quản lý nhiệm vụ và nhật ký, kết nối máy chủ dự án; AI chuyên ngành chưa kích hoạt.'},
   {version:'V3.0',title:'Hồ sơ bản vẽ / BOQ / BIM',state:'Quản lý nền tảng',summary:'Phân loại tệp, mã hồ sơ, revision, upload/download, mẫu CSV. Chưa tự bóc tách.'},
-  {version:'V4.0',title:'Bảng điều hành',state:'Dashboard demo',summary:'Tổng hợp KPI, tiến độ, hồ sơ và xuất dữ liệu JSON. Chưa có phân quyền/server.'},
-  {version:'V5.0',title:'Nhánh Xây dựng',state:'Đã tích hợp demo',summary:'2 tầng MEP + Xây dựng, 16 phòng, 18 Agent, công việc và tệp riêng theo nhánh; chưa AI thật.'},
+  {version:'V4.0',title:'Bảng điều hành',state:'Đã có màn điều hành',summary:'Tổng hợp thông tin dự án và các hồ sơ theo quyền truy cập.'},
+  {version:'V5.0',title:'Nhánh Xây dựng',state:'Đã tích hợp',summary:'Các bộ môn MEP và Xây dựng có vị trí phòng và hồ sơ riêng; AI chưa kết nối.'},
   {version:'V5.1',title:'Phối cảnh văn phòng chi tiết',state:'Có thể chạy thử',summary:'Ảnh phối cảnh isometric 3D có 16 điểm chọn phòng; chuyển qua WebGL tương tác khi cần; chưa phải 3D photoreal-time.'},
   {version:'V5.2',title:'Văn phòng WebGL ba tầng',state:'Có thể thử',summary:'Điều khiển camera, phóng to, hai khối MEP/Xây dựng và tầng điều hành.'},
   {version:'V5.3',title:'Pháp luật và Việt hóa',state:'Đã tích hợp',summary:'Vị trí ghim MEP chính xác hơn, danh mục pháp luật từ nguồn chính thống.'},
-  {version:'V5.4',title:'Song ngữ & danh mục TCVN',state:'Đã tích hợp bản thử',summary:'Tiếng Việt / English; tra cứu VSQI, cập nhật JSON trên GitHub/nhập thủ công, giữ hồ sơ gốc.'},
-  {version:'V5.5',title:'Chờ duyệt và quản lý cập nhật Android',state:'Đã tích hợp bản thử',summary:'Xem báo cáo/hồ sơ, ghi quyết định có tên người duyệt, song ngữ hai chiều và chuẩn bị APK ký cố định.'}
+  {version:'V5.4',title:'Song ngữ & danh mục TCVN',state:'Đã tích hợp',summary:'Tiếng Việt / English; tra cứu VSQI, cập nhật JSON trên GitHub/nhập thủ công, giữ hồ sơ gốc.'},
+  {version:'V5.5',title:'Chờ duyệt và quản lý cập nhật Android',state:'Đã tích hợp',summary:'Quy trình xem báo cáo và phê duyệt đã chuyển sang máy chủ, song ngữ và ký APK cố định.'},
+  {version:'V5.6',title:'Quản lý nhiều dự án',state:'Có máy chủ API',summary:'Dự án, người dùng, nhiệm vụ và hồ sơ được lưu trên máy chủ và theo quyền truy cập.'},
+  {version:'V5.7',title:'Phân quyền và phê duyệt',state:'Đã tích hợp',summary:'Đăng nhập, quản lý thành viên, duyệt nhiều cấp theo dự án và nhật ký trên máy chủ.'},
+  {version:'V5.7.1',title:'Một luồng duyệt, không dữ liệu giả',state:'Đã tích hợp',summary:'Chỉ một hàng chờ phê duyệt có xác thực; bỏ dữ liệu và kịch bản mô phỏng.'}
 ];

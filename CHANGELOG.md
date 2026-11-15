@@ -1,3 +1,10 @@
+# CẬP NHẬT V5.7.1 — 15/11/2026
+
+- Gỡ chế độ demo và menu phê duyệt trùng, giữ một quy trình xác thực theo máy chủ.
+- Loại bỏ nhiệm vụ mẫu tự sinh; bảo toàn dữ liệu thực do người dùng nhập và tệp trong IndexedDB.
+- Xóa dữ liệu mẫu khỏi bộ web đóng gói APK/Pages, không tự điền BOQ; chỉ hiển thị KPI khi đã đăng nhập máy chủ.
+- Tăng Android versionCode lên 58; không đưa khóa bí mật vào source.
+
 ## 2026-11-15 — V5.6–V5.7: Backend đa dự án, RBAC và phê duyệt thật
 
 - Xây dựng backend FastAPI/SQLAlchemy; bảng users, memberships, projects, tasks, approvals, documents, audit, agent configs; SQLite local/PostgreSQL production.

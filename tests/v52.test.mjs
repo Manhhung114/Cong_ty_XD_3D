@@ -22,6 +22,6 @@ test('V5.2 has deployment workflow and preserves document/database modules',()=>
  assert.ok(existsSync(new URL('../src/core/documents.js',import.meta.url)));
  assert.ok(existsSync(new URL('../src/core/storage.js',import.meta.url)));
  const manifest=JSON.parse(load('../VERSION_MANIFEST.json'));
- assert.match(manifest.current_version,/^V5\.[2-9]$/);
+ assert.match(manifest.current_version,/^V5\.[2-9](?:\.[0-9]+)?$/);
  assert.ok(manifest.warnings.includes('No real AI agents connected'));
 });

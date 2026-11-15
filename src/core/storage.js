@@ -2,8 +2,35 @@ import {INITIAL_TASKS,CONSTRUCTION_SAMPLE_TASKS,AGENTS,DEPARTMENTS,TASK_STATES} 
 const KEY='mep-ai-company3d.v1';
 const deepCopy=v=>JSON.parse(JSON.stringify(v));
 const now=()=>new Date().toISOString();
-function makeInitial(){return {tasks:deepCopy([...INITIAL_TASKS,...CONSTRUCTION_SAMPLE_TASKS]),events:[{id:'evt-1',at:now(),kind:'system',text:'Khởi tạo không gian demo MEP và Xây dựng. Chưa có AI thật.'}],selectedDept:'director',officeView:'all',officeRenderMode:'illustrated',constructionSeeded:true,createdAt:now(),simulated:false};}
-export function loadState(){try{const data=JSON.parse(localStorage.getItem(KEY)||'null');if(data&&Array.isArray(data.tasks)&&Array.isArray(data.events)){if(!data.constructionSeeded){const ids=new Set(data.tasks.map(t=>t.id));for(const sample of CONSTRUCTION_SAMPLE_TASKS){let id=sample.id;if(ids.has(id)){let n=data.tasks.reduce((m,x)=>Math.max(m,Number(x.id.match(/\d+$/)?.[0]||0)),0)+1;while(ids.has('TASK-'+String(n).padStart(3,'0')))n++;id='TASK-'+String(n).padStart(3,'0');}ids.add(id);data.tasks.push({...deepCopy(sample),id});}data.constructionSeeded=true;}if(!['all','mep','construction'].includes(data.officeView))data.officeView='all';if(!['illustrated','live'].includes(data.officeRenderMode))data.officeRenderMode='illustrated';if(!DEPARTMENTS.some(d=>d.id===data.selectedDept))data.selectedDept='director';try{localStorage.setItem(KEY,JSON.stringify(data));}catch{}return data;}}catch{}return makeInitial();}
+function makeInitial(){return {tasks:[],events:[],selectedDept:'director',officeView:'all',officeRenderMode:'illustrated',constructionSeeded:true,sampleTasksRemoved:true,createdAt:now()};}
+// One-way, non-destructive cleanup of generated tasks. A sample with submitted
+// evidence/decisions is retained because a human may have added real work.
+export function removeGeneratedTasks(data){
+ if(data.sampleTasksRemoved)return data;
+ const seeds=[...INITIAL_TASKS,...CONSTRUCTION_SAMPLE_TASKS];
+ data.tasks=data.tasks.filter(t=>{
+  const wasGenerated=seeds.some(x=>x.id===t.id&&x.dept===t.dept&&x.title===t.title);
+  const userEvidence=Boolean(t.reviewSubmission?.summary||t.reviewDecision||(t.reviewHistory||[]).length);
+  return !wasGenerated||userEvidence;
+ });
+ data.events=(data.events||[]).filter(e=>e.kind!=='demo'&&!/mô phỏng|demo/i.test(e.text||''));
+ data.sampleTasksRemoved=true;data.constructionSeeded=true;delete data.simulated;
+ return data;
+}
+export function loadState(){
+ try{
+  const data=JSON.parse(localStorage.getItem(KEY)||'null');
+  if(data&&Array.isArray(data.tasks)&&Array.isArray(data.events)){
+   removeGeneratedTasks(data);
+   if(!['all','mep','construction'].includes(data.officeView))data.officeView='all';
+   if(!['illustrated','live'].includes(data.officeRenderMode))data.officeRenderMode='illustrated';
+   if(!DEPARTMENTS.some(d=>d.id===data.selectedDept))data.selectedDept='director';
+   try{localStorage.setItem(KEY,JSON.stringify(data));}catch{}
+   return data;
+  }
+ }catch{}
+ return makeInitial();
+}
 export function persistState(state){localStorage.setItem(KEY,JSON.stringify(state));}
 export function logEvent(state,text,kind='activity'){state.events.unshift({id:'evt-'+Date.now()+'-'+Math.round(Math.random()*1e6),at:now(),kind,text});state.events=state.events.slice(0,250);persistState(state);}
 export function createTask(state,task){const seq=state.tasks.reduce((n,t)=>Math.max(n,parseInt((t.id.match(/\d+$/)||[])[0]||'0',10)),0)+1;if(!DEPARTMENTS.some(d=>d.id===task.dept))throw Error('Phòng ban không hợp lệ');const t={id:'TASK-'+String(seq).padStart(3,'0'),title:task.title.trim(),dept:task.dept,status:'todo',assignee:task.assignee||AGENTS.find(a=>a.dept===task.dept)?.id||'PM',priority:task.priority||'Trung bình',docCode:task.docCode||'',createdAt:now()};if(!t.title)throw Error('Tên công việc không được rỗng');state.tasks.unshift(t);logEvent(state,'Tạo '+t.id+': '+t.title);return t;}
