@@ -236,14 +236,7 @@ Thư mục `android/` chứa wrapper WebView Android cho V5.2, đóng gói asset
 - **Giới hạn:** Giao diện hai ngôn ngữ là bản thử nghiệm; các thuật ngữ kỹ thuật, mô tả mẫu, hồ sơ và tiêu đề nguồn pháp lý vẫn có thể được giữ bằng tiếng Việt để bảo toàn căn cứ gốc. Không tự tải nội dung thương mại của TCVN hoặc tự kết luận tính bắt buộc của tiêu chuẩn.
 - **Ứng dụng Android:** APK được đóng gói lại bằng workflow GitHub sau khi push; `versionCode=54`, `versionName=5.4.0-demo`. Nếu bản debug khác chữ ký thì không thể cài đè; sao lưu trước, không gỡ khi chưa bảo toàn hồ sơ.
 
-## V5.7.5 — Giao diện & danh mục chính thống dùng chung QLDA
 
-Giao diện tách `src/polish.css` để tinh chỉnh độc lập, tránh sửa lại logic nghiệp vụ. Trên điện thoại menu có lớp che, thanh tiêu đề gọn hơn và các trang chuyên môn không còn lặp 4 KPI tổng quan.
+## V5.7.6 — Pháp luật và TCVN độc lập (không sửa QLDA)
 
-Vào **Pháp luật & tiêu chuẩn → Cập nhật nguồn QLDA (XD + MEPF)** để lấy metadata mới từ:
-
-`https://raw.githubusercontent.com/Manhhung114/QLDA_ver612_VPS/main/data/legal/official_catalog.json`
-
-Nguồn này do module `qlda.application.legal_sources` và workflow chạy thủ công của repository QLDA quản lý. App lưu bản đã kiểm tra cấu trúc, chỉ nhận HTTPS thuộc danh sách website chính thống; nếu mạng lỗi hoặc dữ liệu sai sẽ giữ bản đang có. Bộ dữ liệu nền `data/legal/QLDA_official_catalog_seed.json` vẫn hoạt động offline.
-
-**Không sử dụng danh mục thay cho xác nhận hiệu lực văn bản hoặc kiểm định công trình.** Trạng thái trên nguồn có thể thay đổi; các văn bản cần được kiểm tra trực tiếp ở VBPL, Công báo, Bộ Xây dựng và VSQI.
+Nút **Cập nhật nguồn pháp lý** tải danh mục đã rà soát từ `Cong_ty_XD_3D/data/legal/MEP_XD_official_catalog.json`. Nút **Kiểm tra mục mới** tải danh sách liên kết chưa duyệt từ `MEP_XD_source_candidates.json`. Chạy workflow trong repo này để quét nguồn; không truy cập dữ liệu của QLDA. Xem [hướng dẫn](docs/MEP_LEGAL_SOURCE_UPDATES.md).

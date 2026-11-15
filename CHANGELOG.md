@@ -1,4 +1,10 @@
 # CHANGELOG — Công ty XD & MEP AI 3D
+
+## 2026-11-15 — V5.7.6: Nguồn pháp luật độc lập
+- Tách hoàn toàn danh mục cập nhật ra khỏi QLDA_ver612_VPS; chỉ dùng cách truy tìm số hiệu/nguồn.
+- Thêm danh sách 6 cổng tra cứu chính thống, danh mục đã rà soát và ứng viên chưa duyệt.
+- Cập nhật app để lấy JSON từ chính repository Công ty XD & MEP, không sửa QLDA.
+
 ## 2026-11-15 — V5.7.4: Tập trung tạo và xử lý Công việc
 
 - Bỏ nút `＋ Công việc` toàn cục khỏi tất cả các trang để tránh lặp.

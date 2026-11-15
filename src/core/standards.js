@@ -7,7 +7,7 @@ export const STANDARDS_TEMPLATE = './data/legal/TCVN_UPDATE_TEMPLATE.json';
 const CACHE_KEY = 'xd-mep-standards-v54-repository-cache';
 const MANUAL_KEY = 'xd-mep-standards-v54-manual';
 const OFFICIAL_HOSTS = [
-  'tieuchuan.vsqi.gov.vn','vbpl.vn','vanban.chinhphu.vn','moc.gov.vn',
+  'tieuchuan.vsqi.gov.vn','tieuchuanxaydung.vsqi.gov.vn','vbpl.vn','vanban.chinhphu.vn','moc.gov.vn',
   'bxd.gov.vn','moj.gov.vn','bocongan.gov.vn','congbao.chinhphu.vn',
 ];
 export function isOfficialUrl(value){
@@ -28,7 +28,7 @@ export function validateStandards(payload,{unverified=false}={}){
     const text=[x.ten,x.ghiChu,x.loai].join(' ').toLowerCase();
     if(!/^(?:TCVN\s*\d+(?:-\d+)*:\d{4}|QCVN\s*\d+(?:[-.]\d+)?:\d{4}\/\w+)$/i.test(number)||!title||!['MEPF – Phòng cháy chữa cháy','Xây dựng – Quản lý dự án'].includes(field)||!isOfficialUrl(url)||/dự thảo|du thao/.test(text)){bad.push(i+1);continue;}
     // TCVN entries need a traceable standard listing, not third-party copies.
-    if(/^TCVN/i.test(number)&&new URL(url).hostname!=='tieuchuan.vsqi.gov.vn'){bad.push(i+1);continue;}
+    if(/^TCVN/i.test(number)&&!['tieuchuan.vsqi.gov.vn','tieuchuanxaydung.vsqi.gov.vn'].includes(new URL(url).hostname)){bad.push(i+1);continue;}
     const row={...x,id:String(x.id||`LOCAL-${i+1}`).slice(0,80),linhVuc:field,soHieu:number,ten:title,
       tenAnh:String(x.tenAnh||'').slice(0,320),nhom:String(x.nhom||'Khác').slice(0,100),loai:String(x.loai||'Tiêu chuẩn TCVN').slice(0,100),
       duongDan:url,nguon:String(x.nguon||'VSQI').slice(0,100),ghiChu:String(x.ghiChu||'').slice(0,700)};

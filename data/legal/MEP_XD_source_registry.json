@@ -1,0 +1,92 @@
+{
+  "schema": "mepxd-official-source-registry-v1",
+  "description": "Official lookup URLs studied from QLDA_ver612_VPS; no QLDA runtime dependency.",
+  "sites": [
+    {
+      "id": "vbpl_moc",
+      "name": "VBPL – Bộ Xây dựng",
+      "url": "https://vbpl.vn/boxaydung/Pages/Home.aspx",
+      "host": "vbpl.vn",
+      "fields": [
+        "construction",
+        "mepf"
+      ],
+      "type": "law"
+    },
+    {
+      "id": "government",
+      "name": "Hệ thống văn bản Chính phủ",
+      "url": "https://vanban.chinhphu.vn/he-thong-van-ban",
+      "host": "vanban.chinhphu.vn",
+      "fields": [
+        "construction",
+        "mepf"
+      ],
+      "type": "law"
+    },
+    {
+      "id": "congbao",
+      "name": "Công báo Chính phủ",
+      "url": "https://congbao.chinhphu.vn/",
+      "host": "congbao.chinhphu.vn",
+      "fields": [
+        "construction",
+        "mepf"
+      ],
+      "type": "law"
+    },
+    {
+      "id": "moc",
+      "name": "Bộ Xây dựng",
+      "url": "https://www.moc.gov.vn/pl/pages/Vanban.aspx",
+      "host": "www.moc.gov.vn",
+      "fields": [
+        "construction",
+        "mepf"
+      ],
+      "type": "law"
+    },
+    {
+      "id": "vsqi",
+      "name": "VSQI – TCVN",
+      "url": "https://tieuchuan.vsqi.gov.vn/tim-kiem",
+      "host": "tieuchuan.vsqi.gov.vn",
+      "fields": [
+        "construction",
+        "mepf"
+      ],
+      "type": "standard"
+    },
+    {
+      "id": "vsqi_xd",
+      "name": "VSQI – Xây dựng",
+      "url": "https://tieuchuanxaydung.vsqi.gov.vn/tim-kiem",
+      "host": "tieuchuanxaydung.vsqi.gov.vn",
+      "fields": [
+        "construction",
+        "mepf"
+      ],
+      "type": "standard"
+    }
+  ],
+  "ics": {
+    "construction": [
+      "91.040",
+      "91.060",
+      "91.080",
+      "91.100",
+      "91.120",
+      "91.200",
+      "93.010",
+      "93.020"
+    ],
+    "mepf": [
+      "91.140",
+      "91.160",
+      "13.220",
+      "23.120",
+      "29.020",
+      "29.140"
+    ]
+  }
+}
