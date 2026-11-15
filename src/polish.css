@@ -1,0 +1,133 @@
+/* V5.7.5 — visual refinement. Presentation only; no project or document migration. */
+:root {
+  --bg:#07131f;
+  --surface:#112636;
+  --surface-2:#18354a;
+  --line:#2d4b5b;
+  --muted:#9aafbe;
+  --teal:#69d8cb;
+  --amber:#f1c58b;
+  --radius:17px;
+}
+html { color-scheme: dark; }
+body {
+  background:radial-gradient(ellipse at 78% -8%,rgba(47,112,151,.19),transparent 38%),
+             radial-gradient(ellipse at 12% 75%,rgba(20,88,85,.12),transparent 40%),#07131f;
+}
+#app {min-width:0;}
+.sidebar {
+  width:246px;
+  background:linear-gradient(165deg,#0d2130,#091a28 72%);
+  border-right:1px solid rgba(121,171,190,.17);
+  box-shadow:8px 0 30px rgba(2,10,19,.12);
+}
+.brand {padding:26px 20px 24px;gap:12px;}
+.brand-mark {width:48px;height:48px;border-radius:15px;background:linear-gradient(135deg,#91f1e1,#4caabe);box-shadow:0 9px 26px rgba(31,182,177,.18);}
+.brand strong {font-size:13px;letter-spacing:.05px;}
+.brand small {font-size:8px;letter-spacing:1.1px;}
+.nav-caption {margin:8px 20px 12px;color:#7b9caa;letter-spacing:1.6px;}
+#nav {display:flex;flex-direction:column;gap:4px;padding:0 12px 8px;overflow-y:auto;min-height:0;scrollbar-width:thin;scrollbar-color:#2d5564 transparent;}
+.nav-item {min-height:43px;padding:10px 12px;border-radius:11px;font-size:12.5px;color:#aec3d1;gap:11px;flex-shrink:0;}
+.nav-item:hover {background:#19394a;border-color:#29596a;}
+.nav-item:focus-visible {outline:2px solid #8be4d5;outline-offset:2px;}
+.nav-item.active {background:linear-gradient(110deg,#174847,#16374b);border-color:#3b8b8d;color:#edfffa;box-shadow:inset 3px 0 #6de5d1,0 6px 18px rgba(2,11,21,.12);}
+.nav-icon {font-size:20px;min-width:23px;line-height:1;text-align:center;}
+/* Version numbers belong in release notes, not beside every menu choice. */
+.nav-item small {display:none;}
+.sidebar-footer {margin-top:auto;padding:18px 3px 22px;}
+.sidebar-footer p {font-size:11px;color:#9ab2c0;}
+.main {background:transparent;}
+.topbar {min-height:78px;height:auto;padding:13px clamp(18px,2.7vw,34px);background:rgba(11,29,43,.92);border-bottom-color:rgba(121,171,190,.16);}
+.topbar-left,.topbar-actions {min-width:0;}
+.topbar-actions {gap:10px;}
+.crumb {font-size:11px;color:#91b3c3;letter-spacing:.75px;}
+.project-pill {max-width:235px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-height:36px;color:#d8f1f3;border-radius:10px;}
+.language-picker {min-height:37px;border-radius:11px;}
+.content {padding:clamp(19px,2.5vw,34px);max-width:1570px;}
+.page-head {margin-bottom:19px;}
+.page-head h1 {font-size:clamp(25px,2.4vw,36px);letter-spacing:-.8px;line-height:1.18;}
+.page-head p {color:#afc4d1;font-size:13px;max-width:760px;}
+.eyebrow {color:#7ae4d5;letter-spacing:1.8px;font-size:10px;}
+.metrics {gap:12px;margin-bottom:17px;}
+.metric {min-height:106px;background:linear-gradient(140deg,rgba(27,56,75,.91),rgba(14,34,48,.95));border-color:rgba(119,168,187,.22);box-shadow:0 9px 28px rgba(1,8,15,.1);border-radius:17px;padding:17px;}
+.metric strong {font-size:clamp(24px,2vw,31px);}
+.metric small {color:#acc8d7;font-size:10px;letter-spacing:.9px;}
+.metric span {color:#a2bbca;}
+.panel,.office-panel,.portal-project-card,.portal-task,.portal-review {border-color:rgba(120,169,185,.24);box-shadow:0 14px 42px rgba(2,11,20,.13);border-radius:17px;}
+.office-panel {overflow:hidden;}
+.panel-top {padding:17px 19px 14px;}
+.panel-top strong {font-size:15px;}
+.panel-sub {color:#a3bbca;}
+.division-intro {border-radius:16px;background:linear-gradient(110deg,rgba(24,76,91,.95),rgba(34,69,97,.92));border-color:rgba(99,202,214,.34);}
+.division-switch {border-radius:12px;background:#0d2839;}
+.division-switch button {min-height:39px;border-radius:8px;font-size:12px;}
+.division-switch button.active {background:#94e4ee;box-shadow:0 3px 13px #318eaa4d;}
+.btn,.office-camera-bar button,.office-display-options button {min-height:40px;border-radius:10px;}
+.btn:focus-visible,.office-camera-bar button:focus-visible,.office-display-options button:focus-visible {outline:2px solid #96f3e5;outline-offset:2px;}
+.btn.primary {background:linear-gradient(115deg,#7cddd1,#68c5dd);color:#08303d;box-shadow:0 7px 18px #267f9128;}
+.btn.primary:hover {background:#b5f7ef;}
+.office-shell.illustrated-mode {border-top:1px solid #39788c;}
+.office-display-options {background:#14384d;}
+.office-camera-bar {background:#103449;}
+.illustrated-pin {width:28px;height:28px;box-shadow:0 0 0 4px #1db8d742,0 2px 13px #003349af;}
+.illustrated-pin:focus-visible {outline:3px solid #fff;outline-offset:3px;}
+.portal-project-card:hover {border-color:#60bdc4;transform:translateY(-1px);}
+.portal-project-card,.portal-task,.portal-review {background:linear-gradient(150deg,#173549,#102a39);}
+.portal-form input,.portal-form textarea,.portal-form select,.legal-controls select,.legal-controls input {min-height:45px;border-radius:11px;background:#0d2331;color:#f0faff;border-color:#406779;}
+.portal-form input:focus-visible,.portal-form textarea:focus-visible,.portal-form select:focus-visible {outline:2px solid #80e9dc;outline-offset:1px;}
+.app-footer {opacity:.85;}
+.mobile-nav-scrim {display:none;}
+@media (max-width:1020px){
+  .topbar-actions {gap:8px;}
+  .date-pill {display:none;}
+  .content {padding:18px;}
+}
+@media (max-width:750px){
+  /* Actual mobile interaction; do not scale the desktop dashboard into a tiny panel. */
+  .sidebar {width:min(80vw,305px);height:100dvh;position:fixed;inset:0 auto 0 0;transform:translateX(-105%);z-index:120;transition:transform .24s ease;box-shadow:18px 0 35px rgba(1,8,15,.3);}
+  .sidebar.opened {transform:translateX(0);}
+  .mobile-nav-scrim {display:block;position:fixed;inset:0;width:100vw;height:100dvh;background:rgba(2,9,16,.72);border:0;z-index:110;opacity:0;pointer-events:none;transition:opacity .2s;}
+  .sidebar.opened + .mobile-nav-scrim {opacity:1;pointer-events:auto;}
+  .nav-caption {margin-top:10px;}
+  .nav-item {min-height:46px;font-size:13px;}
+  .sidebar-footer {padding-bottom:max(16px,env(safe-area-inset-bottom));}
+  .main {width:100%;min-width:0;}
+  .topbar {padding:10px 12px;min-height:68px;gap:6px;}
+  .menu-btn {display:inline-flex!important;justify-content:center;align-items:center;min-width:42px;height:42px;flex-shrink:0;}
+  .crumb {display:none;}
+  .topbar-left,.topbar-actions {gap:7px;}
+  .topbar-actions {flex-wrap:nowrap;min-width:0;}
+  .language-picker {padding:3px 6px;min-width:90px;max-width:118px;}
+  .language-picker select {font-size:12px;max-width:85px;}
+  .language-icon {display:none;}
+  .project-pill {max-width:120px;min-width:0;min-height:35px;padding:8px;font-size:10px;}
+  #exportBtn {display:none;}
+  .content {padding:16px 12px 26px;}
+  .page-head {margin-bottom:14px;}
+  .page-head h1 {font-size:26px;}
+  .page-head p {font-size:12px;line-height:1.5;}
+  .metrics {gap:9px;grid-template-columns:repeat(2,minmax(0,1fr));}
+  .metric {min-height:96px;padding:12px;gap:8px;}
+  .metric-icon {width:37px;height:37px;font-size:19px;}
+  .metric small {font-size:9px;}
+  .metric strong {font-size:24px;}
+  .overview-grid {grid-template-columns:1fr;}
+  .office-shell.illustrated-mode {height:460px;}
+  .office-display-options button {min-height:41px;}
+  .office-camera-bar button {min-height:39px;}
+  .division-intro {padding:14px;}
+  .portal-project-card,.portal-task,.portal-review {padding:14px;}
+  .portal-section-grid {grid-template-columns:1fr;}
+  .portal-project-picker {padding:12px;}
+  .app-footer {font-size:10px;line-height:1.5;}
+}
+@media(max-width:390px){
+  .topbar {padding-inline:9px;}
+  .language-picker {max-width:103px;min-width:83px;}
+  .project-pill {max-width:105px;}
+  .metric span {font-size:10px;}
+  .office-shell.illustrated-mode {height:430px;}
+}
+@media(prefers-reduced-motion:reduce){.sidebar,.mobile-nav-scrim,.portal-project-card {transition:none!important}}
+
+.metrics[hidden]{display:none!important}

@@ -1,15 +1,13 @@
 # CHANGELOG — Công ty XD & MEP AI 3D
+## 2026-11-15 — V5.7.4: Tập trung tạo và xử lý Công việc
 
-## 2026-11-15 — V5.7.4: Bỏ mục Công việc trùng lặp
-
-- Bỏ nút `＋ Công việc` cố định ở tất cả các sheet.
-- Để biểu mẫu tạo/xử lý công việc duy nhất trong trang **Công việc**.
-- Trang **Quản lý dự án** chỉ giữ tạo/chọn dự án, bộ lọc và các số liệu tổng hợp.
-- Văn phòng 3D chỉ hiển thị nhiệm vụ theo phòng, không còn nút tạo/giao trùng.
-- Không thay đổi cơ sở dữ liệu cục bộ, hồ sơ, revision, phê duyệt hoặc cấu hình Agent.
+- Bỏ nút `＋ Công việc` toàn cục khỏi tất cả các trang để tránh lặp.
+- Trang **Công việc** là nơi duy nhất có biểu mẫu tạo và xử lý nhiệm vụ.
+- Trang **Quản lý dự án** giữ thông tin tổng hợp/danh sách dự án, bỏ biểu mẫu và danh sách công việc lặp.
+- Văn phòng 3D chỉ xem công việc liên quan đến phòng, bỏ nút `Giao nhiệm vụ` trùng chức năng.
+- Giữ nguyên dữ liệu, luồng chờ phê duyệt, BOQ, BIM, tài liệu, API và Việt–Anh.
 
 ## 2026-11-15 – V5.7.2: Ban điều hành chung & đơn giản hóa menu
-
 - Bỏ tab Khối Xây dựng riêng, dùng bộ lọc MEP / Xây dựng trong Văn phòng 3D và Nhân viên AI.
 - Hiển thị Giám đốc và Trưởng ban QLDA trong cả hai danh sách; MEP 10, Xây dựng 10, toàn công ty 18 Agent không trùng.
 - Giữ bộ lọc khi chuyển trang, vẫn hỗ trợ điều hướng cũ, không xóa hồ sơ hoặc thay mã Agent.
@@ -110,3 +108,11 @@
 - Bổ sung ghi chú thay đổi trong `versions/V*_*.md` tương ứng và CHANGELOG.md.
 - Tạo Git tag mới (ví dụ `v1.1.0`) sau khi test; không sửa tag đã phát hành.
 - Hồ sơ khách hàng không commit lên GitHub public.
+
+## V5.7.5 — Giao diện tinh chỉnh & đồng bộ nguồn QLDA chính thống (15/11/2026)
+
+- Tinh chỉnh bảng điều khiển, menu di động, kích thước nút, màu sắc, khoảng cách; thêm lớp che menu khi mở và hỗ trợ giảm chuyển động.
+- Ẩn các KPI công việc không liên quan trên trang pháp luật, tài liệu, cài đặt... để giảm lặp nội dung.
+- Thêm `src/core/ql_da_sources.js` để đối chiếu/tải catalog chính thống từ `QLDA_ver612_VPS` (MEPF/PCCC và Xây dựng/QLDA). Kiểm tra host/HTTPS/TCVN VSQI; bỏ dự thảo và từ chối cập nhật toàn bộ nếu một dòng sai.
+- Kèm danh mục nền offline `data/legal/QLDA_official_catalog_seed.json` và không chạm dữ liệu người dùng.
+- Chức năng tải danh mục qua GitHub là thao tác thủ công; không thực hiện thu thập pháp luật trực tiếp từ điện thoại.

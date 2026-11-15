@@ -1,9 +1,6 @@
-## V5.7.4 – Mục Công việc chỉ xuất hiện đúng vị trí
+## V5.7.4 – Chỉ tạo công việc tại đúng sheet
 
-- Trang **Công việc** là nơi duy nhất có biểu mẫu giao việc, bắt đầu xử lý và gửi báo cáo.
-- Trang **Quản lý dự án** chỉ tạo/chọn dự án, xem thống kê; không lặp biểu mẫu công việc.
-- Văn phòng 3D chỉ xem nhiệm vụ liên quan theo phòng. Các mục Cài đặt, BOQ, Kho tài liệu, BIM, Pháp luật, Nhật ký và Phiên bản không còn nút `+ Công việc` toàn trang.
-- Dữ liệu lưu cục bộ, báo cáo, phê duyệt, API Settings và tiếng Việt/English vẫn được giữ nguyên.
+Vào **Công việc** để tạo mới, bắt đầu xử lý, gửi báo cáo và theo dõi toàn bộ nhiệm vụ. **Quản lý dự án** chỉ tạo/chuyển dự án và xem thống kê; **Chờ phê duyệt** chỉ duyệt/trả lại; các sheet còn lại chỉ xem hoặc quản lý đúng chuyên môn, không có nút `+ Công việc` trùng lặp. Không xóa hay chuyển dữ liệu cũ.
 
 # CÔNG TY XÂY DỰNG & MEP AI 3D — V5.7.4 (CHẾ ĐỘ CỤC BỘ)
 
@@ -238,3 +235,15 @@ Thư mục `android/` chứa wrapper WebView Android cho V5.2, đóng gói asset
 - Xuất bản Excel `data/legal/Thu_vien_phap_luat_V5_4_TCVN_QLDA_VPS.xlsx`: sheet danh mục cũ, sheet TCVN bổ sung và sheet hướng dẫn cập nhật.
 - **Giới hạn:** Giao diện hai ngôn ngữ là bản thử nghiệm; các thuật ngữ kỹ thuật, mô tả mẫu, hồ sơ và tiêu đề nguồn pháp lý vẫn có thể được giữ bằng tiếng Việt để bảo toàn căn cứ gốc. Không tự tải nội dung thương mại của TCVN hoặc tự kết luận tính bắt buộc của tiêu chuẩn.
 - **Ứng dụng Android:** APK được đóng gói lại bằng workflow GitHub sau khi push; `versionCode=54`, `versionName=5.4.0-demo`. Nếu bản debug khác chữ ký thì không thể cài đè; sao lưu trước, không gỡ khi chưa bảo toàn hồ sơ.
+
+## V5.7.5 — Giao diện & danh mục chính thống dùng chung QLDA
+
+Giao diện tách `src/polish.css` để tinh chỉnh độc lập, tránh sửa lại logic nghiệp vụ. Trên điện thoại menu có lớp che, thanh tiêu đề gọn hơn và các trang chuyên môn không còn lặp 4 KPI tổng quan.
+
+Vào **Pháp luật & tiêu chuẩn → Cập nhật nguồn QLDA (XD + MEPF)** để lấy metadata mới từ:
+
+`https://raw.githubusercontent.com/Manhhung114/QLDA_ver612_VPS/main/data/legal/official_catalog.json`
+
+Nguồn này do module `qlda.application.legal_sources` và workflow chạy thủ công của repository QLDA quản lý. App lưu bản đã kiểm tra cấu trúc, chỉ nhận HTTPS thuộc danh sách website chính thống; nếu mạng lỗi hoặc dữ liệu sai sẽ giữ bản đang có. Bộ dữ liệu nền `data/legal/QLDA_official_catalog_seed.json` vẫn hoạt động offline.
+
+**Không sử dụng danh mục thay cho xác nhận hiệu lực văn bản hoặc kiểm định công trình.** Trạng thái trên nguồn có thể thay đổi; các văn bản cần được kiểm tra trực tiếp ở VBPL, Công báo, Bộ Xây dựng và VSQI.
