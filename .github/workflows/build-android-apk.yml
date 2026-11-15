@@ -40,6 +40,13 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.10.2'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install API test dependencies
+        run: pip install -r backend/requirements.txt pytest httpx
+      - name: Test server authorization / project isolation / approvals
+        run: python -m pytest backend/tests -q
       - name: Package offline web application
         run: |
           mkdir -p android/app/src/main/assets/www
@@ -67,7 +74,7 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Cong_ty_XD_3D_V5_5_Android_Debug_APK
+          name: Cong_ty_XD_3D_V5_7_Android_Debug_APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 30
@@ -75,7 +82,7 @@ jobs:
         if: ${{ env.ANDROID_SIGNING_KEYSTORE_PATH != '' }}
         uses: actions/upload-artifact@v4
         with:
-          name: Cong_ty_XD_3D_V5_5_Signed_Release_APK
+          name: Cong_ty_XD_3D_V5_7_Signed_Release_APK
           path: android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 30

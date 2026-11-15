@@ -7,11 +7,11 @@ import {loadState} from '../src/core/storage.js';
 
 const mem=new Map();
 globalThis.localStorage={getItem:key=>mem.get(key)||null,setItem:(key,v)=>mem.set(key,v)};
-test('V5.3 only maps visually identifiable departments and offers unmapped selector',()=>{
- assert.equal(Object.keys(OFFICE_POINTS).length,14);
- assert.deepEqual(OFFICE_UNMAPPED,['qa','xd_site']);
+test('V5.7 maps all departments including independent extra workstations',()=>{
+ assert.equal(Object.keys(OFFICE_POINTS).length,16);
+ assert.deepEqual(OFFICE_UNMAPPED,[]);
  assert.ok(DEPARTMENTS.every(d=>Boolean(OFFICE_POINTS[d.id])!==OFFICE_UNMAPPED.includes(d.id)));
- for(const p of Object.values(OFFICE_POINTS))assert.ok(p[0]>=5&&p[0]<=95&&p[1]>=20&&p[1]<=70);
+ for(const p of Object.values(OFFICE_POINTS))assert.ok(p[0]>=5&&p[0]<=95&&p[1]>=10&&p[1]<=95);
  assert.equal(visibleDepartments('construction').length,8);
  assert.ok(existsSync(new URL('../'+OFFICE_ILLUSTRATION.replace('./',''),import.meta.url)));
 });

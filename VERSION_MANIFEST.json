@@ -1,6 +1,6 @@
 {
   "project": "Công ty Xây dựng & MEP AI 3D",
-  "artifact_version": "0.5.5-demo",
+  "artifact_version": "0.5.7-demo",
   "release_date": "2026-11-15",
   "modules": [
     {
@@ -62,6 +62,18 @@
       "area": "Approval queue, two-way VI/EN, stable Android release signing",
       "entry": "src/core/storage.js",
       "status": "prototype_with_human_review_demo_and_secret_based_signing"
+    },
+    {
+      "label": "V5.6",
+      "area": "Multi-project backend and 16 office locations",
+      "entry": "backend/main.py",
+      "status": "local_tested_not_hosted"
+    },
+    {
+      "label": "V5.7",
+      "area": "RBAC, user approval, project dashboards",
+      "entry": "src/portal.js",
+      "status": "API_tested_not_production"
     }
   ],
   "data_categories": {
@@ -96,5 +108,12 @@
     "mep": "Cơ điện",
     "construction": "Xây dựng"
   },
-  "current_version": "V5.5"
+  "current_version": "V5.7",
+  "backend": {
+    "framework": "FastAPI",
+    "database": "PostgreSQL or SQLite local",
+    "authentication": "revocable opaque sessions",
+    "approval": "three human stages",
+    "real_ai_execution": false
+  }
 }

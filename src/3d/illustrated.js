@@ -2,20 +2,21 @@ import {DEPARTMENTS,visibleDepartments} from '../core/config.js';
 
 // V5.1: interactive, high-fidelity 3D-styled illustration. This is an image
 // with accessible department hotspots; the WebGL view stays separately available.
-export const OFFICE_ILLUSTRATION='./assets/office_xd_mep_isometric_v5_1.webp';
-// Tọa độ đã hiệu chỉnh dựa trên vị trí bàn/phòng thể hiện trong ảnh 1248 x 832.
-// Không đặt điểm vào khu họp nếu ảnh KHÔNG thể hiện phòng riêng.
+export const OFFICE_ILLUSTRATION='./assets/office_xd_mep_isometric_v5_7.webp';
+// Coordinates correspond to the V5.7 1586x992 illustration.
+// 16 separate locations: 1 executive, 7 MEP, 8 construction.
 export const OFFICE_POINTS={
-  director:[50.5,23],
-  electrical:[12.5,48.5], hvac:[21.8,48.8], plumbing:[30.5,46.8],
-  fire:[14.0,65.5], bim:[23.0,64.8], qs:[31.7,64.0],
-  architecture:[71.0,46.5], structure:[80.0,48.0], xd_bim:[89.7,49.0],
-  xd_qs:[69.5,65.0], xd_planning:[78.5,65.0],
-  xd_material:[86.0,66.5], xd_safety:[94.0,67.0]
+ director:[50,19],
+ electrical:[11,44], hvac:[22,43], plumbing:[31,43],
+ fire:[11,63], bim:[23,62], qs:[31,62], qa:[17.5,82],
+ architecture:[75,42], structure:[87,42], xd_bim:[76,54],
+ xd_qs:[89,54], xd_planning:[75,64], xd_site:[88,65],
+ xd_safety:[77,82], xd_material:[90,82]
 };
-// Trên ảnh hiện chưa có phòng riêng cho 2 bộ phận này.
-// Không đặt ghim giả vào phòng họp / khu điều hành.
-export const OFFICE_UNMAPPED=['qa','xd_site'];
+// Mini workstations are drawn *in the illustration overlay*, not in a separate
+// floating "missing department" menu. This makes every department reachable.
+export const OFFICE_EXTRA_WORKSTATIONS={qa:'QA/QC MEP',xd_safety:'QA/QC & An toàn',xd_material:'Vật tư'};
+export const OFFICE_UNMAPPED=[];
 
 export class IllustratedOffice {
   constructor(container,options={}) {
@@ -35,6 +36,14 @@ export class IllustratedOffice {
     image.decoding='async';
     image.draggable=false;
     this.stage.append(image);
+    for(const [id,label] of Object.entries(OFFICE_EXTRA_WORKSTATIONS)){
+      const pos=OFFICE_POINTS[id];
+      const pod=document.createElement('div');pod.className='illustrated-workstation';
+      pod.style.left=pos[0]+'%';pod.style.top=pos[1]+'%';
+      pod.innerHTML='<span aria-hidden="true">▤</span><strong></strong>';
+      pod.querySelector('strong').textContent=label;
+      this.stage.append(pod);
+    }
     const badge=document.createElement('div');
     badge.className='illustrated-current';
     badge.setAttribute('aria-live','polite');
@@ -58,13 +67,7 @@ export class IllustratedOffice {
       this.stage.append(button);
     }
     this.viewport.append(this.stage);
-    const unknown=visibleDepartments(this.view).filter(d=>!OFFICE_POINTS[d.id]);
-    if(unknown.length){
-      const missing=document.createElement('div'); missing.className='illustrated-missing';
-      const label=document.createElement('span');label.textContent='Chưa có vị trí phòng riêng trong ảnh:';missing.append(label);
-      for(const d of unknown){const b=document.createElement('button');b.type='button';b.textContent=d.name;b.onclick=()=>this.select(d.id);missing.append(b);}
-      this.container.append(missing);this.missing=missing;
-    }
+    // All 16 departments now have a distinct clickable workplace on the art.
     this.container.append(this.viewport);
     this.image=image;
     image.addEventListener('error',()=>{
@@ -74,7 +77,7 @@ export class IllustratedOffice {
     this._scrollToCurrent=false;
     requestAnimationFrame(()=>this.resetCamera());
     const tip=this.container.querySelector('.office-hint');
-    if(tip)tip.textContent='● Chạm vào dấu tròn đúng vị trí bàn làm việc · Vuốt ngang để xem toàn cảnh';
+    if(tip)tip.textContent='● Chạm từng phòng ban · Vuốt ngang để xem toàn cảnh';
   }
   refreshSelection(){
     for(const [id,button] of this.pins)button.classList.toggle('selected',this.selected===id);
@@ -95,5 +98,5 @@ export class IllustratedOffice {
     const x=this.view==='mep'?.28:this.view==='construction'?.76:.50;
     this.viewport.scrollLeft=Math.max(0,this.stage.clientWidth*x-this.viewport.clientWidth/2);
   }
-  destroy(){this.container.classList.remove('illustrated-mode');this.viewport.remove();this.missing?.remove();}
+  destroy(){this.container.classList.remove('illustrated-mode');this.viewport.remove();}
 }

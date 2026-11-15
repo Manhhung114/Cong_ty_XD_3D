@@ -46,7 +46,7 @@ test('V5.5 review UI links from agent, tasks and approval KPI',()=>{
 });
 test('V5.5 signed Android builds require secret-backed keystore outside public source',()=>{
  const gradle=source('android/app/build.gradle');const workflow=source('.github/workflows/build-android-apk.yml');
- assert.match(gradle,/versionCode 55/);assert.match(gradle,/applicationId 'vn\.congtyxd3d\.app'/);
+ assert.match(gradle,/versionCode (?:55|56|57)/);assert.match(gradle,/applicationId 'vn\.congtyxd3d\.app'/);
  assert.match(gradle,/signingConfig signingConfigs.stableRelease/);
  assert.match(workflow,/secrets.XD_MEP_KEYSTORE_BASE64/);
  assert.match(workflow,/secrets.XD_MEP_STORE_PASSWORD/);

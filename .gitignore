@@ -17,3 +17,11 @@ android/app/src/main/assets/www/
 *.p12
 *RELEASE_BASE64*
 *PRIVATE_SETUP_AND_PASSWORDS*
+
+# Local multi-project backend secrets / data
+backend/.env
+backend/storage/
+*.sqlite3
+*.db
+__pycache__/
+.pytest_cache/

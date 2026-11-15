@@ -1,0 +1,15 @@
+*.zip
+*.apk
+.git
+node_modules
+backend/storage
+backend/.env
+*.sqlite3
+*.db
+*.p12
+*.jks
+*.keystore
+__pycache__
+.pytest_cache
+android
+preview_*.png

@@ -21,8 +21,13 @@ jobs:
       - uses: actions/configure-pages@v5
         with:
           enablement: true
+      - name: Prepare public-only static preview
+        run: |
+          mkdir -p _public
+          cp index.html _public/
+          cp -r src assets data versions _public/
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: _public
       - id: deployment
         uses: actions/deploy-pages@v4

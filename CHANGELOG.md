@@ -1,3 +1,12 @@
+## 2026-11-15 — V5.6–V5.7: Backend đa dự án, RBAC và phê duyệt thật
+
+- Xây dựng backend FastAPI/SQLAlchemy; bảng users, memberships, projects, tasks, approvals, documents, audit, agent configs; SQLite local/PostgreSQL production.
+- Kết nối giao diện web và APK qua API, đăng nhập bằng tài khoản và phiên; quản lý danh mục nhiều dự án, hồ sơ/nhiệm vụ độc lập.
+- Kiểm tra quyền 403 ở backend, duyệt QA → trưởng bộ môn → PM, chặn người tạo tự duyệt, lịch sử bất biến qua API.
+- Bổ sung đủ 16 điểm chọn phòng; thay phối cảnh V5.7, minh họa riêng ba bàn việc chưa có trong ảnh.
+- Giữ demo cũ độc lập; chuyển nhiệm vụ cục bộ sang server chỉ khi quản lý xác nhận. Phần AI thực vẫn bị khóa.
+- Kiểm thử backend, frontend, kiểm tra source không lộ qua máy chủ.
+
 ## 2026-11-15 — V5.4 Danh mục TCVN mở rộng & giao diện song ngữ
 
 - Nghiên cứu `Manhhung114/QLDA_ver612_VPS` theo mã gốc (legal_standards_backfill.py, legal_qlda.py); kế thừa nguyên tắc tra đúng số hiệu và chống bỏ sót, không sao chép dữ liệu chưa kiểm chứng.

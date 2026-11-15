@@ -6,7 +6,7 @@ import {OFFICE_POINTS,OFFICE_UNMAPPED} from '../src/3d/illustrated.js';
 const root=new URL('../',import.meta.url);
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 test('V5.3 hotspot positions never put QA MEP into central meeting room',()=>{
- assert.equal(DEPARTMENTS.length,16);assert.equal(Object.keys(OFFICE_POINTS).length,14);assert.deepEqual(OFFICE_UNMAPPED,['qa','xd_site']);
+ assert.equal(DEPARTMENTS.length,16);assert.equal(Object.keys(OFFICE_POINTS).length,16);assert.deepEqual(OFFICE_UNMAPPED,[]);
  for(const [id,pos] of Object.entries(OFFICE_POINTS)){
   assert.ok(pos[0]>=0&&pos[0]<=100&&pos[1]>=0&&pos[1]<=100,id);
   if(['electrical','hvac','plumbing','fire','bim','qs'].includes(id))assert.ok(pos[0]<35,id);

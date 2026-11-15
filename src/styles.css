@@ -118,3 +118,10 @@
 .agent-card-head{flex-wrap:wrap}
 .agent-card-head [data-review-agent]{font-size:10px}
 @media(max-width:740px){.review-list{grid-template-columns:1fr}.review-modal-content{max-height:75vh}.review-toolbar{align-items:stretch}.review-toolbar>*{width:100%}.review-modal-content .modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}}
+
+/* V5.7: dedicated illustrated QA MEP, Construction HSE and Materials workstations. */
+.illustrated-workstation{position:absolute;z-index:2;transform:translate(-50%,-50%);width:114px;min-height:48px;border:1px solid #d9fcff;border-radius:8px;background:linear-gradient(160deg,#17617ce6,#0c385fea);box-shadow:0 8px 20px #001f3655,0 0 15px #67d5ef55;display:flex;align-items:center;gap:6px;padding:7px;color:white;pointer-events:none}
+.illustrated-workstation span{font-size:22px;color:#8ef1f9}.illustrated-workstation strong{font-size:10px;line-height:1.25}
+.illustrated-pin{z-index:6;min-width:25px;min-height:25px;box-shadow:0 0 0 4px #15a5e755,0 0 11px #045d88}
+.illustrated-pin.selected{box-shadow:0 0 0 6px #2beac766,0 0 18px #5ffff0}
+@media(max-width:750px){.illustrated-workstation{width:86px;min-height:43px;padding:5px;gap:4px}.illustrated-workstation strong{font-size:8px}.illustrated-workstation span{font-size:16px}}

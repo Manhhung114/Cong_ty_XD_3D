@@ -1,3 +1,18 @@
+# V5.6 + V5.7 — ĐA DỰ ÁN, BACKEND VÀ PHÊ DUYỆT
+
+**Bản nâng cấp thực thi** từ V5.5; giữ nguyên demo localStorage/IndexedDB và chữ ký Android ổn định.
+
+- `Quản lý dự án`: kết nối API HTTPS, đăng nhập, tạo/chọn nhiều dự án, giao việc, tải hồ sơ theo revision, chuyển nhiệm vụ demo khi xác nhận.
+- `Duyệt dự án thật`: xác thực tài khoản; QA/QC → trưởng bộ môn → quản lý dự án; chặn tự duyệt/không có báo cáo.
+- `Tài khoản & quyền`: tạo tài khoản, gán thành viên, vai trò theo dự án/bộ môn, cấu hình Agent (AI chưa chạy).
+- Phối cảnh V5.7: **đủ 16/16 điểm phòng**, gồm QA/QC MEP, quản lý hiện trường và các nhóm xây dựng khác; không còn lựa chọn “chưa có vị trí riêng”.
+- Hệ thống web/API chạy nội bộ: `python -m pip install -r backend/requirements.txt` → `python -m backend.bootstrap_admin` → `RUN_SERVER_V57.bat`.
+- Chi tiết: [`docs/V56_V57_SETUP.md`](docs/V56_V57_SETUP.md), [`versions/V5_6_PROJECTS_BACKEND.md`](versions/V5_6_PROJECTS_BACKEND.md), [`versions/V5_7_PERMISSIONS_APPROVALS.md`](versions/V5_7_PERMISSIONS_APPROVALS.md).
+
+**Giới hạn:** Chưa có dịch vụ web công khai/AI thật, chưa kiểm thử Android thật; PostgreSQL/volume/backups phải được cấu hình trên hosting trước khi lưu hồ sơ khách hàng.
+
+---
+
 # CÔNG TY XÂY DỰNG & MEP AI 3D — V5.5
 
 **Bản V5.5:** Quản lý phê duyệt có nội dung, giao diện tiếng Việt/English, và chuẩn bị chữ ký Android cố định.
