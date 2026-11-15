@@ -1,3 +1,7 @@
+# V5.7.7 — Pháp luật & tiêu chuẩn: STT và thống kê
+
+Bảng Pháp luật có số thứ tự và thống kê theo Xây dựng–QLDA, MEPF–PCCC; phân loại Luật, Nghị định, Thông tư, TCVN, QCVN, văn bản hợp nhất, khác. Thư viện có 9 nguồn tra cứu chính thống. Số đếm chỉ tính các mục đã lưu/loại trùng, không tính mục phát hiện mới chưa xác minh. Không phải số văn bản còn hiệu lực.
+
 ## V5.7.4 – Chỉ tạo công việc tại đúng sheet
 
 Vào **Công việc** để tạo mới, bắt đầu xử lý, gửi báo cáo và theo dõi toàn bộ nhiệm vụ. **Quản lý dự án** chỉ tạo/chuyển dự án và xem thống kê; **Chờ phê duyệt** chỉ duyệt/trả lại; các sheet còn lại chỉ xem hoặc quản lý đúng chuyên môn, không có nút `+ Công việc` trùng lặp. Không xóa hay chuyển dữ liệu cũ.

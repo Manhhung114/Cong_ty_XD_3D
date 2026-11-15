@@ -1,3 +1,9 @@
+## V5.7.7 — Official legal sources, STT and statistics (2026-11-15)
+
+- Three added authoritative source directories (national VBPL advanced search, Ministry of Public Security and Ministry of Science & Technology).
+- Catalog entry counts by discipline/document kind; serial numbers in filtered tables; unreviewed discoveries excluded.
+- The QLDA_ver612_VPS repository is not changed.
+
 # CHANGELOG — Công ty XD & MEP AI 3D
 
 ## 2026-11-15 — V5.7.6: Nguồn pháp luật độc lập

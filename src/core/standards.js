@@ -8,7 +8,7 @@ const CACHE_KEY = 'xd-mep-standards-v54-repository-cache';
 const MANUAL_KEY = 'xd-mep-standards-v54-manual';
 const OFFICIAL_HOSTS = [
   'tieuchuan.vsqi.gov.vn','tieuchuanxaydung.vsqi.gov.vn','vbpl.vn','vanban.chinhphu.vn','moc.gov.vn',
-  'bxd.gov.vn','moj.gov.vn','bocongan.gov.vn','congbao.chinhphu.vn',
+  'bxd.gov.vn','moj.gov.vn','bocongan.gov.vn','mst.gov.vn','congbao.chinhphu.vn',
 ];
 export function isOfficialUrl(value){
   try {const u=new URL(String(value||''));return u.protocol==='https:'&&OFFICIAL_HOSTS.some(x=>u.hostname===x||u.hostname.endsWith('.'+x));}

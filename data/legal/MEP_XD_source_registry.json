@@ -11,7 +11,8 @@
         "construction",
         "mepf"
       ],
-      "type": "law"
+      "type": "law",
+      "nameEn": "National Legal Documents Database — Ministry of Construction"
     },
     {
       "id": "government",
@@ -22,7 +23,8 @@
         "construction",
         "mepf"
       ],
-      "type": "law"
+      "type": "law",
+      "nameEn": "Government Document Portal"
     },
     {
       "id": "congbao",
@@ -33,7 +35,8 @@
         "construction",
         "mepf"
       ],
-      "type": "law"
+      "type": "law",
+      "nameEn": "Vietnam Government Official Gazette"
     },
     {
       "id": "moc",
@@ -44,7 +47,8 @@
         "construction",
         "mepf"
       ],
-      "type": "law"
+      "type": "law",
+      "nameEn": "Ministry of Construction — Legal Documents"
     },
     {
       "id": "vsqi",
@@ -55,7 +59,8 @@
         "construction",
         "mepf"
       ],
-      "type": "standard"
+      "type": "standard",
+      "nameEn": "VSQI — National Standards"
     },
     {
       "id": "vsqi_xd",
@@ -66,7 +71,46 @@
         "construction",
         "mepf"
       ],
-      "type": "standard"
+      "type": "standard",
+      "nameEn": "VSQI – Xây dựng"
+    },
+    {
+      "id": "national_vbpl_search",
+      "name": "CSDL quốc gia về VBPL – Tìm kiếm nâng cao",
+      "nameEn": "National Legal Documents Database — Advanced Search",
+      "url": "https://vbpl.moj.gov.vn/pages/vbpq-timkiem.aspx",
+      "host": "vbpl.moj.gov.vn",
+      "fields": [
+        "construction",
+        "mepf"
+      ],
+      "type": "law",
+      "notes": "Tra cứu chính xác số hiệu và tình trạng văn bản"
+    },
+    {
+      "id": "bca_legal",
+      "name": "Bộ Công an – Chính sách và pháp luật (PCCC/CNCH)",
+      "nameEn": "Ministry of Public Security — Legal Policy (Fire Safety)",
+      "url": "https://bocongan.gov.vn/chinh-sach-phap-luat",
+      "host": "bocongan.gov.vn",
+      "fields": [
+        "mepf"
+      ],
+      "type": "law",
+      "notes": "Nguồn chính sách PCCC/CNCH; đối chiếu số hiệu qua Công báo/VBPL"
+    },
+    {
+      "id": "mst_standards_regulations",
+      "name": "Bộ KH&CN – Hệ thống văn bản TCVN/QCVN",
+      "nameEn": "Ministry of Science and Technology — Standards Regulations",
+      "url": "https://mst.gov.vn/cac-van-ban-quan-ly-ve-tieu-chuan-quy-chuan-ky-thuat-19724041214432863.htm",
+      "host": "mst.gov.vn",
+      "fields": [
+        "construction",
+        "mepf"
+      ],
+      "type": "standard",
+      "notes": "Danh sách nguồn tham khảo có thể cũ; tra hiệu lực TCVN tại VSQI"
     }
   ],
   "ics": {
