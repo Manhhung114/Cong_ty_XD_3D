@@ -1,0 +1,8 @@
+node_modules/
+.DS_Store
+*.log
+.env
+.env.*
+!*.env.example
+project_private/
+real_customer_data/

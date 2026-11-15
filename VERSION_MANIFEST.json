@@ -1,0 +1,21 @@
+{
+  "project": "MEP AI Company 3D",
+  "artifact_version": "0.4.0-demo",
+  "release_date": "2026-11-15",
+  "modules": [
+    {"label": "V1.0", "area": "3D Office", "entry": "src/3d/scene.js", "status": "prototype"},
+    {"label": "V2.0", "area": "Agents & Tasks", "entry": "src/core/storage.js", "status": "demo_without_AI_backend"},
+    {"label": "V3.0", "area": "Documents & BOQ & BIM", "entry": "src/core/documents.js", "status": "metadata_storage_and_csv_only"},
+    {"label": "V4.0", "area": "Dashboard", "entry": "src/app.js", "status": "local_dashboard_only"}
+  ],
+  "data_categories": {
+    "drawings": "project_templates/MEP_PROJECT_001/01_BAN_VE",
+    "boq": "project_templates/MEP_PROJECT_001/02_BOQ_DU_TOAN",
+    "bim": "project_templates/MEP_PROJECT_001/03_BIM_IFC",
+    "pccc": "project_templates/MEP_PROJECT_001/04_PCCC",
+    "reports": "project_templates/MEP_PROJECT_001/05_BAO_CAO",
+    "contracts": "project_templates/MEP_PROJECT_001/06_HOP_DONG"
+  },
+  "runtime": {"frontend": "Vanilla ES modules + WebGL 1 (fallback SVG)", "local_server": "Node.js/Python standard library", "database": "localStorage + IndexedDB", "cloud": false},
+  "warnings": ["No real AI agents connected", "No BIM IFC viewer connected", "Browser data can be cleared", "Sample calculations are not engineering deliverables"]
+}

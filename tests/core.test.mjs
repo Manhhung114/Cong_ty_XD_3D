@@ -1,0 +1,13 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {parseBOQCSV,parseDelimited,numberVN,sumBOQ} from '../src/core/boq.js';
+import {standardizeCode,nextRevision,documentGroups} from '../src/core/documents.js';
+import {AGENTS,DEPARTMENTS} from '../src/core/config.js';
+import {loadState,createTask,changeTaskStatus,metrics} from '../src/core/storage.js';
+const store=new Map();globalThis.localStorage={getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)};
+test('3D company has exactly 8 departments and 10 agents',()=>{assert.equal(DEPARTMENTS.length,8);assert.equal(AGENTS.length,10);assert.ok(AGENTS.every(a=>DEPARTMENTS.some(d=>d.id===a.dept)));});
+test('BOQ sample: parse and sum',()=>{const lines='code,description,unit,quantity,unitPrice\nA,Cap dien,m,125,315000\nB,Tu dien,bo,2,18000000';const rows=parseBOQCSV(lines);assert.equal(rows.length,2);assert.equal(sumBOQ(rows),75375000);});
+test('BOQ can parse semicolon, Vietnamese number and multiline quoted CSV',()=>{const rows=parseBOQCSV('code;description;unit;quantity;unitPrice\nA;"Ống gió; vuông";m2;1.234,5;120.000');assert.equal(rows[0].quantity,1234.5);assert.equal(rows[0].unitPrice,120000);assert.equal(rows[0].total,148140000);assert.equal(parseDelimited('a,b\n"hello\nworld",c')[1][0],'hello\nworld');});
+test('BOQ rejects negative and invalid numeric values',()=>{assert.throws(()=>parseBOQCSV('quantity,unitPrice\n-1,2'),/không được âm/);assert.throws(()=>parseBOQCSV('quantity,unitPrice\nfoo,2'),/số không hợp lệ/);assert.equal(numberVN('1.234.000'),1234000);});
+test('Document code and revisions are independent',()=>{const docs=[{code:'DRW-E-001',revision:1},{code:'DRW-E-001',revision:2},{code:'BOQ-MEP-001',revision:1}];assert.equal(nextRevision(docs,'DRW-E-001'),3);assert.equal(nextRevision(docs,'BOQ-MEP-001'),2);assert.equal(standardizeCode('drawings','drw-e-001','a.pdf'),'DRW-E-001');assert.equal(documentGroups(docs).length,2);});
+test('Tasks persist locally, transition and update KPI',()=>{const state=loadState();const t=createTask(state,{title:'Kiem tra cap dien',dept:'electrical',priority:'Cao'});assert.equal(t.assignee,'ELE');assert.equal(t.status,'todo');changeTaskStatus(state,t.id,'review');assert.equal(state.tasks.find(x=>x.id===t.id).status,'review');assert.ok(metrics(state,[]).review>=2);assert.throws(()=>changeTaskStatus(state,t.id,'invalid'),/không hợp lệ/);assert.equal(loadState().tasks.length,state.tasks.length);});
