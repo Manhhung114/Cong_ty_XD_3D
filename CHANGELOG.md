@@ -128,3 +128,7 @@
 - Thêm `src/core/ql_da_sources.js` để đối chiếu/tải catalog chính thống từ `QLDA_ver612_VPS` (MEPF/PCCC và Xây dựng/QLDA). Kiểm tra host/HTTPS/TCVN VSQI; bỏ dự thảo và từ chối cập nhật toàn bộ nếu một dòng sai.
 - Kèm danh mục nền offline `data/legal/QLDA_official_catalog_seed.json` và không chạm dữ liệu người dùng.
 - Chức năng tải danh mục qua GitHub là thao tác thủ công; không thực hiện thu thập pháp luật trực tiếp từ điện thoại.
+
+## V5.7.8
+- Thêm nút Cập nhật TVPL và bảng mục chờ đối chiếu riêng.
+- Quét metadata các liên kết công khai qua GitHub Actions, không thay danh mục chính thống.

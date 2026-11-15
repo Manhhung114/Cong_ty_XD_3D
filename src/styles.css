@@ -129,3 +129,14 @@
 /* V5.7.2: leadership shared by MEP and Construction */
 .office-level-legend .level-shared{color:#806026}
 @media(max-width:750px){.office-level-legend{flex-wrap:wrap;max-width:82%;row-gap:3px}}
+
+/* V5.7.8: TVPL is a clearly labeled third-party reference. */
+.legal-tvpl-source{border:1px solid rgba(115,191,217,.3);background:rgba(43,83,108,.18);border-radius:14px;padding:14px 16px;margin:14px 0}
+.legal-tvpl-source>strong{display:block;letter-spacing:.04em;color:#9bdcf2;font-size:12px}
+.legal-tvpl-source p{font-size:12px;line-height:1.7;color:#bcd0dc;margin:8px 0}
+.legal-tvpl-links{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.legal-tvpl-links a{font-size:12px;color:#8fe4ed;text-decoration:underline;text-underline-offset:3px}
+.legal-tvpl-source>small{color:#aac1cd;line-height:1.5}
+.btn.tvpl-update{border-color:rgba(85,208,215,.65);background:rgba(50,134,143,.2);color:#c5fbf8}
+.legal-tvpl-panel{border-left:3px solid #6ecdd4}
+@media(max-width:750px){.legal-tvpl-links{flex-direction:column;gap:8px}.legal-tvpl-source{padding:12px}}

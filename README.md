@@ -244,3 +244,8 @@ Thư mục `android/` chứa wrapper WebView Android cho V5.2, đóng gói asset
 ## V5.7.6 — Pháp luật và TCVN độc lập (không sửa QLDA)
 
 Nút **Cập nhật nguồn pháp lý** tải danh mục đã rà soát từ `Cong_ty_XD_3D/data/legal/MEP_XD_official_catalog.json`. Nút **Kiểm tra mục mới** tải danh sách liên kết chưa duyệt từ `MEP_XD_source_candidates.json`. Chạy workflow trong repo này để quét nguồn; không truy cập dữ liệu của QLDA. Xem [hướng dẫn](docs/MEP_LEGAL_SOURCE_UPDATES.md).
+
+
+## V5.7.8 – Nguồn Thư Viện Pháp Luật (TVPL)
+
+Trang Pháp luật & tiêu chuẩn có nút Cập nhật TVPL, liên kết https://m.thuvienphapluat.vn/ và bảng STT mục tham khảo. Dữ liệu được tải qua JSON của chính repository, cập nhật bằng workflow refresh-tvpl.yml. Không dùng nguồn TVPL để khẳng định hiệu lực văn bản; không lấy nội dung có bảo vệ đăng nhập/paywall; không sửa QLDA_ver612_VPS.
