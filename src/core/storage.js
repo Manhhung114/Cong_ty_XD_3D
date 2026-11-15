@@ -28,6 +28,6 @@ export function decideTaskReview(state,id,{decision,reviewer,comment=''},{hasDoc
  t.status=decision==='approve'?'done':'working';t.reviewDecision={decision,reviewer:who,comment:note,at:now()};
  logEvent(state,t.id+' – '+(decision==='approve'?'đã phê duyệt':'trả lại chỉnh sửa')+' bởi '+who,'review');return t;
 }
-export function getAgentState(state,id){const tasks=state.tasks.filter(t=>t.assignee===id);if(tasks.some(t=>t.status==='working'))return 'working';if(tasks.some(t=>t.status==='review'))return 'review';return 'idle';}
+export function getAgentState(state,id){const tasks=state.tasks.filter(t=>t.assignee===id);if(tasks.some(t=>t.status==='review'))return 'review';if(tasks.some(t=>t.status==='working'))return 'working';return 'idle';}
 export function metrics(state,docs=[]){return {agents:AGENTS.length,working:state.tasks.filter(t=>t.status==='working').length,review:state.tasks.filter(t=>t.status==='review').length,done:state.tasks.filter(t=>t.status==='done').length,docs:docs.length,tasks:state.tasks.length};}
 export function getSnapshot(state,docs){return {format:'construction-mep-company-3d/export-v5',exportedAt:now(),state,documents:docs.map(({blob,...meta})=>meta),warning:'Metadata only. Download binary files individually. Store in browser IndexedDB.'};}
