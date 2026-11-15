@@ -63,3 +63,13 @@
   .office-shell.illustrated-mode .office-hint{font-size:9px;max-width:85%;padding:7px 9px}
   .illustrated-current{font-size:9px;bottom:53px;max-width:75%}
 }
+
+/* V5.2 interactive three-storey office controls */
+.office-camera-bar{display:flex;align-items:center;flex-wrap:wrap;gap:7px;background:#0e2537;padding:10px 13px;border-bottom:1px solid #38617a}
+.office-camera-bar>span{font-weight:800;color:#b9e7ef;font-size:11px;margin-right:6px}
+.office-camera-bar button{border:1px solid #397088;color:#d8f6fb;border-radius:8px;background:#17435b;padding:9px 11px;font-size:11px;font-weight:750;cursor:pointer;min-height:35px}
+.office-camera-bar button:hover,.office-camera-bar button.selected{background:#84d8e6;color:#082c3e;border-color:#a1f9ff}
+.office-canvas{touch-action:none;cursor:grab}
+.office-canvas:active{cursor:grabbing}
+.world-label{max-width:88px;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:750px){.office-camera-bar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;padding:8px}.office-camera-bar>span{grid-column:1/-1}.office-camera-bar button{font-size:10px;padding:8px 5px;min-height:35px}.office-shell:not(.illustrated-mode){height:440px}.world-label{font-size:9px;max-width:60px}}

@@ -114,3 +114,12 @@ Mặc định hiển thị hình dựng isometric ba tầng, gần phong cách �
 Nút **3D tương tác** chuyển lại WebGL gốc để xoay/zoom. Nút **Phối cảnh chi tiết** trở lại ảnh chất lượng cao có điểm chọn phòng. Trên điện thoại vuốt ngang để xem toàn bộ tòa nhà.
 
 **Phân biệt rõ:** Phối cảnh chi tiết là ảnh 3D-rendered dạng tĩnh có hotspot; chế độ 3D tương tác mới là WebGL. Không tuyên bố đồ họa 3D ảnh tĩnh có thể xoay mọi góc. Không ảnh hưởng tệp hồ sơ, revision, BOQ hoặc dữ liệu cũ trong IndexedDB/localStorage.
+
+
+## V5.2 — Bản WebGL để thử trên máy và web
+
+Vào **Văn phòng 3D → 3D tương tác** để xem văn phòng ba tầng. Sử dụng **Phối cảnh, Mặt trước, Từ trên, Tầng MEP, Tầng XD**, nút zoom hoặc kéo chuột/ngón tay để xoay; có thể chọn **Tiết kiệm pin** trên điện thoại. **Phối cảnh chi tiết** vẫn là ảnh isometric 2D tương tác điểm bấm, không thể xoay camera.
+
+Để triển khai GitHub Pages: mở Settings → Pages → Source: GitHub Actions; theo dõi workflow **Publish Web 3D (Pages)** và chỉ dùng link sau khi workflow thành công. Repository này không chứa hồ sơ khách hàng.
+
+Đây vẫn là prototype chạy front-end, 18 Agent chưa gọi API AI thật và hồ sơ chưa đồng bộ cloud.

@@ -1,6 +1,6 @@
 {
   "project": "Công ty Xây dựng & MEP AI 3D",
-  "artifact_version": "0.5.1-demo",
+  "artifact_version": "0.5.2-demo",
   "release_date": "2026-11-15",
   "modules": [
     {
@@ -38,6 +38,12 @@
       "area": "Detailed isometric image and interactive room hotspots, WebGL mode retained",
       "entry": "src/3d/illustrated.js",
       "status": "illustration_with_hotspots_and_webgl_lowpoly_option"
+    },
+    {
+      "label": "V5.2",
+      "area": "Three-level interactive WebGL office and camera/quality controls",
+      "entry": "src/3d/scene.js",
+      "status": "prototype_no_ai_backend"
     }
   ],
   "data_categories": {
@@ -68,5 +74,5 @@
     "mep": "Cơ điện",
     "construction": "Xây dựng"
   },
-  "current_version": "V5.1"
+  "current_version": "V5.2"
 }

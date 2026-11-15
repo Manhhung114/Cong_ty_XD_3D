@@ -1,5 +1,12 @@
 # CHANGELOG — Công ty Xây dựng & MEP AI 3D
 
+## 2026-11-15 — V5.2 WebGL ba tầng và điều khiển camera
+
+- Cảnh WebGL 3 tầng (MEP + Xây dựng + điều hành), bàn họp, màn hình, nội thất và nhân vật hoạt động theo trạng thái nhiệm vụ.
+- Bộ điều khiển camera, zoom và lựa chọn chất lượng hiển thị. Tối ưu tần suất render trên điện thoại.
+- Chuẩn bị workflow xuất bản GitHub Pages; không đồng nghĩa đã online.
+- Giữ nguyên quản lý công việc, hồ sơ, BOQ và revision.
+
 ## 2026-11-15 — V5.1 Phối cảnh 3D cao cấp
 
 - Bổ sung ảnh isometric 3 tầng có phòng ban MEP và Xây dựng, khu giám đốc, phòng họp và bảng điều hành trung tâm.
