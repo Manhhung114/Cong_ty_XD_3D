@@ -24,7 +24,8 @@
       "ngayRaSoat": "2026-11-15",
       "nguonThamKhao": "https://github.com/Manhhung114/QLDA_ver612_VPS/blob/main/src/qlda/runtime_core/legal_standards_backfill.py",
       "kiemChung": "VSQI",
-      "trangThaiHeThong": "active"
+      "trangThaiHeThong": "active",
+      "ghiChuAnh": "Historical/referenced edition(s): TCVN 2737:1995"
     },
     {
       "id": "QLDA-VPS-TCVN-002",
@@ -44,7 +45,8 @@
       "ngayRaSoat": "2026-11-15",
       "nguonThamKhao": "https://github.com/Manhhung114/QLDA_ver612_VPS/blob/main/src/qlda/runtime_core/legal_standards_backfill.py",
       "kiemChung": "VSQI",
-      "trangThaiHeThong": "active"
+      "trangThaiHeThong": "active",
+      "ghiChuAnh": "Historical/referenced edition(s): TCVN 3890:2009"
     },
     {
       "id": "QLDA-VPS-TCVN-003",
@@ -64,7 +66,8 @@
       "ngayRaSoat": "2026-11-15",
       "nguonThamKhao": "https://github.com/Manhhung114/QLDA_ver612_VPS/blob/main/src/qlda/runtime_core/legal_standards_backfill.py",
       "kiemChung": "VSQI",
-      "trangThaiHeThong": "active"
+      "trangThaiHeThong": "active",
+      "ghiChuAnh": "Historical/referenced edition(s): TCVN 5687:2010"
     },
     {
       "id": "QLDA-VPS-TCVN-004",
@@ -84,7 +87,8 @@
       "ngayRaSoat": "2026-11-15",
       "nguonThamKhao": "https://github.com/Manhhung114/QLDA_ver612_VPS/blob/main/src/qlda/runtime_core/legal_standards_backfill.py",
       "kiemChung": "VSQI",
-      "trangThaiHeThong": "active"
+      "trangThaiHeThong": "active",
+      "ghiChuAnh": "Historical/referenced edition(s): TCVN 5738:2021; TCVN 7568-14:2015"
     },
     {
       "id": "QLDA-VPS-TCVN-005",
@@ -104,7 +108,8 @@
       "ngayRaSoat": "2026-11-15",
       "nguonThamKhao": "https://github.com/Manhhung114/QLDA_ver612_VPS/blob/main/src/qlda/runtime_core/legal_standards_backfill.py",
       "kiemChung": "VSQI",
-      "trangThaiHeThong": "active"
+      "trangThaiHeThong": "active",
+      "ghiChuAnh": "Historical/referenced edition(s): TCVN 5574:2012"
     },
     {
       "id": "QLDA-VPS-TCVN-006",
@@ -124,7 +129,8 @@
       "ngayRaSoat": "2026-11-15",
       "nguonThamKhao": "https://github.com/Manhhung114/QLDA_ver612_VPS/blob/main/src/qlda/runtime_core/legal_standards_backfill.py",
       "kiemChung": "VSQI",
-      "trangThaiHeThong": "active"
+      "trangThaiHeThong": "active",
+      "ghiChuAnh": "Historical/referenced edition(s): TCVN 5575:2012"
     },
     {
       "id": "QLDA-VPS-TCVN-007",
@@ -144,7 +150,8 @@
       "ngayRaSoat": "2026-11-15",
       "nguonThamKhao": "https://github.com/Manhhung114/QLDA_ver612_VPS/blob/main/src/qlda/runtime_core/legal_standards_backfill.py",
       "kiemChung": "VSQI",
-      "trangThaiHeThong": "active"
+      "trangThaiHeThong": "active",
+      "ghiChuAnh": "Historical/referenced edition(s): TCVN 9362:2012"
     },
     {
       "id": "QLDA-VPS-TCVN-008",
@@ -164,7 +171,8 @@
       "ngayRaSoat": "2026-11-15",
       "nguonThamKhao": "https://github.com/Manhhung114/QLDA_ver612_VPS/blob/main/src/qlda/runtime_core/legal_standards_backfill.py",
       "kiemChung": "VSQI",
-      "trangThaiHeThong": "active"
+      "trangThaiHeThong": "active",
+      "ghiChuAnh": "Verify applicability and current referenced standards before use."
     },
     {
       "id": "QLDA-VPS-TCVN-009",
@@ -184,7 +192,8 @@
       "ngayRaSoat": "2026-11-15",
       "nguonThamKhao": "https://github.com/Manhhung114/QLDA_ver612_VPS/blob/main/src/qlda/runtime_core/legal_standards_backfill.py",
       "kiemChung": "VSQI",
-      "trangThaiHeThong": "active"
+      "trangThaiHeThong": "active",
+      "ghiChuAnh": "Verify applicability and current referenced standards before use."
     },
     {
       "id": "QLDA-VPS-TCVN-010",
@@ -204,7 +213,8 @@
       "ngayRaSoat": "2026-11-15",
       "nguonThamKhao": "https://github.com/Manhhung114/QLDA_ver612_VPS/blob/main/src/qlda/runtime_core/legal_standards_backfill.py",
       "kiemChung": "VSQI",
-      "trangThaiHeThong": "active"
+      "trangThaiHeThong": "active",
+      "ghiChuAnh": "Verify applicability and current referenced standards before use."
     },
     {
       "id": "QLDA-VPS-TCVN-011",
@@ -224,7 +234,8 @@
       "ngayRaSoat": "2026-11-15",
       "nguonThamKhao": "https://github.com/Manhhung114/QLDA_ver612_VPS/blob/main/src/qlda/runtime_core/legal_standards_backfill.py",
       "kiemChung": "VSQI",
-      "trangThaiHeThong": "active"
+      "trangThaiHeThong": "active",
+      "ghiChuAnh": "Verify applicability and current referenced standards before use."
     },
     {
       "id": "QLDA-VPS-TCVN-012",
@@ -244,7 +255,8 @@
       "ngayRaSoat": "2026-11-15",
       "nguonThamKhao": "https://github.com/Manhhung114/QLDA_ver612_VPS/blob/main/src/qlda/runtime_core/legal_standards_backfill.py",
       "kiemChung": "VSQI",
-      "trangThaiHeThong": "active"
+      "trangThaiHeThong": "active",
+      "ghiChuAnh": "Verify applicability and current referenced standards before use."
     },
     {
       "id": "QLDA-VPS-TCVN-013",
@@ -264,7 +276,8 @@
       "ngayRaSoat": "2026-11-15",
       "nguonThamKhao": "https://github.com/Manhhung114/QLDA_ver612_VPS/blob/main/src/qlda/runtime_core/legal_standards_backfill.py",
       "kiemChung": "VSQI",
-      "trangThaiHeThong": "active"
+      "trangThaiHeThong": "active",
+      "ghiChuAnh": "Verify applicability and current referenced standards before use."
     },
     {
       "id": "QLDA-VPS-TCVN-014",
@@ -284,7 +297,8 @@
       "ngayRaSoat": "2026-11-15",
       "nguonThamKhao": "https://github.com/Manhhung114/QLDA_ver612_VPS/blob/main/src/qlda/runtime_core/legal_standards_backfill.py",
       "kiemChung": "VSQI",
-      "trangThaiHeThong": "active"
+      "trangThaiHeThong": "active",
+      "ghiChuAnh": "Verify applicability and current referenced standards before use."
     },
     {
       "id": "QLDA-VPS-TCVN-015",
@@ -304,7 +318,8 @@
       "ngayRaSoat": "2026-11-15",
       "nguonThamKhao": "https://github.com/Manhhung114/QLDA_ver612_VPS/blob/main/src/qlda/runtime_core/legal_standards_backfill.py",
       "kiemChung": "VSQI",
-      "trangThaiHeThong": "active"
+      "trangThaiHeThong": "active",
+      "ghiChuAnh": "Historical/referenced edition(s): TCVN 7447-5-54:2005"
     },
     {
       "id": "QLDA-VPS-TCVN-016",
@@ -324,7 +339,8 @@
       "ngayRaSoat": "2026-11-15",
       "nguonThamKhao": "https://github.com/Manhhung114/QLDA_ver612_VPS/blob/main/src/qlda/runtime_core/legal_standards_backfill.py",
       "kiemChung": "VSQI",
-      "trangThaiHeThong": "withdrawn"
+      "trangThaiHeThong": "withdrawn",
+      "ghiChuAnh": "Superseded by TCVN 9362:2026"
     }
   ]
 }

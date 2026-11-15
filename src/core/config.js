@@ -84,5 +84,6 @@ export const ROADMAP = [
   {version:'V5.1',title:'Phối cảnh văn phòng chi tiết',state:'Có thể chạy thử',summary:'Ảnh phối cảnh isometric 3D có 16 điểm chọn phòng; chuyển qua WebGL tương tác khi cần; chưa phải 3D photoreal-time.'},
   {version:'V5.2',title:'Văn phòng WebGL ba tầng',state:'Có thể thử',summary:'Điều khiển camera, phóng to, hai khối MEP/Xây dựng và tầng điều hành.'},
   {version:'V5.3',title:'Pháp luật và Việt hóa',state:'Đã tích hợp',summary:'Vị trí ghim MEP chính xác hơn, danh mục pháp luật từ nguồn chính thống.'},
-  {version:'V5.4',title:'Song ngữ & danh mục TCVN',state:'Đã tích hợp bản thử',summary:'Tiếng Việt / English; tra cứu VSQI, cập nhật JSON trên GitHub/nhập thủ công, giữ hồ sơ gốc.'}
+  {version:'V5.4',title:'Song ngữ & danh mục TCVN',state:'Đã tích hợp bản thử',summary:'Tiếng Việt / English; tra cứu VSQI, cập nhật JSON trên GitHub/nhập thủ công, giữ hồ sơ gốc.'},
+  {version:'V5.5',title:'Chờ duyệt và quản lý cập nhật Android',state:'Đã tích hợp bản thử',summary:'Xem báo cáo/hồ sơ, ghi quyết định có tên người duyệt, song ngữ hai chiều và chuẩn bị APK ký cố định.'}
 ];

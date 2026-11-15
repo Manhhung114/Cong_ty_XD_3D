@@ -10,8 +10,8 @@ android {
         applicationId 'vn.congtyxd3d.app'
         minSdk 24
         targetSdk 35
-        versionCode 54
-        versionName '5.4.0-demo'
+        versionCode 55
+        versionName '5.5.0-demo'
     }
 
     compileOptions {
@@ -19,8 +19,18 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 
+    signingConfigs {
+        stableRelease {
+            def path = System.getenv('ANDROID_SIGNING_KEYSTORE_PATH')
+            if (path) storeFile file(path)
+            storePassword System.getenv('ANDROID_SIGNING_STORE_PASSWORD') ?: ''
+            keyAlias System.getenv('ANDROID_SIGNING_KEY_ALIAS') ?: ''
+            keyPassword System.getenv('ANDROID_SIGNING_KEY_PASSWORD') ?: ''
+        }
+    }
     buildTypes {
         release {
+            signingConfig signingConfigs.stableRelease
             minifyEnabled false
         }
     }

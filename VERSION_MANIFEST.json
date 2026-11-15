@@ -1,6 +1,6 @@
 {
   "project": "Công ty Xây dựng & MEP AI 3D",
-  "artifact_version": "0.5.4-demo",
+  "artifact_version": "0.5.5-demo",
   "release_date": "2026-11-15",
   "modules": [
     {
@@ -56,6 +56,12 @@
       "area": "VN/EN interface and manually refreshable, official-source TCVN/QCVN register",
       "entry": "src/core/standards.js",
       "status": "verified_metadata_plus_review_required_for_new_imports"
+    },
+    {
+      "label": "V5.5",
+      "area": "Approval queue, two-way VI/EN, stable Android release signing",
+      "entry": "src/core/storage.js",
+      "status": "prototype_with_human_review_demo_and_secret_based_signing"
     }
   ],
   "data_categories": {
@@ -82,12 +88,13 @@
     "Sample calculations are not engineering deliverables",
     "Construction calculations and approvals are demo only",
     "Detailed isometric visual is a rendered 2D asset, not a real-time 3D mesh",
-    "TCVN metadata/status checked on 2026-11-15; verify against VSQI before design/acceptance."
+    "TCVN metadata/status checked on 2026-11-15; verify against VSQI before design/acceptance.",
+    "Android stable release signing requires four GitHub Secrets; previous debug APK signing cannot be migrated automatically"
   ],
   "divisions": {
     "shared": "Ban giám đốc",
     "mep": "Cơ điện",
     "construction": "Xây dựng"
   },
-  "current_version": "V5.4"
+  "current_version": "V5.5"
 }

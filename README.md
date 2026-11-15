@@ -1,3 +1,28 @@
+# CÔNG TY XÂY DỰNG & MEP AI 3D — V5.5
+
+**Bản V5.5:** Quản lý phê duyệt có nội dung, giao diện tiếng Việt/English, và chuẩn bị chữ ký Android cố định.
+
+## Cách mở nhiệm vụ chờ duyệt
+
+1. Chọn **Chờ phê duyệt / Pending Approvals** từ menu, hoặc chạm thẻ KPI đang chờ duyệt, hoặc ở **Nhân viên AI** bấm **Xem và duyệt**.
+2. Chạm vào mã công việc để xem báo cáo thực hiện, bằng chứng, mã hồ sơ liên quan và lịch sử revision.
+3. Nếu chưa có nội dung: nhập báo cáo thực hiện hoặc tải hồ sơ liên quan. Không thể duyệt bản demo trống.
+4. Ghi tên người kiểm tra; chọn **Phê duyệt** hoặc **Trả lại chỉnh sửa** (bắt buộc nhận xét khi trả lại).
+5. Hệ thống lưu lịch sử cục bộ. Hiện chưa có đăng nhập xác thực/duyệt bằng chữ ký số, nên không dùng thay hồ sơ pháp lý.
+
+## Chuyển ngôn ngữ
+
+Chọn **Vietnamese / English** tại góc trên. Tất cả điều hướng, thẻ nhân viên, trạng thái, nội dung mẫu và mô tả pháp lý có bản tiếng Anh. Số hiệu văn bản, mã tệp và nội dung do người dùng nhập được giữ nguyên nguồn. Việc tự dịch toàn văn tài liệu không có trong bản demo.
+
+## Cập nhật APK không phải gỡ ứng dụng
+
+Khóa ký phát hành riêng được bàn giao trong gói **chỉ gửi người sở hữu dự án**. Hướng dẫn chi tiết: [`docs/ANDROID_SIGNING.md`](docs/ANDROID_SIGNING.md).
+
+- Không đưa `.p12`, mật khẩu hay Base64 keystore lên GitHub công khai.
+- Khai báo 4 GitHub Actions Secrets rồi chạy workflow APK để lấy **Signed Release APK**, không phải **Debug APK**.
+- Giữ nguyên `applicationId=vn.congtyxd3d.app` và tăng `versionCode` (V5.5 dùng 55). Cùng khóa phát hành sẽ giữ được localStorage/IndexedDB khi cài đè.
+- **Không bảo đảm cài đè lên APK V5.4 debug** vì chữ ký có thể khác. Trước khi chuyển khóa, sao lưu các tệp hồ sơ và metadata để tránh mất dữ liệu khi phải gỡ bản debug cũ.
+
 # CÔNG TY XÂY DỰNG & MEP AI 3D — Prototype V1.0–V5.0
 
 **Bản bàn giao:** 2026-11-15  

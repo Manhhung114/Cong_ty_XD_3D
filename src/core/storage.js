@@ -7,7 +7,27 @@ export function loadState(){try{const data=JSON.parse(localStorage.getItem(KEY)|
 export function persistState(state){localStorage.setItem(KEY,JSON.stringify(state));}
 export function logEvent(state,text,kind='activity'){state.events.unshift({id:'evt-'+Date.now()+'-'+Math.round(Math.random()*1e6),at:now(),kind,text});state.events=state.events.slice(0,250);persistState(state);}
 export function createTask(state,task){const seq=state.tasks.reduce((n,t)=>Math.max(n,parseInt((t.id.match(/\d+$/)||[])[0]||'0',10)),0)+1;if(!DEPARTMENTS.some(d=>d.id===task.dept))throw Error('Phòng ban không hợp lệ');const t={id:'TASK-'+String(seq).padStart(3,'0'),title:task.title.trim(),dept:task.dept,status:'todo',assignee:task.assignee||AGENTS.find(a=>a.dept===task.dept)?.id||'PM',priority:task.priority||'Trung bình',docCode:task.docCode||'',createdAt:now()};if(!t.title)throw Error('Tên công việc không được rỗng');state.tasks.unshift(t);logEvent(state,'Tạo '+t.id+': '+t.title);return t;}
-export function changeTaskStatus(state,id,status){if(!TASK_STATES.includes(status))throw Error('Trạng thái không hợp lệ');const task=state.tasks.find(t=>t.id===id);if(!task)throw Error('Không tìm thấy công việc');task.status=status;logEvent(state,task.id+' → '+({todo:'Chờ xử lý',working:'Đang thực hiện',review:'Chờ duyệt',done:'Hoàn thành'}[status]));}
+export function changeTaskStatus(state,id,status){if(!TASK_STATES.includes(status))throw Error('Trạng thái không hợp lệ');const task=state.tasks.find(t=>t.id===id);if(!task)throw Error('Không tìm thấy công việc');if(status==='done'&&task.status!=='done')throw Error('Cần mở hồ sơ và phê duyệt trong mục Chờ phê duyệt');task.status=status;logEvent(state,task.id+' → '+({todo:'Chờ xử lý',working:'Đang thực hiện',review:'Chờ duyệt',done:'Hoàn thành'}[status]));}
+// V5.5: Review evidence and explicit human decision. Stored with the task for migration safety.
+export function submitReviewMaterial(state,id,{summary='',findings='',reviewerNote=''}={}){
+ const t=state.tasks.find(x=>x.id===id);if(!t)throw Error('Không tìm thấy công việc');
+ const clean=String(summary).trim();if(clean.length<12)throw Error('Cần mô tả kết quả tối thiểu 12 ký tự trước khi gửi duyệt');
+ t.reviewSubmission={summary:clean,findings:String(findings).trim(),reviewerNote:String(reviewerNote).trim(),submittedAt:now(),submittedBy:t.assignee};
+ t.status='review';t.reviewHistory??=[];t.reviewHistory.push({decision:'submitted',at:now(),note:clean});
+ logEvent(state,t.id+' gửi nội dung để người phụ trách xem xét','review');return t;
+}
+export function decideTaskReview(state,id,{decision,reviewer,comment=''},{hasDocument=false}={}){
+ const t=state.tasks.find(x=>x.id===id);if(!t)throw Error('Không tìm thấy công việc');
+ if(t.status!=='review')throw Error('Nhiệm vụ chưa ở trạng thái chờ duyệt');
+ if(!['approve','reject'].includes(decision))throw Error('Quyết định không hợp lệ');
+ const who=String(reviewer||'').trim(),note=String(comment||'').trim();
+ if(who.length<2)throw Error('Cần ghi tên người duyệt');
+ if(decision==='approve'&&!t.reviewSubmission?.summary&&!hasDocument)throw Error('Chưa có báo cáo hoặc hồ sơ đính kèm để xem xét, không thể duyệt');
+ if(decision==='reject'&&note.length<5)throw Error('Cần ghi rõ lý do trả lại');
+ t.reviewHistory??=[];t.reviewHistory.push({decision,reviewer:who,note,at:now()});
+ t.status=decision==='approve'?'done':'working';t.reviewDecision={decision,reviewer:who,comment:note,at:now()};
+ logEvent(state,t.id+' – '+(decision==='approve'?'đã phê duyệt':'trả lại chỉnh sửa')+' bởi '+who,'review');return t;
+}
 export function getAgentState(state,id){const tasks=state.tasks.filter(t=>t.assignee===id);if(tasks.some(t=>t.status==='working'))return 'working';if(tasks.some(t=>t.status==='review'))return 'review';return 'idle';}
 export function metrics(state,docs=[]){return {agents:AGENTS.length,working:state.tasks.filter(t=>t.status==='working').length,review:state.tasks.filter(t=>t.status==='review').length,done:state.tasks.filter(t=>t.status==='done').length,docs:docs.length,tasks:state.tasks.length};}
 export function getSnapshot(state,docs){return {format:'construction-mep-company-3d/export-v5',exportedAt:now(),state,documents:docs.map(({blob,...meta})=>meta),warning:'Metadata only. Download binary files individually. Store in browser IndexedDB.'};}

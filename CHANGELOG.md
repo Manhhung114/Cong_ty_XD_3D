@@ -8,6 +8,13 @@
 
 # CHANGELOG — Công ty Xây dựng & MEP AI 3D
 
+## 2026-11-15 — V5.5 Approvals / English / Stable Android signing
+
+- Thêm trang duyệt hồ sơ có bằng chứng, báo cáo thực hiện, lịch sử duyệt và trả lại với lý do; không cho duyệt khi thiếu báo cáo/hồ sơ.
+- Việt–Anh hai chiều trên các trang và dữ liệu demo, có bản Anh cho mô tả văn bản pháp luật; giữ nguyên mã/tài liệu gốc.
+- Android versionCode 55; quy trình ký release bằng bộ GitHub Secrets cố định, khóa phát hành bàn giao riêng tư; debug APK cũ không tự tương thích.
+- Thử nghiệm tự động: 34/34 PASS; kiểm tra luồng duyệt và chuyển ngôn ngữ bằng Chromium nội tuyến. Vẫn cần xác minh Android thực tế và chức năng cài đè bản ký.
+
 ## 2026-11-15 — V5.3 Tiếng Việt, hiệu chỉnh điểm phòng và pháp lý
 
 - Sửa ghim theo vị trí thực của ảnh, tách phòng chưa có hình minh họa khỏi ghim.

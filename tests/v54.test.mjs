@@ -51,6 +51,6 @@ test('V5.4 app wires language switch, standard refresh and manual import',()=>{
  assert.match(html,/id="languageSelect"/);assert.match(app,/function rebuildLegal/);
  assert.match(app,/checkRemoteStandards/);assert.match(app,/saveManualStandards/);
  assert.match(app,/translateDom\(document\.getElementById\('app'\),language\)/);
- assert.match(read('android/app/build.gradle'),/versionCode 54/);
+ assert.ok(Number(read('android/app/build.gradle').match(/versionCode\s+(\d+)/)?.[1])>=54);
  assert.match(STANDARDS_REMOTE,/Cong_ty_XD_3D\/main/);
 });

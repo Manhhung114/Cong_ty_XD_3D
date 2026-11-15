@@ -17,6 +17,11 @@ permissions:
 
 jobs:
   build-apk:
+    env:
+      RELEASE_KEYSTORE_BASE64: ${{ secrets.XD_MEP_KEYSTORE_BASE64 }}
+      RELEASE_STORE_PASSWORD: ${{ secrets.XD_MEP_STORE_PASSWORD }}
+      RELEASE_KEY_ALIAS: ${{ secrets.XD_MEP_KEY_ALIAS }}
+      RELEASE_KEY_PASSWORD: ${{ secrets.XD_MEP_KEY_PASSWORD }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -42,6 +47,17 @@ jobs:
           cp -r src data assets android/app/src/main/assets/www/
       - name: Test web application
         run: npm test
+      - name: Restore private release keystore from GitHub Secrets
+        if: ${{ env.RELEASE_KEYSTORE_BASE64 != '' && env.RELEASE_STORE_PASSWORD != '' && env.RELEASE_KEY_ALIAS != '' && env.RELEASE_KEY_PASSWORD != '' }}
+        run: |
+          printf '%s' "$RELEASE_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/xd-mep-stable-release.p12"
+          echo "ANDROID_SIGNING_KEYSTORE_PATH=$RUNNER_TEMP/xd-mep-stable-release.p12" >> "$GITHUB_ENV"
+          echo "ANDROID_SIGNING_STORE_PASSWORD=$RELEASE_STORE_PASSWORD" >> "$GITHUB_ENV"
+          echo "ANDROID_SIGNING_KEY_ALIAS=$RELEASE_KEY_ALIAS" >> "$GITHUB_ENV"
+          echo "ANDROID_SIGNING_KEY_PASSWORD=$RELEASE_KEY_PASSWORD" >> "$GITHUB_ENV"
+      - name: Build signed release APK (reusable signing key)
+        if: ${{ env.ANDROID_SIGNING_KEYSTORE_PATH != '' }}
+        run: gradle --no-daemon --stacktrace -p android :app:assembleRelease
       - name: Build installable debug APK
         run: gradle --no-daemon --stacktrace -p android :app:assembleDebug
       - name: Verify output and SHA256
@@ -51,7 +67,15 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Cong_ty_XD_3D_V5_4_Android_Debug_APK
+          name: Cong_ty_XD_3D_V5_5_Android_Debug_APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 30
+      - name: Upload stable signed APK (only when release secrets are configured)
+        if: ${{ env.ANDROID_SIGNING_KEYSTORE_PATH != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: Cong_ty_XD_3D_V5_5_Signed_Release_APK
+          path: android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
           retention-days: 30
