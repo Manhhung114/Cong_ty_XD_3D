@@ -40,6 +40,6 @@ test('V5.7.1 requires server login for tasks, approvals and documents',()=>{
 test('V5.7.1 Android keeps package ID, updates version and omits sample assets',()=>{
  const gradle=read('android/app/build.gradle');const workflow=read('.github/workflows/build-android-apk.yml');
  assert.match(gradle,/applicationId 'vn\.congtyxd3d\.app'/);
- assert.match(gradle,/versionCode 58/);
+ assert.match(gradle,/versionCode 59/);
  assert.match(workflow,/rm -rf android\/app\/src\/main\/assets\/www\/data\/samples/);
 });

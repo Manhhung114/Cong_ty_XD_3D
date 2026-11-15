@@ -1,3 +1,12 @@
+# V5.7.2 – Một menu Văn phòng 3D, ban điều hành chung (15/11/2026)
+
+- Bỏ mục **Khối Xây dựng** trong menu bên trái; giữ bộ lọc **Toàn công ty / Cơ điện MEP / Xây dựng** bên trong Văn phòng 3D và Nhân viên AI.
+- Giám đốc công ty (CEO) và Trưởng ban quản lý dự án (PM) là **2 Agent dùng chung** của cả hai khối: MEP có 10, Xây dựng có 10, toàn công ty vẫn chỉ có 18 Agent duy nhất.
+- Khi chọn Xây dựng, phòng **Ban giám đốc** và cả hai Agent điều hành vẫn được hiển thị (9 phòng truy cập: 8 bộ môn + 1 phòng chung); MEP là 7 bộ môn + 1 phòng chung.
+- Không nhân đôi hồ sơ, tài khoản, quyền hay nhiệm vụ; `id=director`, `CEO`, `PM` được giữ nguyên.
+- Khi chuyển trang, bộ lọc khối đang chọn được giữ lại. Điều hướng cũ tới mục `construction` được quy về Văn phòng 3D theo bộ lọc Xây dựng.
+- Android giữ `applicationId=vn.congtyxd3d.app` và dùng `versionCode=59`; cài đè chỉ khi cùng khóa ký.
+
 # Công ty Xây dựng & MEP AI 3D — V5.7.1
 
 **Bản chuẩn hóa giao diện và phê duyệt:** Không tự sinh nhiệm vụ hay chạy kịch bản AI. Menu chỉ có một **Chờ phê duyệt** sử dụng backend có xác thực và phân quyền. Bỏ **Duyệt dự án thật** và các biểu ngữ/số liệu minh họa.

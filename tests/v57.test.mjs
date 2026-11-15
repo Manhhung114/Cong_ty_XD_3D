@@ -27,7 +27,7 @@ test('V5.7 UI has distinct online projects, approval and account pages',()=>{
 test('V5.7 build remains update-compatible with same applicationId and signing secret names',()=>{
  const gradle=read('android/app/build.gradle'),action=read('.github/workflows/build-android-apk.yml');
  assert.match(gradle,/applicationId 'vn\.congtyxd3d\.app'/);
- assert.match(gradle,/versionCode 58/);
+ assert.match(gradle,/versionCode 59/);
  assert.match(action,/secrets.XD_MEP_KEYSTORE_BASE64/);
  assert.match(action,/python -m pytest backend\/tests/);
 });

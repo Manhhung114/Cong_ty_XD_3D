@@ -2,10 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {parseBOQCSV,parseDelimited,numberVN,sumBOQ} from '../src/core/boq.js';
 import {standardizeCode,nextRevision,documentGroups} from '../src/core/documents.js';
-import {AGENTS,DEPARTMENTS,visibleDepartments,CONSTRUCTION_SAMPLE_TASKS} from '../src/core/config.js';
+import {AGENTS,DEPARTMENTS,visibleDepartments,visibleAgents,CONSTRUCTION_SAMPLE_TASKS} from '../src/core/config.js';
 import {loadState,createTask,changeTaskStatus,metrics} from '../src/core/storage.js';
 const store=new Map();globalThis.localStorage={getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)};
-test('3D company has two distinct branches (16 departments, 18 agents)',()=>{assert.equal(DEPARTMENTS.length,16);assert.equal(AGENTS.length,18);assert.equal(visibleDepartments('all').length,16);assert.equal(visibleDepartments('mep').length,8);assert.equal(visibleDepartments('construction').length,8);assert.equal(DEPARTMENTS.filter(d=>d.division==='mep').length,7);assert.equal(DEPARTMENTS.filter(d=>d.division==='construction').length,8);assert.ok(AGENTS.every(a=>DEPARTMENTS.some(d=>d.id===a.dept)));assert.ok(DEPARTMENTS.every(d=>d.floor===0||d.floor===1));});
+test('3D company has two distinct branches (16 departments, 18 agents)',()=>{assert.equal(DEPARTMENTS.length,16);assert.equal(AGENTS.length,18);assert.equal(visibleDepartments('all').length,16);assert.equal(visibleDepartments('mep').length,8);assert.equal(visibleDepartments('construction').length,9);assert.equal(DEPARTMENTS.filter(d=>d.division==='mep').length,7);assert.equal(DEPARTMENTS.filter(d=>d.division==='construction').length,8);assert.ok(AGENTS.every(a=>DEPARTMENTS.some(d=>d.id===a.dept)));assert.ok(DEPARTMENTS.every(d=>d.floor===0||d.floor===1));});
 test('BOQ sample: parse and sum',()=>{const lines='code,description,unit,quantity,unitPrice\nA,Cap dien,m,125,315000\nB,Tu dien,bo,2,18000000';const rows=parseBOQCSV(lines);assert.equal(rows.length,2);assert.equal(sumBOQ(rows),75375000);});
 test('BOQ can parse semicolon, Vietnamese number and multiline quoted CSV',()=>{const rows=parseBOQCSV('code;description;unit;quantity;unitPrice\nA;"Ống gió; vuông";m2;1.234,5;120.000');assert.equal(rows[0].quantity,1234.5);assert.equal(rows[0].unitPrice,120000);assert.equal(rows[0].total,148140000);assert.equal(parseDelimited('a,b\n"hello\nworld",c')[1][0],'hello\nworld');});
 test('BOQ rejects negative and invalid numeric values',()=>{assert.throws(()=>parseBOQCSV('quantity,unitPrice\n-1,2'),/không được âm/);assert.throws(()=>parseBOQCSV('quantity,unitPrice\nfoo,2'),/số không hợp lệ/);assert.equal(numberVN('1.234.000'),1234000);});
@@ -15,3 +15,12 @@ test('Tasks persist locally, transition and update KPI',()=>{const state=loadSta
 test('Construction tasks route to their assigned agents without sample data',()=>{store.clear();const initial=loadState();assert.equal(initial.tasks.length,0);const t=createTask(initial,{title:'Rà soát móng cọc',dept:'structure',priority:'Cao'});assert.equal(t.assignee,'STR');assert.throws(()=>createTask(initial,{title:'invalid',dept:'unknown'}),/Phòng ban không hợp lệ/);});
 test('Legacy localStorage cleanup preserves user-authored tasks',()=>{const key='mep-ai-company3d.v1';store.set(key,JSON.stringify({tasks:[{id:'TASK-001',title:'User original',dept:'electrical',status:'todo',assignee:'ELE'},{id:'TASK-007',title:'User custom',dept:'qa',status:'working',assignee:'QAC'}],events:[],selectedDept:'electrical'}));const updated=loadState();assert.ok(updated.tasks.some(t=>t.title==='User original'));assert.ok(updated.tasks.some(t=>t.title==='User custom'));assert.equal(updated.tasks.length,2);assert.equal(new Set(updated.tasks.map(t=>t.id)).size,updated.tasks.length);assert.equal(updated.officeView,'all');assert.equal(updated.sampleTasksRemoved,true);store.set(key,JSON.stringify(updated));assert.equal(loadState().tasks.length,updated.tasks.length);});
 test('Document revisions are isolated between MEP and Construction',()=>{const docs=[{code:'DRW-001',division:'mep',revision:1},{code:'DRW-001',division:'construction',revision:1},{code:'DRW-001',division:'construction',revision:2},{code:'LEGACY',revision:1}];assert.equal(nextRevision(docs,'DRW-001','mep'),2);assert.equal(nextRevision(docs,'DRW-001','construction'),3);assert.equal(nextRevision(docs,'LEGACY','mep'),2);assert.equal(documentGroups(docs).length,3);});
+
+test('V5.7.2 shows the same two directors in both MEP and Construction without duplication',()=>{
+ const all=visibleAgents('all'),mep=visibleAgents('mep'),construction=visibleAgents('construction');
+ assert.equal(all.length,18);assert.equal(mep.length,10);assert.equal(construction.length,10);
+ for(const staff of ['CEO','PM']){assert.ok(mep.some(a=>a.id===staff));assert.ok(construction.some(a=>a.id===staff));}
+ assert.equal(new Set(all.map(a=>a.id)).size,18);
+ assert.equal(visibleDepartments('mep').filter(d=>d.division==='shared').length,1);
+ assert.equal(visibleDepartments('construction').filter(d=>d.division==='shared').length,1);
+});

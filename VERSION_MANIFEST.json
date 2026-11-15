@@ -1,6 +1,6 @@
 {
   "project": "Công ty Xây dựng & MEP AI 3D",
-  "artifact_version": "0.5.7.1",
+  "artifact_version": "0.5.7.2",
   "release_date": "2026-11-15",
   "modules": [
     {
@@ -80,6 +80,12 @@
       "area": "Single authenticated approval queue + no demonstration data",
       "entry": "src/portal.js",
       "status": "server_auth_required"
+    },
+    {
+      "label": "V5.7.2",
+      "area": "Single office navigation and shared management across both divisions",
+      "entry": "src/core/config.js",
+      "status": "tested_ui_filter_only"
     }
   ],
   "data_categories": {
@@ -114,7 +120,7 @@
     "mep": "Cơ điện",
     "construction": "Xây dựng"
   },
-  "current_version": "V5.7.1",
+  "current_version": "V5.7.2",
   "backend": {
     "framework": "FastAPI",
     "database": "PostgreSQL or SQLite local",

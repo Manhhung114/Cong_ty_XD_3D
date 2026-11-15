@@ -407,6 +407,15 @@ Object.assign(STRINGS,{
  'Chạm từng phòng ban · Vuốt ngang để xem toàn cảnh':'Tap a department · Swipe horizontally to explore the office',
  'V5.5 · VĂN PHÒNG SỐ ĐA NGÀNH':'V5.7 · MULTIDISCIPLINARY DIGITAL OFFICE',
 });
+
+// V5.7.2: Shared management is shown with both branch filters, never duplicated.
+Object.assign(STRINGS,{
+ 'Ban điều hành chung':'Shared Management',
+ 'Điều hành chung':'Shared Management',
+ '● Điều hành chung':'● Shared Management',
+ 'Hai khối chuyên môn và một ban điều hành chung: Giám đốc công ty và Trưởng ban QLDA phụ trách cả MEP lẫn Xây dựng.':'Two professional divisions with one shared management team: the Company Director and Project Management Lead oversee both MEP and Construction.',
+ 'Chọn MEP hoặc Xây dựng để xem chuyên môn; Giám đốc và Trưởng ban QLDA thuộc Ban điều hành chung trong cả hai khối. AI chưa kết nối.':'Choose MEP or Construction to filter staff; the Company Director and Project Management Lead appear in both as shared management. AI is not connected.'
+});
 const rules=Object.entries(STRINGS).sort((a,b)=>b[0].length-a[0].length);
 export function translateText(original,lang=getLanguage()){
   if(lang!=='en')return String(original??'');

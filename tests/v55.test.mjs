@@ -48,7 +48,7 @@ test('V5.7.1 keeps one authenticated approval queue and removes simulation mode'
 });
 test('V5.5 signed Android builds require secret-backed keystore outside public source',()=>{
  const gradle=source('android/app/build.gradle');const workflow=source('.github/workflows/build-android-apk.yml');
- assert.match(gradle,/versionCode (?:55|56|57|58)/);assert.match(gradle,/applicationId 'vn\.congtyxd3d\.app'/);
+ assert.ok(Number(gradle.match(/versionCode\s+(\d+)/)?.[1])>=55);assert.match(gradle,/applicationId 'vn\.congtyxd3d\.app'/);
  assert.match(gradle,/signingConfig signingConfigs.stableRelease/);
  assert.match(workflow,/secrets.XD_MEP_KEYSTORE_BASE64/);
  assert.match(workflow,/secrets.XD_MEP_STORE_PASSWORD/);

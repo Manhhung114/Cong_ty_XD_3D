@@ -12,7 +12,7 @@ test('V5.7 maps all departments including independent extra workstations',()=>{
  assert.deepEqual(OFFICE_UNMAPPED,[]);
  assert.ok(DEPARTMENTS.every(d=>Boolean(OFFICE_POINTS[d.id])!==OFFICE_UNMAPPED.includes(d.id)));
  for(const p of Object.values(OFFICE_POINTS))assert.ok(p[0]>=5&&p[0]<=95&&p[1]>=10&&p[1]<=95);
- assert.equal(visibleDepartments('construction').length,8);
+ assert.equal(visibleDepartments('construction').length,9);
  assert.ok(existsSync(new URL('../'+OFFICE_ILLUSTRATION.replace('./',''),import.meta.url)));
 });
 test('V5.1 preserves existing tasks when migrating display mode',()=>{

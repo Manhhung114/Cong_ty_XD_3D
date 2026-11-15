@@ -125,3 +125,7 @@
 .illustrated-pin{z-index:6;min-width:25px;min-height:25px;box-shadow:0 0 0 4px #15a5e755,0 0 11px #045d88}
 .illustrated-pin.selected{box-shadow:0 0 0 6px #2beac766,0 0 18px #5ffff0}
 @media(max-width:750px){.illustrated-workstation{width:86px;min-height:43px;padding:5px;gap:4px}.illustrated-workstation strong{font-size:8px}.illustrated-workstation span{font-size:16px}}
+
+/* V5.7.2: leadership shared by MEP and Construction */
+.office-level-legend .level-shared{color:#806026}
+@media(max-width:750px){.office-level-legend{flex-wrap:wrap;max-width:82%;row-gap:3px}}

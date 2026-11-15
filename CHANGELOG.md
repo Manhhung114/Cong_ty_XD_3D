@@ -1,3 +1,10 @@
+## 2026-11-15 – V5.7.2: Ban điều hành chung & đơn giản hóa menu
+
+- Bỏ tab Khối Xây dựng riêng, dùng bộ lọc MEP / Xây dựng trong Văn phòng 3D và Nhân viên AI.
+- Hiển thị Giám đốc và Trưởng ban QLDA trong cả hai danh sách; MEP 10, Xây dựng 10, toàn công ty 18 Agent không trùng.
+- Giữ bộ lọc khi chuyển trang, vẫn hỗ trợ điều hướng cũ, không xóa hồ sơ hoặc thay mã Agent.
+- Cập nhật kiểm thử lọc bộ phận và Android versionCode 59.
+
 # CẬP NHẬT V5.7.1 — 15/11/2026
 
 - Gỡ chế độ demo và menu phê duyệt trùng, giữ một quy trình xác thực theo máy chủ.

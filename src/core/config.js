@@ -23,7 +23,9 @@ export const DEPARTMENTS = [
 ];
 export const FLOOR_HEIGHT=4.35;
 export const departmentDivision=dept=>dept?.division==='shared'?'shared':dept?.division||'mep';
-export const visibleDepartments=view=>DEPARTMENTS.filter(d=>view==='all'||d.division===view||(view==='mep'&&d.division==='shared'));
+// Company leadership works across both disciplines. Filter by division without
+// duplicating their department or the two shared staff records.
+export const visibleDepartments=view=>DEPARTMENTS.filter(d=>!['mep','construction'].includes(view)||d.division===view||d.division==='shared');
 export const AGENTS = [
   {id:'CEO',name:'Giám đốc công ty',role:'Giám đốc công ty AI',dept:'director',tag:'Điều phối liên ngành'},
   {id:'PM',name:'Trưởng ban quản lý dự án',role:'Quản lý dự án AI',dept:'director',tag:'Tiến độ tổng thể'},
@@ -44,6 +46,12 @@ export const AGENTS = [
   {id:'HSE',name:'Kỹ sư chất lượng và an toàn xây dựng',role:'An toàn & QA/QC XD AI',dept:'xd_safety',tag:'Chất lượng/An toàn'},
   {id:'MAT',name:'Kỹ sư quản lý vật tư',role:'Kỹ sư Vật tư AI',dept:'xd_material',tag:'Vật liệu xây dựng'}
 ];
+// This view intentionally includes the same CEO and Project Manager in both
+// filtered branches; the complete company still has only eighteen unique agents.
+export const visibleAgents=view=>{
+  const departments=new Set(visibleDepartments(view).map(d=>d.id));
+  return AGENTS.filter(a=>departments.has(a.dept));
+};
 export const CATEGORIES = [
   {id:'drawings',title:'Bản vẽ',icon:'▤',desc:'PDF, DWG, DXF, bản vẽ thiết kế',formats:'.pdf,.dwg,.dxf,.png,.jpg,.jpeg,.ifc'},
   {id:'boq',title:'BOQ / Dự toán',icon:'▦',desc:'Excel, CSV, bảng khối lượng',formats:'.xlsx,.xls,.csv,.pdf'},
