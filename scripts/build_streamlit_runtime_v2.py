@@ -18,7 +18,7 @@ ENTRY = re.compile(r'<script\s+type="module"\s+src="\./src/app\.js"\s*></script>
 ASSET = re.compile(r"(['\"])(\./assets/[^'\"\n]+\.(?:webp|png|jpg|jpeg|svg))\1")
 
 
-def build(static: Path, *, role: str = 'member', nonce: str = '') -> str:
+def build(static: Path, *, role: str = 'member', nonce: str = '', initial_section: str = 'overview', account_email: str = '', drive_configured: bool = False) -> str:
     static = Path(static).resolve()
     cache: dict[Path,str] = {}
     order: list[Path] = []
@@ -97,9 +97,16 @@ def build(static: Path, *, role: str = 'member', nonce: str = '') -> str:
     resources_json = json.dumps(resources, ensure_ascii=False).replace("<", "\\u003c")
     role_json = json.dumps(role)
     nonce_json = json.dumps(nonce)
+    allowed_sections = ('overview', 'projects', 'documents', 'boq', 'bim', 'tasks', 'reviews')
+    section_json = json.dumps(initial_section if initial_section in allowed_sections else 'overview')
+    email_json = json.dumps(str(account_email)[:254]).replace('<', '\\u003c')
+    configured_json = 'true' if drive_configured else 'false'
     bootstrap = """<script>
 window.__xdAuthRole = """ + role_json + """;
 window.__xdDriveNonce = """ + nonce_json + """;
+window.__xdInitialSheet = """ + section_json + """;
+window.__xdAccountEmail = """ + email_json + """;
+window.__xdDriveConfigured = """ + configured_json + """;
 const __xdEmbeddedResources = """ + resources_json + """;
 const __xdOriginalFetch = window.fetch.bind(window);
 function __xdResourceKey(raw) {
