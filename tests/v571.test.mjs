@@ -25,15 +25,15 @@ test('V5.7.1 has a single server-backed approval page and no simulator',()=>{
  assert.equal((app.match(/id:'reviews'/g)||[]).length,1);
  assert.doesNotMatch(app,/id:'portalApprovals'|function toggleSimulation/);
  assert.doesNotMatch(html,/demoBtn|DỰ ÁN MÔ PHỎNG 001|DEMO/);
- assert.match(app,/reviews:\(\)=>portal\.render\('reviews'\)/);
+ assert.ok(app.includes("reviews:()=>window.__xdCloud?.enabled?renderCloudPage('reviews'):portal.render('reviews')"));
  assert.match(portal,/return kind==='reviews'\?this\.approvalsPage\(\)/);
  assert.match(portal,/this\.canReviewTask\(t\)/);
  assert.doesNotMatch(app,/BOQ_DEMO\.csv/);
 });
-test('V5.7.3 opens tasks, approvals and documents without server login',()=>{
+test('V6.0 uses a server-backed workspace on Streamlit while preserving offline fallback',()=>{
  const app=read('src/app.js'),portal=read('src/portal.js'),local=read('src/local_portal.js');
  assert.match(app,/new LocalProjectPortal/);assert.doesNotMatch(app,/new ProjectPortal\(/);
- for(const tab of ['reviews','tasks','documents'])assert.ok(app.includes(`${tab}:()=>portal.render('${tab}')`),tab);
+ for(const tab of ['reviews','tasks','documents'])assert.ok(app.includes(`renderCloudPage('${tab}')`)&&app.includes(`portal.render('${tab}')`),tab);
  assert.match(portal,/if\(!this\.user\)return this\.loginPage\(\)/);assert.doesNotMatch(local,/loginPage\(/);
  assert.match(portal,/canReviewTask/);assert.match(local,/reviewTaskInStore/);
  assert.ok(portal.includes("kind==='documents'?this.documentsPage()"));
