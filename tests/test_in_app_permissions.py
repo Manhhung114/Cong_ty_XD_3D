@@ -5,11 +5,12 @@ from unittest.mock import patch
 
 from drive_storage.access_control import (
     empty_policy, validate_policy, set_user, revoke_user, legacy_policy,
-    identity_for, allows_project, can_upload, can_admin, read_policy,
+    identity_for, allows_project, can_upload, can_admin, read_policy, _signature,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
 ROOT_ID = "drive-root-123456"
+SIGNING_KEY = "test-signing-secret-0123456789abcdef-123456"
 PROJECT = "project-one-123456"
 OTHER = "project-two-123456"
 
@@ -32,6 +33,7 @@ class StreamlitFake:
                 "refresh_token": "fake",
             },
             "access": {"members": list(members)},
+            "auth": {"cookie_secret": SIGNING_KEY},
         }
 
 
@@ -86,7 +88,8 @@ class AccessTests(unittest.TestCase):
         with patch("drive_storage.manager.from_streamlit_secrets", return_value=FakeStorage()):
             self.assertEqual(identity_for(st)["role"], "update")
         import json
-        raw = json.dumps(empty_policy()).encode("utf8")
+        policy = empty_policy()
+        raw = json.dumps({**policy, "_signature": _signature(policy, SIGNING_KEY)}).encode("utf8")
         with patch("drive_storage.manager.from_streamlit_secrets", return_value=FakeStorage(raw)):
             self.assertIsNone(identity_for(st))
 
@@ -125,12 +128,13 @@ class AccessTests(unittest.TestCase):
 
     def test_read_manifest_and_corrupted_manifest(self):
         import json
-        raw = json.dumps(empty_policy()).encode("utf8")
-        file_id, policy = read_policy(FakeStorage(raw))
+        policy = empty_policy()
+        raw = json.dumps({**policy, "_signature": _signature(policy, SIGNING_KEY)}).encode("utf8")
+        file_id, policy = read_policy(FakeStorage(raw), SIGNING_KEY)
         self.assertEqual(file_id, "policy-file-12345")
         self.assertEqual(policy["users"], {})
         with self.assertRaises((ValueError, UnicodeDecodeError)):
-            read_policy(FakeStorage(b'not-json'))
+            read_policy(FakeStorage(b'not-json'), SIGNING_KEY)
 
     def test_settings_admin_only_and_dialog_wired(self):
         app = (ROOT / "src/app.js").read_text(encoding="utf8")
