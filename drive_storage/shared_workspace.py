@@ -30,6 +30,8 @@ DEPARTMENTS = {
 ACTIONS = {
     "project.created", "task.created", "task.started",
     "task.submitted", "task.approved", "task.returned", "document.registered",
+    "document.metadata_updated", "document.submitted", "document.approved",
+    "document.returned", "document.archived",
 }
 ID = re.compile(r"^[A-Za-z0-9_-]{12,160}$")
 EVENT_ID = re.compile(r"^[0-9a-f]{32}$")
@@ -221,14 +223,55 @@ class SharedWorkspace:
                                                   "note": data.get("comment", "")})
             elif action == "document.registered":
                 did = data["file_id"]
+                if did in documents:
+                    raise ValueError("Một tệp Drive được đăng ký nhiều lần vào sổ hồ sơ")
                 documents[did] = {
                     "id": did, "projectId": pid, "code": data["code"],
                     "filename": data["filename"], "category": data["category"],
                     "revision": data.get("revision", ""),
                     "description": data.get("description", ""),
                     "taskId": data.get("task_id", ""),
-                    "registeredAt": event["at"], "actor": event["actor"],
+                    "sizeBytes": data.get("size_bytes", 0),
+                    "md5Checksum": data.get("md5_checksum", ""),
+                    "registeredAt": event["at"], "updatedAt": event["at"],
+                    "actor": event["actor"], "status": "draft",
+                    "history": [{
+                        "at": event["at"], "actor": event["actor"],
+                        "action": "document.registered", "note": data.get("description", ""),
+                    }],
                 }
+            elif action.startswith("document."):
+                did = data.get("file_id")
+                doc = documents.get(did)
+                if not doc or doc["projectId"] != pid:
+                    raise ValueError("Nhật ký hồ sơ tham chiếu tệp chưa đăng ký hoặc sai dự án")
+                status = doc["status"]
+                if action == "document.metadata_updated":
+                    if status not in {"draft", "returned"}:
+                        raise ValueError("Hồ sơ đã trình duyệt hoặc phê duyệt không thể sửa metadata")
+                    for key in ("code", "description", "taskId"):
+                        doc[key] = data[key]
+                elif action == "document.submitted":
+                    if status not in {"draft", "returned"}:
+                        raise ValueError("Trạng thái trình hồ sơ không hợp lệ")
+                    doc["status"] = "pending"
+                elif action == "document.approved":
+                    if status != "pending":
+                        raise ValueError("Hồ sơ không ở trạng thái chờ duyệt")
+                    doc["status"] = "approved"
+                elif action == "document.returned":
+                    if status != "pending":
+                        raise ValueError("Hồ sơ không ở trạng thái chờ duyệt")
+                    doc["status"] = "returned"
+                elif action == "document.archived":
+                    if status == "archived":
+                        raise ValueError("Hồ sơ đã lưu trữ")
+                    doc["status"] = "archived"
+                doc["updatedAt"] = event["at"]
+                doc["history"].append({
+                    "at": event["at"], "actor": event["actor"],
+                    "action": action, "note": data.get("comment", data.get("description", "")),
+                })
             audit.append({**entry, "detail": _clean_text(data.get("title", data.get("code", "")), 160)})
         tasks = sorted(task_map.values(), key=lambda x: x["createdAt"], reverse=True)
         return {"version": 59, "projects": projects, "tasks": tasks,
@@ -426,11 +469,17 @@ class SharedWorkspace:
             if not any(t["id"] == task_id and t["projectId"] == pid
                        for t in self.snapshot(identity)["tasks"]):
                 raise PermissionError("Nhiệm vụ đính kèm không thuộc dự án")
+        if any(doc["id"] == fid and doc["projectId"] == pid
+               for doc in self.snapshot(identity)["documents"]):
+            raise ValueError("Tệp đã ghi sổ; hãy dùng Quản lý hồ sơ để chỉnh thông tin hoặc trình duyệt")
         filename = _clean_text(matching["name"], 180, True)
         match = re.search(r"_R(\d{2,4})\.", filename, flags=re.I)
         revision = "R" + match.group(1) if match else ""
         return self._append(identity=identity, project_id=pid, action="document.registered",
                             data={"file_id": fid, "filename": filename, "category": category,
-                                  "revision": revision, "code": _clean_text(code, 80) or filename,
-                                  "description": _clean_text(description, 600), "task_id": task_id},
+                                  "revision": revision, "code": _clean_text(code, 80) or
+                                  re.sub(r"_R\\d{2,4}$", "", filename.rsplit(".", 1)[0], flags=re.I),
+                                  "description": _clean_text(description, 600), "task_id": task_id,
+                                  "size_bytes": int(matching.get("size") or 0),
+                                  "md5_checksum": str(matching.get("md5Checksum") or "")[:64]},
                             event_id=event_id)
