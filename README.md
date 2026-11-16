@@ -1,3 +1,15 @@
+# V6.0.1 — Kho tài liệu có kiểm kê và theo dõi hồ sơ Google Drive
+
+**Cập nhật trực tiếp trong sheet Kho tài liệu:** quét toàn bộ 18 nhóm hồ sơ trong dự án được cấp quyền, đối chiếu với sổ tài liệu có chữ ký máy chủ. Bảng quản lý có mã hồ sơ, tên file, nhóm, revision R01/R02, ngày tải, người ghi sổ, dung lượng, trạng thái, tìm kiếm/lọc và CSV. File Drive chưa ghi sổ hiện **Chưa lập sổ**; nếu bị chuyển/xóa hiện **Không tìm thấy**.
+
+**Bấm Chi tiết** trong Kho tài liệu để tải bản gốc, lập sổ, trình duyệt, phê duyệt/trả lại, xem lịch sử phiên bản/người thao tác, đưa vào lưu trữ mà không xóa tệp gốc. Admin/Cập nhật/Chỉ đọc được kiểm tra ở phía Streamlit trước mỗi thao tác.
+
+**Giới hạn:** bảng hiển thị 500 tệp đầu; hộp thoại máy chủ xem/xuất danh mục đầy đủ tối đa 3.000 tệp mỗi dự án. Người tải các file Drive cũ chưa thể xác minh từ OAuth dùng chung; chỉ hiển thị email người **ghi sổ**. Download native tối đa 40 MB, tệp lớn cần quyền Drive; giới hạn upload 500 MB chưa được kiểm thử thực tế trên Community Cloud. Chưa triển khai PostgreSQL production, giao dịch đồng thời lớn hoặc chữ ký số pháp lý. Dữ liệu Drive và IndexedDB cũ được giữ nguyên.
+
+Hướng dẫn đầy đủ: [Kiểm kê và kiểm soát file V6.0.1](docs/DOCUMENT_CONTROL_V601.md).
+
+---
+
 # Bản V5.9 + V6.0 (Streamlit) — Dữ liệu tập trung và phê duyệt xác thực
 
 **Chạy tại:** https://congtyxd.streamlit.app/ • **Nguồn:** nhánh main sau khi hợp nhất PR V5.9/V6.0.
