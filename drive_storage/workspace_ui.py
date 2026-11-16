@@ -301,6 +301,9 @@ def workspace_dialog(st):
                                     format_func=lambda x: DEPARTMENT_NAMES.get(x, x))
                 assignee = st.text_input("Người phụ trách (tên hoặc email)", max_chars=160)
                 doc_code = st.text_input("Mã hồ sơ liên quan", max_chars=80)
+                priority = st.selectbox("Mức độ ưu tiên", ["normal", "low", "high", "critical"],
+                                        format_func=lambda p: {"normal": "Bình thường", "low": "Thấp",
+                                                               "high": "Cao", "critical": "Khẩn cấp"}[p])
                 deadline = st.date_input("Hạn hoàn thành", value=None, format="DD/MM/YYYY")
                 submitted = st.form_submit_button("Giao công việc", type="primary")
             if submitted:
@@ -308,6 +311,7 @@ def workspace_dialog(st):
                     server.create_task(
                         actor, project_id=pid, title=title, dept=dept,
                         assignee=assignee, doc_code=doc_code,
+                        priority=priority,
                         due_date=deadline.isoformat() if deadline else "",
                         event_id=action["actionId"],
                     )
