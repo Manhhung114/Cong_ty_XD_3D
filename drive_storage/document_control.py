@@ -162,8 +162,16 @@ def _registered_document(workspace, identity, project_id, file_id):
         raise ValueError("Tệp chưa ghi sổ hoặc không thuộc dự án được cấp quyền")
     # Check file still physically lives under its signed project/category.
     matches = workspace.storage.list_category_files(project_id=pid, category=record["category"])
-    if not any(f["id"] == fid for f in matches):
+    live = next((f for f in matches if f["id"] == fid), None)
+    if not live:
         raise PermissionError("Tệp không còn ở đúng thư mục Drive; tạm dừng cập nhật")
+    original_hash = str(record.get("md5Checksum") or "")
+    current_hash = str(live.get("md5Checksum") or "")
+    expected_size = int(record.get("sizeBytes") or 0)
+    actual_size = int(live.get("size") or 0)
+    if ((original_hash and current_hash and original_hash.lower() != current_hash.lower())
+            or (expected_size and actual_size != expected_size)):
+        raise PermissionError("Tệp trên Drive bị thay đổi sau khi ghi sổ; không được sửa hoặc phê duyệt")
     return pid, record
 
 
