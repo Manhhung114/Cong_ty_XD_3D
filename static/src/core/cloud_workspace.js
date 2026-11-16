@@ -210,6 +210,9 @@ export function renderCloudPage(section){
  section==='documents'?docsHtml():
  section==='activity'?activityHtml():'');
 }
+export function requestDocumentInventory(){
+ if(!Array.isArray(view().fileInventory))send('documents','document_inventory');
+}
 const send=(section,op,taskId='',projectId='',fileId='')=>{
  const currentProject=current();
  const token=window.__xdDriveNonce;
