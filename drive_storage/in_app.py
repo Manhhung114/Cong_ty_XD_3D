@@ -77,13 +77,19 @@ def mount_bridge(st) -> dict | None:
             if (!d || d.channel !== "XD_MEP_DRIVE_V1" || d.nonce !== data.nonce) return;
             const userGrant = d.kind === "access" && d.section === "settings";
             const driveAction = ["upload","browse"].includes(d.kind) && allowed.has(d.section);
-            if (!userGrant && !driveAction) return;
+            const workSections = new Set(["projects","tasks","reviews","documents","activity"]);
+            const workspaceAction = d.kind === "workspace" && workSections.has(d.section);
+            if (!userGrant && !driveAction && !workspaceAction) return;
             if (event.source === window) return;
             // The iframe's origin can be "null" for srcdoc on some browsers.
             if (event.origin !== window.location.origin && event.origin !== "null") return;
             setTriggerValue("action", {
               kind: d.kind, section: d.section,
-              projectCode: String(d.projectCode || "").slice(0, 50)
+              projectCode: String(d.projectCode || "").slice(0, 50),
+              op: workspaceAction ? String(d.op || "").slice(0, 32) : "",
+              projectId: workspaceAction ? String(d.projectId || "").slice(0, 160) : "",
+              taskId: workspaceAction ? String(d.taskId || "").slice(0, 160) : "",
+              actionId: workspaceAction ? String(d.actionId || "").slice(0, 32) : ""
             });
           }
           window.addEventListener("message", onMessage);
@@ -98,6 +104,17 @@ def mount_bridge(st) -> dict | None:
     action = getattr(result, "action", None)
     if not isinstance(action, dict):
         return None
+    if action.get("kind") == "workspace":
+        from drive_storage.workspace_ui import COMMANDS
+        section, op = action.get("section"), action.get("op")
+        if section not in COMMANDS or op not in COMMANDS[section]:
+            return None
+        return {
+            "kind": "workspace", "section": section, "op": op,
+            "projectId": str(action.get("projectId") or "")[:160],
+            "taskId": str(action.get("taskId") or "")[:160],
+            "actionId": str(action.get("actionId") or "")[:32],
+        }
     if action.get("section") == "settings" and action.get("kind") == "access":
         if not can_admin(identity_for(st)):
             return None
