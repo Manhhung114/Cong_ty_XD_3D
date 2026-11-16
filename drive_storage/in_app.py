@@ -89,6 +89,7 @@ def mount_bridge(st) -> dict | None:
               op: workspaceAction ? String(d.op || "").slice(0, 32) : "",
               projectId: workspaceAction ? String(d.projectId || "").slice(0, 160) : "",
               taskId: workspaceAction ? String(d.taskId || "").slice(0, 160) : "",
+              fileId: workspaceAction ? String(d.fileId || "").slice(0, 160) : "",
               actionId: workspaceAction ? String(d.actionId || "").slice(0, 32) : ""
             });
           }
@@ -113,6 +114,7 @@ def mount_bridge(st) -> dict | None:
             "kind": "workspace", "section": section, "op": op,
             "projectId": str(action.get("projectId") or "")[:160],
             "taskId": str(action.get("taskId") or "")[:160],
+            "fileId": str(action.get("fileId") or "")[:160],
             "actionId": str(action.get("actionId") or "")[:32],
         }
     if action.get("section") == "settings" and action.get("kind") == "access":
