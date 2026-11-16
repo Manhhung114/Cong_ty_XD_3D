@@ -10,6 +10,11 @@ import secrets
 from pathlib import PurePath
 
 from drive_storage.manager import ALLOWED_EXTENSIONS, FOLDER_CATEGORIES, MAX_FILE_SIZE, from_streamlit_secrets
+from drive_storage.access_control import (
+    ROLE_NAMES, identity_for, read_policy,
+    legacy_policy, write_policy, set_user, revoke_user, clean_email,
+    allows_project, can_upload, can_admin,
+)
 
 SECTIONS = {
     "documents": tuple(FOLDER_CATEGORIES),
@@ -27,35 +32,10 @@ LABELS = {
 DOWNLOAD_BUFFER_LIMIT = 40 * 1024 * 1024
 
 
-def _verified_email(st) -> str:
-    """Only accept a Google-verified identity, never a browser-provided email."""
-    if not getattr(st.user, "is_logged_in", False):
-        return ""
-    verified = st.user.get("email_verified", False)
-    if verified is not True:
-        return ""
-    return str(st.user.get("email", "")).strip().casefold()
-
-
 def access_role(st) -> str | None:
-    """Admin is exact allowlisted owner; additional employees must be allowlisted."""
-    try:
-        drive = st.secrets.get("drive", {})
-        access = st.secrets.get("access", {})
-        owner = str(drive.get("allowed_email", "")).strip().casefold()
-        members = access.get("members", [])
-        if not isinstance(members, (list, tuple)):
-            members = []
-    except Exception:
-        return None
-    email = _verified_email(st)
-    if not email or not owner:
-        return None
-    if email == owner:
-        return "admin"
-    if email in {str(x).strip().casefold() for x in members}:
-        return "member"
-    return None
+    """Return verified server-side role; not a user-controlled iframe value."""
+    identity = identity_for(st)
+    return identity["role"] if identity else None
 
 
 def require_login(st) -> str:
@@ -95,7 +75,9 @@ def mount_bridge(st) -> dict | None:
           function onMessage(event) {
             const d = event.data;
             if (!d || d.channel !== "XD_MEP_DRIVE_V1" || d.nonce !== data.nonce) return;
-            if (!["upload","browse"].includes(d.kind) || !allowed.has(d.section)) return;
+            const userGrant = d.kind === "access" && d.section === "settings";
+            const driveAction = ["upload","browse"].includes(d.kind) && allowed.has(d.section);
+            if (!userGrant && !driveAction) return;
             if (event.source === window) return;
             // The iframe's origin can be "null" for srcdoc on some browsers.
             if (event.origin !== window.location.origin && event.origin !== "null") return;
@@ -116,7 +98,10 @@ def mount_bridge(st) -> dict | None:
     action = getattr(result, "action", None)
     if not isinstance(action, dict):
         return None
-    if action.get("section") not in SECTIONS or action.get("kind") not in {"upload", "browse"}:
+    if action.get("section") == "settings" and action.get("kind") == "access":
+        if not can_admin(identity_for(st)):
+            return None
+    elif action.get("section") not in SECTIONS or action.get("kind") not in {"upload", "browse"}:
         return None
     return {
         "section": action["section"],
@@ -134,8 +119,12 @@ def drive_dialog(st) -> None:
     @st.dialog("Google Drive · " + LABELS[action["section"]], width="large")
     def render() -> None:
         # A dialog invocation is not an authorization. Check again each rerun.
-        if not access_role(st):
+        identity = identity_for(st)
+        if not identity:
             st.error("Phiên đăng nhập không còn hợp lệ.")
+            return
+        if action["kind"] == "upload" and not can_upload(identity):
+            st.error("Tài khoản chỉ có quyền xem. Không được tải tệp lên.")
             return
         if st.button("Đóng", key="drive_dialog_close"):
             st.session_state.drive_in_app_action = None
@@ -143,12 +132,12 @@ def drive_dialog(st) -> None:
 
         try:
             storage = from_streamlit_secrets(dict(st.secrets.get("drive", {})))
-            projects = storage.list_projects()
+            projects = [p for p in storage.list_projects() if allows_project(identity, p["id"])]
         except Exception:
             st.error("Không kết nối được Google Drive. Kiểm tra quyền và cấu hình OAuth.")
             return
         if not projects:
-            st.info("Drive chưa có dự án. Admin tạo dự án trong Google Drive theo cấu trúc đã thiết lập.")
+            st.info("Không có dự án được cấp quyền hoặc chưa có dự án trên Drive.")
             return
 
         codes = {p["id"]: p["name"].split("_", 1)[0].upper() for p in projects}
@@ -237,4 +226,122 @@ def drive_dialog(st) -> None:
                 st.error(str(exc))
             except Exception:
                 st.error("Không thể tải lên. Kiểm tra mạng, bộ nhớ máy chủ và quyền Drive.")
+    render()
+
+def access_management_dialog(st) -> None:
+    """Admin-only management UI launched from Settings, never from a public route."""
+    action = st.session_state.get("drive_in_app_action")
+    if not isinstance(action, dict) or action.get("section") != "settings" or action.get("kind") != "access":
+        return
+
+    @st.dialog("🔐 Cài đặt · Quản lý người dùng & phân quyền", width="large")
+    def render() -> None:
+        actor = identity_for(st)
+        if not can_admin(actor):
+            st.error("Chỉ Admin được quản lý tài khoản.")
+            return
+        if st.button("Đóng", key="access_close"):
+            st.session_state.drive_in_app_action = None
+            st.rerun()
+
+        try:
+            config = dict(st.secrets.get("drive", {}))
+            owner = clean_email(config.get("allowed_email"))
+            store = from_streamlit_secrets(config)
+            file_id, managed = read_policy(store)
+            policy = managed if managed is not None else legacy_policy(st.secrets.get("access", {}).get("members", []))
+            projects = store.list_projects()
+        except Exception:
+            st.error("Không tải được danh sách quyền từ Google Drive. Không thay đổi dữ liệu.")
+            return
+
+        st.caption(
+            "Phân quyền giống QLDA: Chỉ đọc = xem/tải hồ sơ; Cập nhật = xem và tải lên; "
+            "Admin = quản lý người dùng. Đăng nhập vẫn bằng Google, không cần mật khẩu mới."
+        )
+        users = policy["users"]
+        table = [{
+            "Họ tên": "Chủ hệ thống", "Email": owner,
+            "Quyền": "Admin (gốc)", "Dự án": "Tất cả",
+            "Trạng thái": "Hoạt động",
+        }]
+        for email, row in sorted(users.items()):
+            table.append({
+                "Họ tên": row["name"], "Email": email,
+                "Quyền": ROLE_NAMES[row["role"]],
+                "Dự án": "Tất cả" if "*" in row["projects"] else f'{len(row["projects"])} dự án',
+                "Trạng thái": "Hoạt động" if row["active"] else "Tạm khóa",
+            })
+        st.dataframe(table, hide_index=True, use_container_width=True)
+        if managed is None:
+            st.info("Đang dùng danh sách [access].members cũ. Lần lưu đầu tiên sẽ chuyển sang quản lý quyền trực tiếp trên Google Drive.")
+
+        mode = st.radio(
+            "Thao tác", ("Thêm người dùng mới", "Cập nhật người dùng"),
+            horizontal=True, key="access_manage_mode"
+        )
+        selected_email = ""
+        if mode == "Cập nhật người dùng" and users:
+            selected_email = st.selectbox(
+                "Người dùng", sorted(users), key="access_existing_email",
+                format_func=lambda email: f'{users[email]["name"] or "Nhân viên"} · {email}'
+            )
+        selected = users.get(selected_email, {})
+        role = selected.get("role", "update")
+        scopes = selected.get("projects", ["*"])
+        project_ids = [p["id"] for p in projects]
+        project_names = {p["id"]: p["name"] for p in projects}
+
+        with st.form("access_edit_form_" + (selected_email.replace("@", "_").replace(".", "_") or "new")):
+            col_a, col_b = st.columns(2)
+            email = col_a.text_input("Email Google", value=selected_email, disabled=bool(selected_email))
+            name = col_b.text_input("Họ tên", value=selected.get("name", ""), max_chars=160)
+            new_role = col_a.selectbox(
+                "Quyền hệ thống", ("read", "update", "admin"),
+                index=("read", "update", "admin").index(role),
+                format_func=lambda x: ROLE_NAMES[x],
+            )
+            active = col_b.checkbox("Tài khoản đang hoạt động", value=selected.get("active", True))
+            all_projects = st.checkbox("Được truy cập tất cả dự án", value=("*" in scopes))
+            chosen = st.multiselect(
+                "Chỉ các dự án được chọn (khi không chọn Tất cả)",
+                project_ids,
+                default=[p for p in scopes if p in project_ids],
+                format_func=lambda p: project_names[p],
+            )
+            save = st.form_submit_button("💾 Lưu quyền người dùng", type="primary")
+
+        if save:
+            try:
+                updated = set_user(
+                    policy, email=email, name=name, role=new_role,
+                    projects=["*"] if all_projects else chosen, active=active,
+                    actor=actor["email"], owner=owner,
+                )
+                write_policy(store, updated, file_id)
+                st.success("Đã lưu phân quyền trên Google Drive. Tài khoản được áp dụng từ lần tải lại tiếp theo.")
+                st.rerun()
+            except (ValueError, PermissionError) as exc:
+                st.error(str(exc))
+            except Exception:
+                st.error("Không lưu được quyền. Kiểm tra kết nối Drive và thử lại.")
+
+        removable = [email for email in sorted(users) if email != actor["email"] and email != owner]
+        if removable:
+            st.divider()
+            with st.expander("🗑 Thu hồi quyền người dùng", expanded=False):
+                target = st.selectbox("Chọn tài khoản cần thu hồi", removable, key="access_revoke_target")
+                confirmed = st.checkbox("Tôi xác nhận thu hồi quyền đăng nhập của tài khoản này", key="access_revoke_confirm")
+                if st.button("Thu hồi quyền", disabled=not confirmed, key="access_revoke_button"):
+                    try:
+                        updated = revoke_user(policy, email=target, actor=actor["email"], owner=owner)
+                        write_policy(store, updated, file_id)
+                        st.success("Đã thu hồi quyền tài khoản.")
+                        st.rerun()
+                    except (ValueError, PermissionError) as exc:
+                        st.error(str(exc))
+                    except Exception:
+                        st.error("Không thu hồi được quyền. Kiểm tra kết nối Drive.")
+        st.caption("Admin gốc không thể bị xóa. Lịch sử thao tác phân quyền được giữ trong cấu hình Drive.")
+
     render()
