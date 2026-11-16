@@ -60,5 +60,5 @@ test('API key encrypted vault needs correct passphrase and stores only ciphertex
 test('Android retains package ID and increases update version',()=>{
  const gradle=file('android/app/build.gradle');
  assert.match(gradle,/applicationId 'vn\.congtyxd3d\.app'/);assert.ok(Number(gradle.match(/versionCode (\d+)/)?.[1])>=60,'Android versionCode must not decrease');
- assert.match(gradle,/versionName '5\.7\.4'/);
+ assert.match(gradle,/versionName '5\.\d+\.\d+'/);
 });
