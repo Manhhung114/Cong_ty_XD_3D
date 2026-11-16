@@ -1,16 +1,6 @@
 name: Publish login-only landing page (Pages)
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - index.html
-      - 'src/**'
-      - 'assets/**'
-      - 'data/legal/**'
-      - 'data/templates/**'
-      - 'tests/**'
-      - '.github/workflows/pages.yml'
   workflow_dispatch:
 
 permissions:
