@@ -49,6 +49,8 @@ function agentCards(){
  '<p><b>Nhiệm vụ:</b> '+h(a.mission)+'</p><p><b>Đầu ra:</b> '+h(a.output)+'</p>'+
  '<div class="company-skills"><b>Kỹ năng:</b> '+a.skills.map(x=>'<span>'+h(x)+'</span>').join('')+'</div>'+
  '<p class="company-secondary"><b>Hồ sơ cần:</b> '+h((a.expected_categories||[]).join(', ')||'Theo dự án')+'</p>'+
+ '<p class="company-secondary"><b>Công cụ chuyên gia:</b> '+
+   h((a.expert_tools||[]).join(' · ')||'Theo nhiệm vụ')+'</p>'+
  '<p class="company-secondary"><b>Phối hợp:</b> '+a.partners.map(h).join(' • ')+'</p>'+
  '<details><summary>Giới hạn chuyên môn & kiểm tra chất lượng</summary>'+
  '<p>'+h(a.prohibition)+'</p><ul>'+a.quality_gate.map(x=>'<li>'+h(x)+'</li>').join('')+'</ul></details>'+
