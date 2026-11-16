@@ -200,6 +200,7 @@ class SharedWorkspace:
                     "title": data["title"], "dept": data["dept"],
                     "assignee": data.get("assignee", ""), "docCode": data.get("docCode", ""),
                     "dueDate": data.get("dueDate", ""), "status": "todo",
+                    "priority": data.get("priority", "normal"),
                     "report": "", "findings": "", "reviewHistory": [],
                     "createdBy": event["actor"], "createdAt": event["at"],
                     "legacy": data.get("legacy", {}),
@@ -376,17 +377,19 @@ class SharedWorkspace:
         return project_id
 
     def create_task(self, identity, *, project_id, title, dept, assignee="",
-                    doc_code="", due_date="", event_id=None):
+                    doc_code="", due_date="", priority="normal", event_id=None):
         pid = self._check_project(identity, project_id, True)
         if dept not in DEPARTMENTS:
             raise ValueError("Bộ môn không hợp lệ")
+        if priority not in {"low", "normal", "high", "critical"}:
+            raise ValueError("Độ ưu tiên không hợp lệ")
         if due_date and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", due_date):
             raise ValueError("Ngày hạn không hợp lệ")
         return self._append(
             identity=identity, project_id=pid, action="task.created",
             data={"title": _clean_text(title, 240, True), "dept": dept,
                   "assignee": _clean_text(assignee, 160), "docCode": _clean_text(doc_code, 80),
-                  "dueDate": due_date}, event_id=event_id,
+                  "dueDate": due_date, "priority": priority}, event_id=event_id,
         )
 
     def _current_task(self, identity, project_id, task_id):
