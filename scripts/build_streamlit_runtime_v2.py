@@ -77,7 +77,7 @@ def build(static: Path, *, role: str = 'member', nonce: str = '', initial_sectio
     if cn<1:raise ValueError('No CSS inlined')
     # This is necessary because iframe srcdoc uses parent origin and otherwise
     # relative JSON/doc URLs would resolve from / instead of /app/static/.
-    if role not in ("admin", "member"):
+    if role not in ("admin", "member", "update", "read"):
         raise ValueError("Invalid server-side role")
     if nonce and not re.fullmatch(r"[A-Za-z0-9_-]{20,100}", nonce):
         raise ValueError("Invalid Drive bridge nonce")
@@ -97,7 +97,7 @@ def build(static: Path, *, role: str = 'member', nonce: str = '', initial_sectio
     resources_json = json.dumps(resources, ensure_ascii=False).replace("<", "\\u003c")
     role_json = json.dumps(role)
     nonce_json = json.dumps(nonce)
-    allowed_sections = ('overview', 'projects', 'documents', 'boq', 'bim', 'tasks', 'reviews')
+    allowed_sections = ('overview', 'projects', 'documents', 'boq', 'bim', 'tasks', 'reviews') + (('settings',) if role == 'admin' else ())
     section_json = json.dumps(initial_section if initial_section in allowed_sections else 'overview')
     email_json = json.dumps(str(account_email)[:254]).replace('<', '\\u003c')
     configured_json = 'true' if drive_configured else 'false'
