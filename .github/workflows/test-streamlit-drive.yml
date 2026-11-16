@@ -12,6 +12,8 @@ on:
       - "requirements.txt"
       - ".streamlit/**"
       - ".github/workflows/test-streamlit-drive.yml"
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
