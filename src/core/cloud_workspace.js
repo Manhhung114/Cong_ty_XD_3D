@@ -38,7 +38,7 @@ const projectCards=()=>{
  return '<article class="portal-project-card"><strong>'+h(p.code)+' · '+h(p.name)+'</strong><small>'+h(p.client||'')+'</small><div class="portal-project-numbers">'+
  '<span>'+ts.length+' công việc</span><span>'+ts.filter(t=>t.status==='review').length+' chờ duyệt</span><span>'+ds.length+' hồ sơ lập sổ</span></div></article>';
  }).join('')+'</div>'+
- (canReview()?'<div class="portal-review-actions">'+btn('＋ Tạo dự án mới','project_create','','primary')+btn('Sao lưu dữ liệu cũ trên thiết bị','legacy_backup')+'</div>':'')+
+ (canReview()?'<div class="portal-review-actions">'+btn('＋ Tạo dự án mới','project_create','','primary')+btn('Sao lưu dữ liệu cũ trên thiết bị','legacy_backup')+btn('↑ Nhập bản sao dữ liệu cũ','project_import')+'</div>':'')+
  '<p class="footnote">Dự án cũ trong trình duyệt được giữ nguyên để đối chiếu. Không tự xóa hoặc tự chuyển dữ liệu.</p></section>';
 };
 const tasksHtml=filter=>{
