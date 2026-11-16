@@ -17,7 +17,7 @@
 Chỉ dùng Google OIDC đã có để xác thực email, **không** thêm biểu mẫu mật khẩu riêng. Phân quyền thực thi ở máy chủ trên từng lần đọc/tải hồ sơ Drive, không chỉ ẩn nút phía trình duyệt. Khi tài khoản bị thu hồi hoặc tạm khóa, lần Streamlit chạy lại sẽ kiểm tra và chặn truy cập.
 
 ## Lưu trữ tập trung
-Ứng dụng dùng Google Drive OAuth đã thiết lập, lưu tệp cấu hình `_XD_MEP_ACCESS_ROLES_V1.json` trong thư mục gốc Drive (`[drive].root_folder_id`). Không đưa refresh token hay secret xuống frontend và không lưu cấu hình quyền trên GitHub/IndexedDB.
+Ứng dụng dùng Google Drive OAuth đã thiết lập, lưu tệp cấu hình `_XD_MEP_ACCESS_ROLES_V1.json` trong thư mục gốc Drive (`[drive].root_folder_id`). Không đưa refresh token hay secret xuống frontend và không lưu cấu hình quyền trên GitHub/IndexedDB. Tệp phân quyền được ký HMAC-SHA256 bằng khóa bí mật máy chủ `[auth].cookie_secret` để từ chối chỉnh sửa trái phép từ Drive; không cần thêm khóa mới.
 
 Nếu chưa có tệp cấu hình, danh sách `[access].members` cũ được nạp ở chế độ tương thích với quyền **Cập nhật**. Sau khi Admin lưu thay đổi lần đầu, tệp Drive trở thành nguồn phân quyền duy nhất để bảo đảm tài khoản đã thu hồi không tự quay lại từ Secrets.
 
