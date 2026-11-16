@@ -88,9 +88,22 @@ function companyDashboard(){
  '<div class="company-kpi-grid">'+
  kpi('DỰ ÁN',m.projects||0)+kpi('CÔNG VIỆC',m.tasks||0)+kpi('ĐANG LÀM',m.doing||0)+
  kpi('QUÁ HẠN',m.overdue||0)+kpi('CHỜ DUYỆT',m.review||0)+
- kpi('CHƯA PHÂN CÔNG',m.unassigned||0)+kpi('HỒ SƠ CHỜ XỬ LÝ',m.documentPending||0)+
+ kpi('CHƯA PHÂN CÔNG',m.unassigned||0)+kpi('ƯU TIÊN CAO/KHẨN',m.highPriority||0)+kpi('HỒ SƠ CHỜ XỬ LÝ',m.documentPending||0)+
  kpi('PHỐI HỢP ĐANG MỞ',m.handoffsOpen||0)+'</div>'+
  '<div class="company-notice"><b>Quy trình điều hành:</b> PM tiếp nhận yêu cầu → kỹ sư bộ môn xử lý → phối hợp liên ngành → QA/DOC kiểm tra → Admin phê duyệt → lưu bản phát hành và nhật ký. Agent chỉ đề xuất, không thay vai trò con người.</div>'+
+ '<details class="company-raci"><summary><b>📋 Ma trận trách nhiệm RACI – vận hành toàn công ty</b></summary>'+
+ '<div class="company-table-wrap"><table class="company-table"><thead><tr><th>Công đoạn</th><th>Chịu trách nhiệm (R)</th><th>Chịu trách nhiệm cuối (A)</th><th>Phối hợp / thẩm tra (C)</th></tr></thead><tbody>'+
+ [
+  ['Tiếp nhận & phân loại','PM','Ban giám đốc','Kỹ sư bộ môn'],
+  ['Giao việc & kế hoạch','PM','Ban giám đốc','PLN / Trưởng bộ môn'],
+  ['Thực hiện kỹ thuật','Kỹ sư phụ trách','Trưởng dự án','Agent hỗ trợ / Bộ môn liên quan'],
+  ['Phối hợp BIM & hiện trường','BIM / XBI / SIT','PM','MEP / Xây dựng'],
+  ['Kiểm soát hồ sơ & QA','DOC / QAC / HSE','PM','Các kỹ sư thiết kế'],
+  ['Duyệt nội bộ & phát hành','Admin được ủy quyền','Người có thẩm quyền','QA / DOC / PM']
+ ].map(([stage,responsible,accountable,consulted])=>
+  '<tr><td>'+h(stage)+'</td><td>'+h(responsible)+'</td><td>'+h(accountable)+'</td><td>'+h(consulted)+'</td></tr>').join('')+
+ '</tbody></table></div><p class="company-secondary">RACI chỉ là hướng dẫn tổ chức; quyền phê duyệt thực tế vẫn được máy chủ kiểm tra theo tài khoản Admin. Không đồng nghĩa chữ ký số pháp lý.</p></details>'+
+ 
  '<h3>Vấn đề cần quản lý giải quyết</h3>'+
  (!notices.length?'<p>Chưa có cảnh báo từ metadata công việc/hồ sơ trong phạm vi được xem.</p>':
  '<div class="company-alert-list">'+notices.map(x=>'<article class="company-alert"><strong>'+
