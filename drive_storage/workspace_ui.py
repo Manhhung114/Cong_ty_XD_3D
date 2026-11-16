@@ -50,7 +50,9 @@ def load_snapshot(st) -> dict:
     selected = requested if requested in valid else (snapshot["projects"][0]["id"] if snapshot["projects"] else "")
     st.session_state.xd_selected_cloud_project = selected
     snapshot.update({"enabled": True, "selectedProjectId": selected})
-    if st.session_state.get("xd_doc_inventory_requested") and selected:
+    if (st.session_state.get("xd_doc_inventory_requested")
+            and st.session_state.get("xd_current_sheet") == "documents"
+            and selected):
         from drive_storage.document_control import inventory
         verified = inventory(workspace, actor, selected, snapshot["documents"])
         # Keep the private iframe small; the native management dialog still
