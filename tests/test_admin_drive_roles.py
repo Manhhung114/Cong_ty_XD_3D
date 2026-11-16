@@ -24,7 +24,7 @@ class RoleGateTests(unittest.TestCase):
         owner = Streamlit(User(email="Owner@Example.com", email_verified=True))
         member = Streamlit(User(email="member@example.com", email_verified=True), members=["MEMBER@example.com"])
         self.assertEqual(access_role(owner), "admin")
-        self.assertEqual(access_role(member), "member")
+        self.assertEqual(access_role(member), "update")
 
     def test_unverified_unlisted_and_anonymous_rejected(self):
         self.assertIsNone(access_role(Streamlit(User(email="owner@example.com", email_verified=False))))
@@ -32,9 +32,9 @@ class RoleGateTests(unittest.TestCase):
         self.assertIsNone(access_role(Streamlit(User(logged_in=False, email="owner@example.com", email_verified=True))))
 
     def test_server_scoped_bootstrap_and_safe_sheet(self):
-        html = build(ROOT / "static", role="member", nonce="A"*32, initial_section="tasks",
+        html = build(ROOT / "static", role="read", nonce="A"*32, initial_section="tasks",
                      account_email="owner@example.com", drive_configured=True)
-        self.assertIn('window.__xdAuthRole = "member"', html)
+        self.assertIn('window.__xdAuthRole = "read"', html)
         self.assertIn('window.__xdInitialSheet = "tasks"', html)
         self.assertIn('window.__xdDriveConfigured = true', html)
         with self.assertRaises(ValueError):
