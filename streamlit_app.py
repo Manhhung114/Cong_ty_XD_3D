@@ -11,6 +11,7 @@ import streamlit.components.v1 as legacy_components
 
 from scripts.build_streamlit_runtime_v2 import build
 from drive_storage.in_app import require_login, mount_bridge, drive_dialog, access_management_dialog
+from drive_storage.workspace_ui import load_snapshot, handle_workspace_action, workspace_dialog
 
 st.set_page_config(
     page_title="Công ty Xây dựng & MEP AI 3D", page_icon="🏗️",
@@ -35,8 +36,25 @@ with right:
 # Bridge listening for in-sheet actions ("Tải lên" and "Tải xuống").
 action = mount_bridge(st)
 if action:
-    st.session_state.drive_in_app_action = action
-    st.session_state.xd_current_sheet = action['section']
+    if action.get("kind") == "workspace":
+        try:
+            handle_workspace_action(st, action)
+        except (PermissionError, ValueError) as exc:
+            st.error(str(exc))
+        except Exception:
+            st.error("Không thể lưu thao tác dùng chung. Dữ liệu cũ trên Drive được giữ nguyên.")
+    else:
+        st.session_state.drive_in_app_action = action
+        st.session_state.xd_current_sheet = action['section']
+
+feedback = st.session_state.pop("xd_workspace_feedback", "")
+if feedback:
+    st.toast(feedback)
+try:
+    shared_state = load_snapshot(st)
+except Exception:
+    st.error("Không đọc được dữ liệu dự án dùng chung từ Drive. Ứng dụng tạm chặn thao tác để bảo vệ dữ liệu. Kiểm tra Manage app → Logs và kết nối Drive.")
+    st.stop()
 
 try:
     page = build(
@@ -46,6 +64,7 @@ try:
         initial_section=st.session_state.get('xd_current_sheet', 'overview'),
         account_email=str(st.user.get('email', '')) if role == 'admin' else '',
         drive_configured=all(bool(st.secrets.get('drive', {}).get(k)) for k in ('root_folder_id','refresh_token','client_id','client_secret')),
+        cloud_snapshot=shared_state,
     )
 except Exception:
     st.error("Không thể khởi tạo Văn phòng 3D. Xem Manage app → Logs.")
@@ -64,3 +83,7 @@ if st.session_state.get("drive_in_app_action"):
         access_management_dialog(st)
     else:
         drive_dialog(st)
+
+# Server-side workflows with verified Google identity (V5.9/V6.0).
+if st.session_state.get('xd_workspace_dialog'):
+    workspace_dialog(st)

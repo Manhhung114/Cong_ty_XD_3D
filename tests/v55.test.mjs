@@ -40,7 +40,7 @@ test('V5.5 supports English for all 18 seeded agent names and descriptions',()=>
 test('V5.7.1 keeps one authenticated approval queue and removes simulation mode',()=>{
  const js=source('src/app.js'),portal=source('src/portal.js'),html=source('index.html');
  assert.match(js,/id:'reviews'/);assert.doesNotMatch(js,/id:'portalApprovals'/);
- assert.match(js,/reviews:\(\)=>portal\.render\('reviews'\)/);
+ assert.ok(js.includes("reviews:()=>window.__xdCloud?.enabled?renderCloudPage('reviews'):portal.render('reviews')"));
  assert.match(portal,/approvalsPage\(\)/);
  assert.match(portal,/canReviewTask\(t\)/);
  assert.doesNotMatch(html,/id="demoBtn"/);

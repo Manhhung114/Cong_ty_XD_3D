@@ -1,3 +1,18 @@
+# Bản V5.9 + V6.0 (Streamlit) — Dữ liệu tập trung và phê duyệt xác thực
+
+**Chạy tại:** https://congtyxd.streamlit.app/ • **Nguồn:** nhánh main sau khi hợp nhất PR V5.9/V6.0.
+
+Các sheet **Quản lý dự án, Công việc, Chờ phê duyệt, Kho tài liệu, Nhật ký hoạt động** sử dụng dữ liệu nghiệp vụ được cấp từ máy chủ Streamlit và lưu bền vững trên Google Drive đã kết nối. Người dùng phải đăng nhập Google; Admin/Cập nhật/Chỉ đọc được kiểm tra phía máy chủ theo dự án.
+
+- **V5.9:** dự án/tác vụ chung nhiều thiết bị, tạo/giao việc, hạn, người nhận; Admin có thể xuất bản sao localStorage và nhập metadata có xác nhận; dữ liệu cục bộ cũ không bị xóa.
+- **V6.0:** gửi báo cáo và Admin phê duyệt/trả lại có lý do, actor và lịch sử; lập sổ phiên bản tài liệu từ Drive, liên kết file với công việc ngay trong sheet.
+- **Bảo mật:** sự kiện nghiệp vụ ký xác thực bằng khóa máy chủ, giữ revision tài liệu cũ; không gửi Google OAuth token tới trình duyệt.
+- **Hạn chế:** Streamlit hiện dùng **Drive event ledger**, **không phải PostgreSQL**. Chưa có chữ ký số/phê duyệt pháp lý, backend AI thật hoặc xem IFC chuyên nghiệp. Tệp nhị phân IndexedDB cũ cần nhập lên Drive thủ công. Phải nghiệm thu thực tế 2 tài khoản và giới hạn file 500 MB trước sử dụng sản xuất.
+
+**Hướng dẫn và checklist:** [docs/V59_V60_SHARED_WORKSPACE.md](docs/V59_V60_SHARED_WORKSPACE.md).
+
+---
+
 # Kết nối Google Drive từ Streamlit (Kho hồ sơ XD & MEP)
 
 Đã bổ sung mục **Google Drive · Kho hồ sơ dự án** ngay trên trang chính Streamlit, cho phép tài khoản quản trị đã đăng nhập chọn dự án, tạo đủ 13 thư mục, và tải tài liệu có revision mà không ghi đè. **Cần cấu hình Google OAuth trong Streamlit Cloud Secrets** trước khi tải tệp thật.

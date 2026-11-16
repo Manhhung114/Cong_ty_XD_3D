@@ -1,7 +1,7 @@
 {
   "project": "Công ty Xây dựng & MEP AI 3D",
-  "artifact_version": "0.5.7.9-ui-polish",
-  "release_date": "2026-11-15",
+  "artifact_version": "0.6.0-streamlit-shared-workspace-rc1",
+  "release_date": "2026-11-16",
   "modules": [
     {
       "label": "V1.0",
@@ -98,6 +98,18 @@
       "area": "Deduplicated task action across sheets",
       "entry": "src/local_portal.js",
       "status": "task_creation_only_in_tasks_page"
+    },
+    {
+      "label": "V5.9",
+      "area": "Authenticated cross-device project/task workspace",
+      "entry": "drive_storage/shared_workspace.py",
+      "status": "implemented_on_Streamlit_Drive_signed_event_ledger_SQL_not_deployed"
+    },
+    {
+      "label": "V6.0",
+      "area": "Verified internal approvals and document revision register",
+      "entry": "drive_storage/workspace_ui.py",
+      "status": "implemented_needs_live_two_account_acceptance_not_legal_signature"
     }
   ],
   "data_categories": {
@@ -112,11 +124,12 @@
   "runtime": {
     "frontend": "Vanilla ES modules + isometric render/hotspots + WebGL 1 low-poly (SVG fallback)",
     "local_server": "Node.js/Python standard library",
-    "database": "localStorage + IndexedDB",
-    "cloud": false,
+    "database": "Google Drive signed event ledger on Streamlit; PostgreSQL not deployed",
+    "cloud": true,
     "language": "Vietnamese and English (local browser preference)",
     "standards_updates": "bundled JSON + optional GitHub refresh + manual JSON import",
-    "active_mode": "offline_no_login_no_rbac"
+    "active_mode": "Streamlit Google OIDC + signed Google Drive event metadata; offline Android remains separate",
+    "shared_workspaces": "server_side_projects_tasks_approvals_documents"
   },
   "warnings": [
     "No real AI agents connected",
@@ -128,14 +141,18 @@
     "Android stable release signing requires four GitHub Secrets; previous debug APK signing cannot be migrated automatically",
     "Local approvals have no identity verification and are not legally binding",
     "API keys may be encrypted on device with user passphrase; no server secret vault active",
-    "No server-side synchronization or access control in offline mode"
+    "No server-side synchronization or access control in offline mode",
+    "V5.9/V6.0 metadata is a signed Google Drive event ledger, not a PostgreSQL deployment.",
+    "Legacy localStorage/IndexedDB documents are not auto-uploaded; Admin may explicitly import metadata backup after review.",
+    "The new Streamlit shared-workspace feature still needs live two-account and 500 MB acceptance testing.",
+    "Signed Drive event metadata is limited to 2500 events and lacks SQL transactional concurrency."
   ],
   "divisions": {
     "shared": "Ban giám đốc",
     "mep": "Cơ điện",
     "construction": "Xây dựng"
   },
-  "current_version": "V5.7.4",
+  "current_version": "V6.0 (Streamlit cloud workflow)",
   "backend": {
     "framework": "FastAPI",
     "database": "PostgreSQL or SQLite local",
@@ -143,7 +160,9 @@
     "approval": "three human stages",
     "real_ai_execution": false,
     "active_in_ui": false,
-    "available_as_source_for_future": true
+    "available_as_source_for_future": true,
+    "streamlit_shared_workspace_active": true,
+    "postgresql_deployed": false
   },
   "latest": null
 }

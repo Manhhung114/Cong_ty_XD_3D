@@ -18,7 +18,7 @@ ENTRY = re.compile(r'<script\s+type="module"\s+src="\./src/app\.js"\s*></script>
 ASSET = re.compile(r"(['\"])(\./assets/[^'\"\n]+\.(?:webp|png|jpg|jpeg|svg))\1")
 
 
-def build(static: Path, *, role: str = 'member', nonce: str = '', initial_section: str = 'overview', account_email: str = '', drive_configured: bool = False) -> str:
+def build(static: Path, *, role: str = 'member', nonce: str = '', initial_section: str = 'overview', account_email: str = '', drive_configured: bool = False, cloud_snapshot: dict | None = None) -> str:
     static = Path(static).resolve()
     cache: dict[Path,str] = {}
     order: list[Path] = []
@@ -97,16 +97,26 @@ def build(static: Path, *, role: str = 'member', nonce: str = '', initial_sectio
     resources_json = json.dumps(resources, ensure_ascii=False).replace("<", "\\u003c")
     role_json = json.dumps(role)
     nonce_json = json.dumps(nonce)
-    allowed_sections = ('overview', 'projects', 'documents', 'boq', 'bim', 'tasks', 'reviews') + (('settings',) if role == 'admin' else ())
+    allowed_sections = ('overview', 'projects', 'documents', 'boq', 'bim', 'tasks', 'reviews', 'activity') + (('settings',) if role == 'admin' else ())
     section_json = json.dumps(initial_section if initial_section in allowed_sections else 'overview')
     email_json = json.dumps(str(account_email)[:254]).replace('<', '\\u003c')
     configured_json = 'true' if drive_configured else 'false'
+    cloud = dict(cloud_snapshot or {})
+    if cloud:
+        if cloud.get("role") != role or cloud.get("enabled") is not True:
+            raise ValueError("Shared project state must match verified server role")
+    else:
+        cloud = {"enabled": False}
+    cloud_json = json.dumps(cloud, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
+    if len(cloud_json) > 1_000_000:
+        raise ValueError("Shared workspace snapshot is too large for iframe")
     bootstrap = """<script>
 window.__xdAuthRole = """ + role_json + """;
 window.__xdDriveNonce = """ + nonce_json + """;
 window.__xdInitialSheet = """ + section_json + """;
 window.__xdAccountEmail = """ + email_json + """;
 window.__xdDriveConfigured = """ + configured_json + """;
+window.__xdCloud = """ + cloud_json + """;
 const __xdEmbeddedResources = """ + resources_json + """;
 const __xdOriginalFetch = window.fetch.bind(window);
 function __xdResourceKey(raw) {
