@@ -8,6 +8,8 @@ from __future__ import annotations
 import io
 import json
 import re
+import hmac
+import hashlib
 from datetime import datetime, timezone
 from typing import Any
 
@@ -83,7 +85,14 @@ def _policy_candidates(storage) -> list:
     return records
 
 
-def read_policy(storage) -> tuple[str | None, dict | None]:
+def _signature(payload: dict, secret: str) -> str:
+    if not isinstance(secret, str) or len(secret) < 32:
+        raise ValueError("Thiếu khóa xác thực phân quyền của máy chủ")
+    canonical = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hmac.new(secret.encode("utf-8"), canonical, hashlib.sha256).hexdigest()
+
+
+def read_policy(storage, secret: str = "") -> tuple[str | None, dict | None]:
     """None policy means not initialized; transport/corrupt-file errors are fatal."""
     entries = _policy_candidates(storage)
     if not entries:
@@ -94,7 +103,14 @@ def read_policy(storage) -> tuple[str | None, dict | None]:
     raw = storage.service.files().get_media(fileId=rec["id"]).execute()
     if not isinstance(raw, bytes) or len(raw) > MAX_POLICY_BYTES:
         raise ValueError("Không đọc được dữ liệu phân quyền")
-    return rec["id"], validate_policy(json.loads(raw.decode("utf-8")))
+    data = json.loads(raw.decode("utf-8"))
+    if not isinstance(data, dict):
+        raise ValueError("Chính sách phân quyền không hợp lệ")
+    supplied = str(data.pop("_signature", ""))
+    checked = validate_policy(data)
+    if not supplied or not hmac.compare_digest(supplied, _signature(checked, secret)):
+        raise PermissionError("Chữ ký chính sách phân quyền không hợp lệ")
+    return rec["id"], checked
 
 
 def legacy_policy(members: Any) -> dict:
@@ -113,10 +129,11 @@ def legacy_policy(members: Any) -> dict:
     return policy
 
 
-def write_policy(storage, policy: dict, existing_id: str | None) -> str:
+def write_policy(storage, policy: dict, existing_id: str | None, secret: str = "") -> str:
     """Write only the role manifest, not any OAuth credential or document."""
     checked = validate_policy(policy)
-    payload = json.dumps(checked, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    signed = {**checked, "_signature": _signature(checked, secret)}
+    payload = json.dumps(signed, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
     if len(payload) > MAX_POLICY_BYTES:
         raise ValueError("Danh sách quyền quá lớn")
     from googleapiclient.http import MediaIoBaseUpload
@@ -156,6 +173,8 @@ def set_user(policy: dict, *, email: str, name: str, role: str,
         raise ValueError("Quyền hệ thống không hợp lệ")
     if not isinstance(projects, list):
         raise ValueError("Phạm vi dự án không hợp lệ")
+    if email == actor and (role != "admin" or active is not True):
+        raise PermissionError("Admin không được tự hạ quyền hoặc tự khóa tài khoản")
     copied = validate_policy(policy)
     copied["users"][email] = {
         "name": str(name or "").strip()[:160],
@@ -220,7 +239,8 @@ def identity_for(st) -> dict | None:
         try:
             from drive_storage.manager import from_streamlit_secrets
             storage = from_streamlit_secrets(drive_cfg)
-            _, saved = read_policy(storage)
+            secret = str(st.secrets.get("auth", {}).get("cookie_secret", ""))
+            _, saved = read_policy(storage, secret)
         except Exception:
             return None
         policy = saved if saved is not None else legacy_policy(members)
