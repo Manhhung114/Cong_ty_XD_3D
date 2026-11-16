@@ -103,6 +103,8 @@ class DocumentControlTests(CloudWorkflowTests):
         items = inventory(self.ws, self.reader, PROJECT)["items"]
         changed = next(x for x in items if x["id"] == fid)
         self.assertTrue(changed["integrityWarning"])
+        with self.assertRaises(PermissionError):
+            submit_document(self.ws, self.editor, project_id=PROJECT, file_id=fid)
         self.rows = self.rows[1:]
         items = inventory(self.ws, self.reader, PROJECT)["items"]
         lost = next(x for x in items if x["id"] == fid)
