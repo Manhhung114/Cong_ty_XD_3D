@@ -6,6 +6,7 @@ sheets, not by separate navigation or an unauthenticated API endpoint.
 from __future__ import annotations
 
 import re
+import json
 from datetime import date
 
 from drive_storage.access_control import identity_for, can_admin, can_upload, allows_project
@@ -13,7 +14,7 @@ from drive_storage.manager import from_streamlit_secrets
 from drive_storage.shared_workspace import SharedWorkspace, DEPARTMENTS
 
 COMMANDS = {
-    "projects": {"refresh", "select", "project_create"},
+    "projects": {"refresh", "select", "project_create", "project_import"},
     "tasks": {"refresh", "select", "task_create", "task_start", "task_submit"},
     "reviews": {"refresh", "select", "task_review"},
     "documents": {"refresh", "select"},
@@ -27,7 +28,7 @@ DEPARTMENT_NAMES = {
     "xd_planning": "Kế hoạch", "xd_site": "Hiện trường",
     "xd_safety": "An toàn XD", "xd_material": "Vật tư",
 }
-INTERACTIVE = {"project_create", "task_create", "task_submit", "task_review"}
+INTERACTIVE = {"project_create", "project_import", "task_create", "task_submit", "task_review"}
 
 
 def service_for(st):
@@ -75,13 +76,13 @@ def handle_workspace_action(st, action: dict):
         st.session_state.xd_selected_cloud_project = pid
         st.session_state.xd_last_workspace_request = request_id
         return
-    if op == "project_create" and not can_admin(actor):
+    if op in {"project_create", "project_import"} and not can_admin(actor):
         raise PermissionError("Chỉ Admin được tạo dự án")
     if op in {"task_create", "task_start", "task_submit"} and not can_upload(actor):
         raise PermissionError("Tài khoản Chỉ đọc không được cập nhật công việc")
     if op == "task_review" and not can_admin(actor):
         raise PermissionError("Chỉ Admin có quyền duyệt")
-    if op != "project_create" and pid not in {p["id"] for p in current["projects"]}:
+    if op not in {"project_create", "project_import"} and pid not in {p["id"] for p in current["projects"]}:
         raise PermissionError("Dự án không thuộc phạm vi")
     task_id = str(action.get("taskId") or "")
     if op in {"task_start", "task_submit", "task_review"}:
@@ -109,6 +110,7 @@ def workspace_dialog(st):
         return
     titles = {
         "project_create": "V5.9 · Tạo dự án trên máy chủ",
+        "project_import": "V5.9 · Nhập dữ liệu từ bản sao cục bộ",
         "task_create": "V5.9 · Giao công việc",
         "task_submit": "V6.0 · Trình báo cáo phê duyệt",
         "task_review": "V6.0 · Quyết định phê duyệt",
@@ -121,7 +123,7 @@ def workspace_dialog(st):
             st.error("Phiên đăng nhập không hợp lệ")
             return
         op = action["op"]
-        if op in {"project_create", "task_review"} and not can_admin(actor):
+        if op in {"project_create", "project_import", "task_review"} and not can_admin(actor):
             st.error("Không có quyền quản trị/phê duyệt")
             return
         if op in {"task_create", "task_submit"} and not can_upload(actor):
@@ -136,7 +138,7 @@ def workspace_dialog(st):
             server = service_for(st)
             pid = action["projectId"]
             project = next((p for p in current["projects"] if p["id"] == pid), None)
-            if op != "project_create" and not project:
+            if op not in {"project_create", "project_import"} and not project:
                 st.error("Dự án đã bị thu hồi quyền hoặc không tồn tại")
                 return
             task = next((t for t in current["tasks"] if t["id"] == action["taskId"]
