@@ -73,6 +73,8 @@ def company_metrics(state: dict, today: str | None = None) -> dict:
     unassigned = [t for t in tasks if not str(t.get("assignee", "")).strip()
                   and t.get("status") != "done"]
     to_review = [t for t in tasks if t.get("status") == "review"]
+    priority = [t for t in tasks if t.get("priority") in {"high", "critical"}
+                and t.get("status") != "done"]
     blockers = [d for d in documents if d.get("status") in {"pending", "returned"}]
     pending_handoffs = [h for h in handoffs if h.get("status") == "open"]
     group = {}
@@ -92,6 +94,9 @@ def company_metrics(state: dict, today: str | None = None) -> dict:
     if overdue:
         risk.append({"level": "high", "title": f"{len(overdue)} công việc quá hạn",
                      "action": "Trưởng dự án rà soát hạn và người phụ trách"})
+    if priority:
+        risk.append({"level": "high", "title": f"{len(priority)} công việc ưu tiên cao/khẩn",
+                     "action": "PM giao chủ trì và kiểm soát mốc hoàn thành"})
     if unassigned:
         risk.append({"level": "medium", "title": f"{len(unassigned)} công việc chưa giao người",
                      "action": "PM xác nhận chủ trì và hạn bàn giao"})
@@ -110,6 +115,7 @@ def company_metrics(state: dict, today: str | None = None) -> dict:
         "doing": sum(t.get("status") == "working" for t in tasks),
         "completed": sum(t.get("status") == "done" for t in tasks),
         "review": len(to_review), "overdue": len(overdue),
+        "highPriority": len(priority),
         "unassigned": len(unassigned), "documents": len(documents),
         "documentPending": len(blockers), "handoffsOpen": len(pending_handoffs),
         "agentRuns": len(runs), "departments": list(group.values()),
