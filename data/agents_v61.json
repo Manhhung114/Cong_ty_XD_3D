@@ -32,7 +32,12 @@
         "Nêu dữ liệu còn thiếu",
         "Có bước kiểm tra và người phụ trách tiếp theo"
       ],
-      "state": "configured_catalog_not_executed"
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "reports_management",
+        "schedule"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
     },
     {
       "id": "PM",
@@ -63,7 +68,12 @@
         "Nêu dữ liệu còn thiếu",
         "Có bước kiểm tra và người phụ trách tiếp theo"
       ],
-      "state": "configured_catalog_not_executed"
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "schedule",
+        "reports_management"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
     },
     {
       "id": "ELE",
@@ -93,7 +103,12 @@
         "Nêu dữ liệu còn thiếu",
         "Có bước kiểm tra và người phụ trách tiếp theo"
       ],
-      "state": "configured_catalog_not_executed"
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "drawings_mep",
+        "boq_mep"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
     },
     {
       "id": "HVA",
@@ -123,7 +138,12 @@
         "Nêu dữ liệu còn thiếu",
         "Có bước kiểm tra và người phụ trách tiếp theo"
       ],
-      "state": "configured_catalog_not_executed"
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "drawings_mep",
+        "bim_mep"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
     },
     {
       "id": "PLU",
@@ -153,7 +173,12 @@
         "Nêu dữ liệu còn thiếu",
         "Có bước kiểm tra và người phụ trách tiếp theo"
       ],
-      "state": "configured_catalog_not_executed"
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "drawings_mep",
+        "bim_mep"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
     },
     {
       "id": "FIR",
@@ -184,7 +209,12 @@
         "Nêu dữ liệu còn thiếu",
         "Có bước kiểm tra và người phụ trách tiếp theo"
       ],
-      "state": "configured_catalog_not_executed"
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "fire",
+        "drawings_mep"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
     },
     {
       "id": "BIM",
@@ -216,7 +246,12 @@
         "Nêu dữ liệu còn thiếu",
         "Có bước kiểm tra và người phụ trách tiếp theo"
       ],
-      "state": "configured_catalog_not_executed"
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "bim_mep",
+        "drawings_mep"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
     },
     {
       "id": "QSU",
@@ -248,7 +283,11 @@
         "Nêu dữ liệu còn thiếu",
         "Có bước kiểm tra và người phụ trách tiếp theo"
       ],
-      "state": "configured_catalog_not_executed"
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "boq_mep"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
     },
     {
       "id": "QAC",
@@ -279,7 +318,12 @@
         "Nêu dữ liệu còn thiếu",
         "Có bước kiểm tra và người phụ trách tiếp theo"
       ],
-      "state": "configured_catalog_not_executed"
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "reports_mep",
+        "approvals"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
     },
     {
       "id": "DOC",
@@ -310,7 +354,12 @@
         "Nêu dữ liệu còn thiếu",
         "Có bước kiểm tra và người phụ trách tiếp theo"
       ],
-      "state": "configured_catalog_not_executed"
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "info",
+        "approvals"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
     },
     {
       "id": "ARC",
@@ -341,7 +390,11 @@
         "Nêu dữ liệu còn thiếu",
         "Có bước kiểm tra và người phụ trách tiếp theo"
       ],
-      "state": "configured_catalog_not_executed"
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "drawings_xd"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
     },
     {
       "id": "STR",
@@ -371,7 +424,11 @@
         "Nêu dữ liệu còn thiếu",
         "Có bước kiểm tra và người phụ trách tiếp theo"
       ],
-      "state": "configured_catalog_not_executed"
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "drawings_xd"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
     },
     {
       "id": "XBI",
@@ -402,7 +459,12 @@
         "Nêu dữ liệu còn thiếu",
         "Có bước kiểm tra và người phụ trách tiếp theo"
       ],
-      "state": "configured_catalog_not_executed"
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "bim_xd",
+        "drawings_xd"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
     },
     {
       "id": "XQS",
@@ -433,7 +495,11 @@
         "Nêu dữ liệu còn thiếu",
         "Có bước kiểm tra và người phụ trách tiếp theo"
       ],
-      "state": "configured_catalog_not_executed"
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "boq_xd"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
     },
     {
       "id": "PLN",
@@ -463,7 +529,11 @@
         "Nêu dữ liệu còn thiếu",
         "Có bước kiểm tra và người phụ trách tiếp theo"
       ],
-      "state": "configured_catalog_not_executed"
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "schedule"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
     },
     {
       "id": "SIT",
@@ -493,7 +563,12 @@
         "Nêu dữ liệu còn thiếu",
         "Có bước kiểm tra và người phụ trách tiếp theo"
       ],
-      "state": "configured_catalog_not_executed"
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "photos",
+        "reports_xd"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
     },
     {
       "id": "HSE",
@@ -523,7 +598,12 @@
         "Nêu dữ liệu còn thiếu",
         "Có bước kiểm tra và người phụ trách tiếp theo"
       ],
-      "state": "configured_catalog_not_executed"
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "photos",
+        "reports_xd"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
     },
     {
       "id": "MAT",
@@ -553,7 +633,12 @@
         "Nêu dữ liệu còn thiếu",
         "Có bước kiểm tra và người phụ trách tiếp theo"
       ],
-      "state": "configured_catalog_not_executed"
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "reports_xd",
+        "contracts"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
     }
   ]
 }
