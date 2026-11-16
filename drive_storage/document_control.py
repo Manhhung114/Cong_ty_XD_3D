@@ -50,10 +50,10 @@ def allowed_drive_link(url) -> str:
     return ""
 
 
-def inventory(workspace, identity, project_id: str) -> dict:
+def inventory(workspace, identity, project_id: str, registered_documents=None) -> dict:
     pid = workspace._check_project(identity, project_id)
     registered = {
-        d["id"]: d for d in workspace.snapshot(identity)["documents"]
+        d["id"]: d for d in (registered_documents if registered_documents is not None else workspace.snapshot(identity)["documents"])
         if d["projectId"] == pid
     }
     items, found_ids = [], set()
