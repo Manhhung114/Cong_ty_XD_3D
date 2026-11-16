@@ -1,6 +1,6 @@
-# V5.7.7 — Pháp luật & tiêu chuẩn: STT và thống kê
+# V5.7.7 — Thư viện pháp luật có STT và thống kê
 
-Bảng Pháp luật có số thứ tự và thống kê theo Xây dựng–QLDA, MEPF–PCCC; phân loại Luật, Nghị định, Thông tư, TCVN, QCVN, văn bản hợp nhất, khác. Thư viện có 9 nguồn tra cứu chính thống. Số đếm chỉ tính các mục đã lưu/loại trùng, không tính mục phát hiện mới chưa xác minh. Không phải số văn bản còn hiệu lực.
+Trong **Pháp luật & tiêu chuẩn**, bảng thống kê đếm các bản ghi theo `(lĩnh vực, số hiệu)` sau khi bỏ trùng. Nhóm số gồm Luật, Nghị định, Thông tư, TCVN, QCVN, văn bản hợp nhất và khác. Bảng hiển thị STT theo thứ tự lọc. Nguồn tra cứu tăng từ 6 lên **9 cổng** (gồm CSDL quốc gia tra cứu nâng cao, Bộ Công an, Bộ KH&CN); đây là số địa chỉ, không phải số văn bản. Những mục phát hiện mới vẫn **chờ đối chiếu** và không vào tổng số liệu. Xem `docs/LEGAL_CATALOG_V577.md`.
 
 ## V5.7.4 – Chỉ tạo công việc tại đúng sheet
 
@@ -241,11 +241,18 @@ Thư mục `android/` chứa wrapper WebView Android cho V5.2, đóng gói asset
 - **Ứng dụng Android:** APK được đóng gói lại bằng workflow GitHub sau khi push; `versionCode=54`, `versionName=5.4.0-demo`. Nếu bản debug khác chữ ký thì không thể cài đè; sao lưu trước, không gỡ khi chưa bảo toàn hồ sơ.
 
 
-## V5.7.6 — Pháp luật và TCVN độc lập (không sửa QLDA)
+## V5.7.6 – Tự cập nhật pháp luật/TCVN độc lập trong app
 
-Nút **Cập nhật nguồn pháp lý** tải danh mục đã rà soát từ `Cong_ty_XD_3D/data/legal/MEP_XD_official_catalog.json`. Nút **Kiểm tra mục mới** tải danh sách liên kết chưa duyệt từ `MEP_XD_source_candidates.json`. Chạy workflow trong repo này để quét nguồn; không truy cập dữ liệu của QLDA. Xem [hướng dẫn](docs/MEP_LEGAL_SOURCE_UPDATES.md).
+Giữ nguyên cách tìm kiếm theo **nguồn chính thống, số hiệu, lĩnh vực, ICS**, nhưng không còn lấy dữ liệu cập nhật từ repository `QLDA_ver612_VPS`. Danh mục XD & MEP và workflow chỉ thuộc `Cong_ty_XD_3D`. Chi tiết đường dẫn và luồng cập nhật: [docs/MEP_LEGAL_SOURCE_UPDATES.md](docs/MEP_LEGAL_SOURCE_UPDATES.md).
 
+- Danh mục đã rà soát: `data/legal/MEP_XD_official_catalog.json`.
+- Nguồn tra cứu: `data/legal/MEP_XD_source_registry.json`.
+- Kết quả quét chưa duyệt: `data/legal/MEP_XD_source_candidates.json`.
+- Công cụ cập nhật: `scripts/refresh_legal_candidates.py`, chạy qua GitHub Actions `refresh-mep-legal.yml` hoặc chạy thủ công với Python + `requests`, `beautifulsoup4`.
+- Trong app: **Cập nhật nguồn pháp lý** tải danh mục đã rà soát; **Kiểm tra mục mới** chỉ hiển thị các ứng viên, không tự ghi đè/khẳng định hiệu lực.
 
-## V5.7.8 – Nguồn Thư Viện Pháp Luật (TVPL)
+**Giới hạn:** Trang có kết quả tìm kiếm sinh động hoặc chặn truy cập có thể không có văn bản trong quét HTML ban đầu; luôn kiểm tra cổng gốc và điều khoản chuyển tiếp.
 
-Trang Pháp luật & tiêu chuẩn có nút Cập nhật TVPL, liên kết https://m.thuvienphapluat.vn/ và bảng STT mục tham khảo. Dữ liệu được tải qua JSON của chính repository, cập nhật bằng workflow refresh-tvpl.yml. Không dùng nguồn TVPL để khẳng định hiệu lực văn bản; không lấy nội dung có bảo vệ đăng nhập/paywall; không sửa QLDA_ver612_VPS.
+## V5.7.8 – Thư Viện Pháp Luật (TVPL)
+
+Bổ sung nguồn tra cứu TVPL dưới dạng nguồn tham khảo, nút Cập nhật TVPL, bảng STT ứng viên riêng và workflow `refresh-tvpl.yml` dùng dữ liệu công khai. Danh mục chính thống và thống kê không đổi khi chưa có xác minh. Không yêu cầu đăng nhập TVPL và không sao chép toàn văn.

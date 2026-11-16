@@ -1,15 +1,18 @@
-## V5.7.7 — Official legal sources, STT and statistics (2026-11-15)
+## V5.7.7 — Bổ sung nguồn pháp luật & thống kê thư viện (15/11/2026)
 
-- Three added authoritative source directories (national VBPL advanced search, Ministry of Public Security and Ministry of Science & Technology).
-- Catalog entry counts by discipline/document kind; serial numbers in filtered tables; unreviewed discoveries excluded.
-- The QLDA_ver612_VPS repository is not changed.
+- Thêm 3 nguồn tra cứu chính thống: CSDL quốc gia VBPL nâng cao, Bộ Công an (PCCC/CNCH), Bộ KH&CN (tiêu chuẩn, quy chuẩn). Tổng cộng 9 nguồn.
+- Bảng thống kê số lượng theo lĩnh vực (Xây dựng–QLDA, MEPF–PCCC) và loại (Luật, Nghị định, Thông tư, TCVN, QCVN, văn bản hợp nhất, khác), tự tính trên danh mục đã loại trùng.
+- STT trong bảng chính và bảng mục mới, đánh lại từ 1 sau khi lọc. Nhóm nguồn tra cứu dạng danh sách có thứ tự.
+- Tách số lượng nguồn website khỏi số lượng văn bản; văn bản phát hiện mới chưa kiểm chứng không được cộng.
+- Rà soát giao diện VI/EN, tối ưu bản mobile, không sửa cơ chế cập nhật của QLDA_ver612_VPS.
 
 # CHANGELOG — Công ty XD & MEP AI 3D
 
-## 2026-11-15 — V5.7.6: Nguồn pháp luật độc lập
-- Tách hoàn toàn danh mục cập nhật ra khỏi QLDA_ver612_VPS; chỉ dùng cách truy tìm số hiệu/nguồn.
-- Thêm danh sách 6 cổng tra cứu chính thống, danh mục đã rà soát và ứng viên chưa duyệt.
-- Cập nhật app để lấy JSON từ chính repository Công ty XD & MEP, không sửa QLDA.
+## 2026-11-15 — V5.7.6: Danh mục pháp luật/TCVN độc lập
+
+- Kế thừa phương pháp tra cứu QLDA, nhưng mọi cập nhật và nguồn JSON chạy riêng trong `Cong_ty_XD_3D`; không sửa repository QLDA.
+- Chia dữ liệu đã rà soát và ứng viên chưa kiểm chứng, thêm nút kiểm tra mục mới và workflow nguồn chính thống.
+- Giữ danh mục offline, không ghi đè dữ liệu người dùng khi nguồn lỗi, kiểm thử 65 JS + 3 Python.
 
 ## 2026-11-15 — V5.7.4: Tập trung tạo và xử lý Công việc
 
@@ -129,6 +132,6 @@
 - Kèm danh mục nền offline `data/legal/QLDA_official_catalog_seed.json` và không chạm dữ liệu người dùng.
 - Chức năng tải danh mục qua GitHub là thao tác thủ công; không thực hiện thu thập pháp luật trực tiếp từ điện thoại.
 
-## V5.7.8
-- Thêm nút Cập nhật TVPL và bảng mục chờ đối chiếu riêng.
-- Quét metadata các liên kết công khai qua GitHub Actions, không thay danh mục chính thống.
+## V5.7.8 – Thư Viện Pháp Luật (TVPL)
+
+Bổ sung nguồn tra cứu TVPL dưới dạng nguồn tham khảo, nút Cập nhật TVPL, bảng STT ứng viên riêng và workflow `refresh-tvpl.yml` dùng dữ liệu công khai. Danh mục chính thống và thống kê không đổi khi chưa có xác minh. Không yêu cầu đăng nhập TVPL và không sao chép toàn văn.

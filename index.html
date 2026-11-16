@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#09141f" />
+  <meta name="theme-color" content="#081b2a" />
   <meta name="description" content="MEP & Xây dựng Công ty AI 3D - Văn phòng kỹ thuật 3D, quản lý AI Agent, bản vẽ, BOQ, BIM và tài liệu theo phiên bản." />
-  <title>Công ty Xây dựng & MEP AI 3D | Trung tâm điều hành</title>
+  <title>XD & MEP AI 3D | Văn phòng số</title>
   <link rel="stylesheet" href="./src/styles.css" />
   <link rel="stylesheet" href="./src/portal.css" />
   <link rel="stylesheet" href="./src/polish.css" />
@@ -16,21 +16,28 @@
       <div class="brand"><div class="brand-mark">X<span>∕</span></div><div><strong>XD + MEP <em>CÔNG TY AI</em></strong><small>TRUNG TÂM ĐIỀU HÀNH 3D</small></div></div>
       <div class="nav-caption">KHÔNG GIAN LÀM VIỆC</div>
       <nav id="nav" aria-label="Điều hướng"></nav>
-      <div class="sidebar-footer"><div class="connection-flag"><span class="pulse"></span> HỆ THỐNG DỰ ÁN</div><p>Làm việc cục bộ, không cần đăng nhập. Dữ liệu chưa đồng bộ máy chủ.</p><small>Công ty Xây dựng & MEP · V5.7.8</small></div>
+      <div class="sidebar-tools"><button type="button" id="exportBtnSidebar" class="btn outline small">↧ Sao lưu dữ liệu</button></div>
     </aside>
-    <button class="mobile-nav-scrim" id="navScrim" type="button" tabindex="-1" aria-label="Đóng menu"></button>
+    <button class="mobile-nav-scrim" id="navScrim" aria-label="Đóng menu" type="button" tabindex="-1"></button>
     <main class="main">
       <header class="topbar">
-        <div class="topbar-left"><button id="menuBtn" class="icon-btn menu-btn" aria-label="Mở menu">☰</button><div class="crumb">KHÔNG GIAN <span>/</span> <strong id="crumb">Tổng quan</strong></div></div>
-        <div class="topbar-actions"><label class="language-picker" for="languageSelect"><span class="language-icon">🌐</span><select id="languageSelect" aria-label="Ngôn ngữ / Language"><option value="vi">Tiếng Việt</option><option value="en">English</option></select></label><span class="project-pill"><span class="project-dot"></span> LƯU CỤC BỘ</span><span class="date-pill" id="now"></span><button id="exportBtn" class="btn outline small">↧ Sao lưu dữ liệu thiết bị</button></div>
+        <div class="topbar-left"><button id="menuBtn" class="icon-btn menu-btn" aria-label="Mở menu">☰</button><div class="crumb"><strong id="crumb">Tổng quan</strong></div></div>
+        <div class="topbar-actions"><label class="language-picker" for="languageSelect"><span class="language-icon">🌐</span><select id="languageSelect" aria-label="Ngôn ngữ / Language"><option value="vi">Tiếng Việt</option><option value="en">English</option></select></label><span class="project-pill"><span class="project-dot"></span> LƯU CỤC BỘ</span><span class="date-pill" id="now"></span><button id="exportBtn" class="btn outline small">↧ Sao lưu</button></div>
       </header>
       <div class="content">
-        <section id="hero" class="page-head"><div><div class="eyebrow">TRUNG TÂM ĐIỀU HÀNH XÂY DỰNG & MEP</div><h1 id="pageTitle">Công ty kỹ thuật số 3D</h1><p id="pageSubtitle">Điều hành các bộ phận, theo dõi hồ sơ và nhiệm vụ trong một không gian thống nhất.</p></div></section>
+        <section id="hero" class="page-head"><div><h1 id="pageTitle">Công ty Xây dựng & MEP</h1><p id="pageSubtitle" class="visually-hidden">Văn phòng số</p></div><div class="head-decor" aria-hidden="true"><span></span><span></span><span></span></div></section>
         <section id="metrics" class="metrics"></section>
         <section id="body" class="page-body"></section>
-        <footer class="app-footer">V5.7.8 · Văn phòng 3D Xây dựng & MEP · Phê duyệt nội bộ · Chưa kích hoạt AI/IFC</footer>
+
       </div>
     </main>
+    <nav id="mobileDock" class="mobile-dock" aria-label="Điều hướng nhanh">
+      <button type="button" data-dock="overview" aria-label="Văn phòng 3D"><span class="dock-icon">⌂</span><span>Văn phòng</span></button>
+      <button type="button" data-dock="projects" aria-label="Dự án"><span class="dock-icon">▤</span><span>Dự án</span></button>
+      <button type="button" data-dock="tasks" aria-label="Công việc"><span class="dock-icon">☷</span><span>Công việc</span></button>
+      <button type="button" data-dock="reviews" aria-label="Chờ duyệt"><span class="dock-icon">✓</span><span>Phê duyệt</span></button>
+      <button type="button" data-dock="menu" aria-label="Mở tất cả mục"><span class="dock-icon">☰</span><span>Thêm</span></button>
+    </nav>
     <div id="modalRoot"></div>
     <div id="toastRoot" aria-live="polite"></div>
   </div>

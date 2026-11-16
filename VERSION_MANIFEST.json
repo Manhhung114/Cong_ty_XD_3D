@@ -1,6 +1,6 @@
 {
   "project": "Công ty Xây dựng & MEP AI 3D",
-  "artifact_version": "0.5.7.7-legal-library-statistics",
+  "artifact_version": "0.5.7.9-ui-polish",
   "release_date": "2026-11-15",
   "modules": [
     {
@@ -144,5 +144,6 @@
     "real_ai_execution": false,
     "active_in_ui": false,
     "available_as_source_for_future": true
-  }
+  },
+  "latest": null
 }

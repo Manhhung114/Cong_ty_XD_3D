@@ -430,6 +430,17 @@ Object.assign(STRINGS,{
  'Cài đặt API & AI Agent':'API & AI Agent Settings'
 });
 
+Object.assign(STRINGS,{
+ 'Văn phòng':'Office',
+ 'Dự án':'Projects',
+ 'Phê duyệt':'Approvals',
+ 'Thêm':'More',
+ 'Chưa hoạt động':'Not active',
+ 'Sao lưu dữ liệu':'Back up data',
+ '↧ Sao lưu':'↧ Backup',
+ '● CỤC BỘ':'● LOCAL',
+ 'Công ty XD & MEP AI 3D':'Construction & MEP AI 3D',
+});
 const rules=Object.entries(STRINGS).sort((a,b)=>b[0].length-a[0].length);
 export function translateText(original,lang=getLanguage()){
   if(lang!=='en')return String(original??'');
