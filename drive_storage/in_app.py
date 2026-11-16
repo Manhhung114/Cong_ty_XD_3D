@@ -10,6 +10,7 @@ import secrets
 from pathlib import PurePath
 
 from drive_storage.manager import ALLOWED_EXTENSIONS, FOLDER_CATEGORIES, MAX_FILE_SIZE, from_streamlit_secrets
+from drive_storage.document_control import base_code
 from drive_storage.access_control import (
     ROLE_NAMES, identity_for, read_policy,
     legacy_policy, write_policy, set_user, revoke_user, clean_email,
@@ -221,8 +222,7 @@ def drive_dialog(st) -> None:
                     key="v60_index_file_" + action["section"] + project["id"] + category,
                 )
                 doc_code = st.text_input(
-                    "Mã hồ sơ", value=re.sub(r"_R[0-9]{2,4}(?=\\.)", "",
-                                              str(selected["name"]), flags=re.I)[:80],
+                    "Mã hồ sơ", value=base_code(selected["name"]),
                     key="v60_index_code_" + selected["id"],
                 )
                 note = st.text_input(
@@ -300,7 +300,7 @@ def drive_dialog(st) -> None:
                 try:
                     service_for(st).register_document(
                         identity, project_id=project["id"], category=category,
-                        file_id=result["id"], code=upload_code or upload.name,
+                        file_id=result["id"], code=upload_code or base_code(result["name"]),
                         description=upload_note,
                         task_id=upload_task["id"] if upload_task else "",
                     )
