@@ -292,3 +292,10 @@ body{
 .legal-tvpl-source{margin-top:14px}
 .legal-source-index{font-variant-numeric:tabular-nums}
 @media(max-width:750px){.portal-project-picker{border-radius:16px}}
+
+/* Drive buttons are displayed inside functional project sheets only. */
+.drive-sheet-toolbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;border:1px solid #285367;background:linear-gradient(120deg,#0c2b3a,#123947);border-radius:16px;padding:15px 18px;margin:0 0 17px;color:#d8ffff}
+.drive-sheet-name{font-size:15px;font-weight:750;letter-spacing:.01em}
+.drive-sheet-actions{display:flex;flex-wrap:wrap;gap:9px;align-items:center}
+.drive-sheet-actions .btn{white-space:normal;min-height:42px}
+@media (max-width:650px){.drive-sheet-toolbar{padding:13px}.drive-sheet-actions{width:100%;display:grid;grid-template-columns:1fr 1fr}.drive-sheet-actions .btn{font-size:12px;padding:9px 6px}}
