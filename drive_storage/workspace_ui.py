@@ -53,8 +53,23 @@ def load_snapshot(st) -> dict:
     if st.session_state.get("xd_doc_inventory_requested") and selected:
         from drive_storage.document_control import inventory
         verified = inventory(workspace, actor, selected, snapshot["documents"])
-        snapshot["fileInventory"] = verified["items"]
-        snapshot["fileCounts"] = verified["counts"]
+        # Keep the private iframe small; the native management dialog still
+        # has the complete audited Drive inventory and full CSV export.
+        public_keys = (
+            "id", "code", "filename", "category", "revision", "status",
+            "actor", "sizeBytes", "createdTime", "modifiedTime",
+            "registeredAt", "description", "registered", "missing",
+            "latest", "integrityWarning",
+        )
+        max_inline = 500
+        snapshot["fileInventory"] = [
+            {k: row[k] for k in public_keys} for row in verified["items"][:max_inline]
+        ]
+        snapshot["fileCounts"] = {
+            **verified["counts"],
+            "displayed": len(snapshot["fileInventory"]),
+            "truncated": len(verified["items"]) > max_inline,
+        }
     else:
         snapshot["fileInventory"] = None
         snapshot["fileCounts"] = {}
