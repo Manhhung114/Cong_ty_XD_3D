@@ -207,6 +207,52 @@ def drive_dialog(st) -> None:
                         st.caption("Tệp lớn: tải trực tiếp tại Google Drive, cần có quyền với thư mục.")
         else:
             st.caption("Chưa có hồ sơ trong mục này.")
+        # V6.0: register *existing* files in the server-side document register.
+        # A document can only be attached to tasks in the same verified project.
+        if files and can_upload(identity):
+            with st.expander("📒 Ghi hồ sơ hiện có vào sổ V6.0", expanded=False):
+                from drive_storage.workspace_ui import service_for
+                from drive_storage.shared_workspace import SharedWorkspace
+                selected = st.selectbox(
+                    "Tệp Drive", files[:100],
+                    format_func=lambda item: str(item.get("name", "")),
+                    key="v60_index_file_" + action["section"] + project["id"] + category,
+                )
+                doc_code = st.text_input(
+                    "Mã hồ sơ", value=re.sub(r"_R[0-9]{2,4}(?=\\.)", "",
+                                              str(selected["name"]), flags=re.I)[:80],
+                    key="v60_index_code_" + selected["id"],
+                )
+                note = st.text_input(
+                    "Mô tả / lần thay đổi", max_chars=600,
+                    key="v60_index_note_" + selected["id"],
+                )
+                try:
+                    shared = service_for(st).snapshot(identity)
+                    task_choices = [t for t in shared["tasks"] if t["projectId"] == project["id"]]
+                except Exception:
+                    st.error("Không lấy được danh sách công việc đã phân quyền.")
+                    return
+                selected_task = st.selectbox(
+                    "Gắn với công việc (tùy chọn)",
+                    [None] + task_choices,
+                    format_func=lambda t: "— Không gắn công việc —" if t is None else
+                    t["code"] + " · " + t["title"],
+                    key="v60_index_task_" + selected["id"],
+                )
+                if st.button("Ghi vào sổ hồ sơ", key="v60_register_" + selected["id"]):
+                    try:
+                        service_for(st).register_document(
+                            identity, project_id=project["id"], category=category,
+                            file_id=selected["id"], code=doc_code, description=note,
+                            task_id=selected_task["id"] if selected_task else "",
+                        )
+                        st.success("Đã ghi vào sổ hồ sơ dùng chung.")
+                    except (ValueError, PermissionError) as exc:
+                        st.error(str(exc))
+                    except Exception:
+                        st.error("Không ghi được vào sổ; tệp gốc vẫn nguyên vẹn trên Drive.")
+
         if action["kind"] == "browse":
             return
 
@@ -221,6 +267,18 @@ def drive_dialog(st) -> None:
         )
         if upload is not None:
             st.caption(f"{upload.name} · {upload.size / 1048576:.1f} MB")
+        upload_code = st.text_input("Mã hồ sơ V6.0", key="v60_upload_code_" + action["section"] + project["id"] + category, max_chars=80)
+        upload_note = st.text_input("Mô tả phiên bản", key="v60_upload_note_" + action["section"] + project["id"] + category, max_chars=600)
+        try:
+            from drive_storage.workspace_ui import service_for
+            current_tasks = [t for t in service_for(st).snapshot(identity)["tasks"] if t["projectId"] == project["id"]]
+        except Exception:
+            current_tasks = []
+        upload_task = st.selectbox(
+            "Đính kèm công việc (tùy chọn)",
+            [None] + current_tasks, key="v60_upload_task_" + action["section"] + project["id"],
+            format_func=lambda t: "— Không gắn công việc —" if t is None else t["code"] + " · " + t["title"],
+        )
         if st.button("Lưu lên Google Drive", type="primary",
                      disabled=upload is None, key="drive_sheet_submit"):
             if upload is None or not 0 < upload.size <= MAX_FILE_SIZE:
@@ -237,6 +295,16 @@ def drive_dialog(st) -> None:
                     progress=lambda v: bar.progress(v, text=f"Đã tải {v:.0%}"),
                 )
                 st.success("Đã lưu trên Google Drive: " + result["name"])
+                try:
+                    service_for(st).register_document(
+                        identity, project_id=project["id"], category=category,
+                        file_id=result["id"], code=upload_code or upload.name,
+                        description=upload_note,
+                        task_id=upload_task["id"] if upload_task else "",
+                    )
+                    st.success("Đã ghi mã hồ sơ và phiên bản vào sổ V6.0.")
+                except Exception:
+                    st.warning("Tệp đã lưu trên Drive nhưng chưa vào sổ V6.0. Mở 'Xem hồ sơ / Tải xuống' để ghi vào sổ.")
                 if result.get("webViewLink"):
                     st.link_button("Mở tệp vừa lưu", result["webViewLink"])
             except ValueError as exc:
