@@ -136,6 +136,19 @@ class AccessTests(unittest.TestCase):
         with self.assertRaises((ValueError, UnicodeDecodeError)):
             read_policy(FakeStorage(b'not-json'), SIGNING_KEY)
 
+    def test_role_manifest_tampering_is_rejected(self):
+        import json
+        with self.assertRaises(PermissionError):
+            read_policy(FakeStorage(json.dumps(empty_policy()).encode("utf8")), SIGNING_KEY)
+        with self.assertRaises(PermissionError):
+            read_policy(FakeStorage(json.dumps({**empty_policy(), "_signature": "0"*64}).encode("utf8")), SIGNING_KEY)
+
+    def test_admin_cannot_self_demote(self):
+        with self.assertRaises(PermissionError):
+            set_user(empty_policy(), email="delegate@example.com", name="Delegate",
+                     role="read", projects=["*"], active=True,
+                     actor="delegate@example.com", owner="owner@example.com")
+
     def test_settings_admin_only_and_dialog_wired(self):
         app = (ROOT / "src/app.js").read_text(encoding="utf8")
         ui = (ROOT / "src/core/api_settings.js").read_text(encoding="utf8")
