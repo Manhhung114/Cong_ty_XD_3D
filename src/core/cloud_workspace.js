@@ -8,7 +8,12 @@ const actionLabels={
  'project.created':'Tạo dự án', 'task.created':'Giao công việc',
  'task.started':'Bắt đầu công việc', 'task.submitted':'Trình phê duyệt',
  'task.approved':'Chấp thuận', 'task.returned':'Trả lại',
- 'document.registered':'Đăng ký hồ sơ trên Drive'
+ 'document.registered':'Đăng ký hồ sơ trên Drive',
+ 'document.metadata_updated':'Cập nhật sổ hồ sơ',
+ 'document.submitted':'Trình hồ sơ',
+ 'document.approved':'Duyệt hồ sơ',
+ 'document.returned':'Trả hồ sơ yêu cầu sửa',
+ 'document.archived':'Chuyển hồ sơ lưu trữ'
 };
 const view=()=>window.__xdCloud||{enabled:false,projects:[],tasks:[],documents:[],events:[]};
 const current=()=>{
@@ -63,15 +68,140 @@ const tasksHtml=filter=>{
  (!tasks.length?'<div class="empty-state">Chưa có công việc trong mục này.</div>':'')+
  '<p class="footnote">Mọi quyết định được ghi theo tài khoản Google đăng nhập; chưa thay thế chữ ký số hoặc phê duyệt pháp lý.</p></section>';
 };
-const docsHtml=()=>{
- const p=current(),docs=p?(view().documents||[]).filter(d=>d.projectId===p.id):[];
- return '<section class="panel padded"><div class="panel-heading"><h3>Kho hồ sơ Google Drive · Sổ phiên bản</h3><span class="mini-label">'+docs.length+' HỒ SƠ ĐÃ LẬP SỔ</span></div>'+
- '<p>Tải tệp lên hoặc xem/tải xuống bằng các nút Google Drive ở đầu sheet. Mỗi lần upload tạo revision mới. Lưu vào sổ hồ sơ trong hộp thoại Drive để tra cứu chung.</p>'+
- '<div class="portal-document-list">'+docs.map(d=>'<article class="portal-document"><span><strong>'+h(d.code)+'</strong> · '+h(d.revision||'Không ghi phiên bản')+
- ' · '+h(d.filename)+'<small> · '+h(d.category)+' · '+h(d.actor)+'</small></span></article>').join('')+'</div>'+
- (!docs.length?'<div class="empty-state">Chưa lập sổ hồ sơ. Những tệp đã có trên Drive vẫn xem được tại nút Xem hồ sơ / Tải xuống.</div>':'')+
- '<p class="footnote">Dữ liệu tài liệu cũ trong IndexedDB vẫn lưu trên thiết bị; cần sao lưu trước khi chuyển đổi.</p></section>';
+const docStatusLabel={
+  unregistered:'Chưa lập sổ',draft:'Mới lập sổ',pending:'Chờ duyệt',
+  approved:'Đã duyệt',returned:'Yêu cầu sửa',archived:'Lưu trữ',
+  missing:'Không tìm thấy'
 };
+const docTextStatus=s=>docStatusLabel[s]||s||'—';
+const docByteSize=size=>{
+  const bytes=Number(size||0);
+  return bytes>=1048576?(bytes/1048576).toFixed(2)+' MB':(bytes/1024).toFixed(1)+' KB';
+};
+const docDate=raw=>{
+  if(!raw)return '—';
+  const d=new Date(raw);
+  return Number.isNaN(d.getTime())?raw:d.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'});
+};
+const docsHtml=()=>{
+ const s=view(),p=current();
+ const registered=p?(s.documents||[]).filter(d=>d.projectId===p.id):[];
+ const items=Array.isArray(s.fileInventory)?s.fileInventory:null;
+ const counts=s.fileCounts||{};
+ return '<section class="panel padded xd-document-control">'+
+ '<div class="panel-heading"><div><h2>📚 Sổ quản lý hồ sơ & kiểm kê Google Drive</h2>'+
+ '<p>Quản lý toàn bộ file đã tải lên theo dự án, nhóm hồ sơ, mã tài liệu và phiên bản.</p></div>'+
+ '<span class="mini-label">V6.0.1</span></div>'+
+ '<div class="portal-review-actions xd-doc-toolbar">'+
+ btn('↻ Kiểm kê toàn bộ file Drive','document_inventory','','primary')+
+ btn('📋 Quản lý hồ sơ / duyệt / tải bản gốc','document_manage')+
+ '</div>'+
+ (items===null?
+  '<div class="info-strip">Nhấn <b>Kiểm kê toàn bộ file Drive</b> để quét các nhóm hồ sơ, bao gồm cả những file đã tải lên từ trước nhưng chưa ghi sổ. Bảng sẽ hiển thị tên tệp, revision, trạng thái, thời điểm và người ghi sổ.</div>'+
+  '<div class="portal-document-list">'+registered.map(d=>
+    '<div class="portal-document"><span><strong>'+h(d.code)+'</strong> · '+h(d.revision||'—')+
+    ' · '+h(d.filename)+' · '+h(docTextStatus(d.status||'draft'))+
+    ' · '+h(d.actor||'Chưa rõ')+'</span>'+
+    '<button type="button" class="btn outline small" data-v601-file="'+h(d.id)+'">Chi tiết</button></div>'
+  ).join('')+'</div>':
+  '<div class="xd-doc-summary">'+
+  [['TỔNG TỆP',counts.total||0],['ĐÃ GHI SỔ',counts.registered||0],
+   ['CHƯA GHI SỔ',counts.unregistered||0],['CHỜ DUYỆT',counts.pending||0],
+   ['ĐÃ DUYỆT',counts.approved||0],['MẤT LIÊN KẾT',counts.missing||0],
+   ['THAY ĐỔI FILE',counts.modified||0]].map(([l,v])=>
+   '<div class="xd-doc-counter"><small>'+h(l)+'</small><strong>'+h(v)+'</strong></div>'
+  ).join('')+'</div>'+
+  ((counts.truncated)?'<div class="info-strip">Bảng hiển thị '+h(counts.displayed)+'/'+h(counts.total)+' tệp đầu tiên để bảo đảm hiệu năng. Chọn Quản lý hồ sơ để tìm và xuất CSV đầy đủ trên máy chủ.</div>':'')+
+  '<div class="xd-doc-filters">'+
+  '<label>Tìm kiếm<input id="v601DocSearch" type="search" placeholder="Tên file, mã hồ sơ, người ghi sổ…" autocomplete="off"></label>'+
+  '<label>Nhóm hồ sơ<select id="v601DocCategory"><option value="all">Tất cả nhóm</option>'+
+  [...new Set(items.map(x=>x.category))].sort().map(x=>
+   '<option value="'+h(x)+'">'+h(x.replaceAll('_',' ').toUpperCase())+'</option>').join('')+
+  '</select></label>'+
+  '<label>Trạng thái<select id="v601DocStatus"><option value="all">Tất cả trạng thái</option>'+
+  Object.entries(docStatusLabel).map(([k,v])=>'<option value="'+h(k)+'">'+h(v)+'</option>').join('')+
+  '</select></label>'+
+  '<label>Sắp xếp<select id="v601DocSort"><option value="new">Mới cập nhật</option>'+
+  '<option value="name">Tên hồ sơ A–Z</option><option value="revision">Revision mới nhất</option></select></label>'+
+  '</div>'+
+  '<div class="portal-review-actions xd-doc-toolbar"><label class="xd-doc-check">'+
+  '<input type="checkbox" id="v601DocLatest"> Chỉ hiển thị revision mới nhất</label>'+
+  '<button type="button" class="btn outline small" id="v601DocExport">⬇ CSV danh sách đang hiển thị</button>'+
+  '<span id="v601DocResults" class="mini-label" aria-live="polite"></span></div>'+
+  '<div class="xd-doc-table-scroll"><table class="xd-doc-table">'+
+  '<thead><tr><th>Mã hồ sơ / Tên file</th><th>Nhóm</th><th>Phiên bản</th>'+
+  '<th>Trạng thái</th><th>Ngày tải</th><th>Người ghi sổ</th><th>Dung lượng</th><th>Thao tác</th></tr></thead>'+
+  '<tbody id="v601DocTableBody"></tbody></table></div>'+
+  '<p class="footnote">Ngày tải theo Google Drive; người ghi sổ chỉ xác định khi hồ sơ được thao tác qua ứng dụng. File cũ chưa có thông tin người tải qua app sẽ được đánh dấu Chưa xác định. Tệp đã duyệt muốn sửa nội dung phải tải thành revision mới.</p>')+
+ '<p class="footnote">Tệp IndexedDB cũ vẫn nằm trên thiết bị; không xóa hoặc tự di chuyển dữ liệu cũ.</p>'+
+ '</section>';
+};
+function _csvSafe(value){
+ const raw=String(value??'');
+ const safe=/^[\s]*[=+\-@]/.test(raw)?"'"+raw:raw;
+ return '"'+safe.replaceAll('"','""')+'"';
+}
+function exportDocumentCatalog(items){
+ const cols=['Mã hồ sơ','Tên file','Nhóm','Phiên bản','Trạng thái','Dung lượng (bytes)',
+ 'Ngày tạo Drive','Ngày cập nhật','Người ghi sổ','Mô tả','Đã ghi sổ','File không còn','ID'];
+ const data=[cols,...items.map(d=>[d.code,d.filename,d.category,d.revision,
+  docTextStatus(d.status),d.sizeBytes,d.createdTime,d.modifiedTime,d.actor,d.description,
+  d.registered?'Có':'Không',d.missing?'Có':'Không',d.id])];
+ const csv='\ufeff'+data.map(row=>row.map(_csvSafe).join(',')).join('\r\n');
+ const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download='XD_MEP_so_kiem_soat_ho_so_'+new Date().toISOString().slice(0,10)+'.csv';
+ document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);
+}
+function bindDocumentInventory(root){
+ const all=Array.isArray(view().fileInventory)?view().fileInventory:null;
+ const tbody=root.querySelector('#v601DocTableBody');
+ const p=current();
+ if(!tbody){
+  root.querySelectorAll('[data-v601-file]').forEach(b=>b.addEventListener('click',()=>{
+   send('documents','document_manage','',p?.id||'',b.dataset.v601File);
+  }));
+  return;
+ }
+ const search=root.querySelector('#v601DocSearch'),cat=root.querySelector('#v601DocCategory');
+ const status=root.querySelector('#v601DocStatus'),sort=root.querySelector('#v601DocSort');
+ const latest=root.querySelector('#v601DocLatest'),results=root.querySelector('#v601DocResults');
+ const draw=()=>{
+  const q=search.value.trim().toLocaleLowerCase('vi');
+  let filtered=(all||[]).filter(d=>
+   (cat.value==='all'||d.category===cat.value)&&
+   (status.value==='all'||d.status===status.value)&&
+   (!latest.checked||d.latest||d.missing)&&
+   (!q||[d.code,d.filename,d.actor,d.category,d.description].join(' ').toLocaleLowerCase('vi').includes(q))
+  );
+  if(sort.value==='name')filtered.sort((a,b)=>a.code.localeCompare(b.code,'vi'));
+  if(sort.value==='revision')filtered.sort((a,b)=>((b.revision.match(/\d+/)?.[0]||0)-
+      (a.revision.match(/\d+/)?.[0]||0)));
+  if(sort.value==='new')filtered.sort((a,b)=>
+     (b.modifiedTime||b.registeredAt||'').localeCompare(a.modifiedTime||a.registeredAt||''));
+  const limit=150;
+  tbody.innerHTML=filtered.slice(0,limit).map(d=>
+    '<tr'+(d.missing?' class="xd-doc-missing"':'')+'><td><strong>'+h(d.code)+'</strong>'+
+    '<small>'+h(d.filename)+'</small>'+ (d.integrityWarning?'<small class="xd-doc-alert">⚠ File thay đổi</small>':'')+
+    (d.missing?'<small class="xd-doc-alert">⚠ Không tìm thấy trên Drive</small>':'')+
+    '</td><td>'+h(d.category.replaceAll('_',' ').toUpperCase())+'</td>'+
+    '<td>'+h(d.revision||'—')+(d.latest?'<small>Mới nhất</small>':'')+'</td>'+
+    '<td><span class="xd-doc-status xd-status-'+h(d.status)+'">'+h(docTextStatus(d.status))+'</span></td>'+
+    '<td>'+h(docDate(d.createdTime||d.registeredAt))+'</td>'+
+    '<td>'+h(d.actor||'Chưa xác định')+'</td>'+
+    '<td>'+h(docByteSize(d.sizeBytes))+'</td>'+
+    '<td><button type="button" class="btn outline small" data-v601-file="'+h(d.id)+'">Chi tiết</button></td></tr>'
+  ).join('')||'<tr><td colspan="8" class="xd-doc-empty">Không có hồ sơ phù hợp bộ lọc.</td></tr>';
+  results.textContent='Hiển thị '+Math.min(filtered.length,limit)+' / '+filtered.length+' tệp';
+ };
+ for(const control of [search,cat,status,sort,latest])control.addEventListener('input',draw);
+ tbody.addEventListener('click',e=>{
+  const button=e.target.closest('[data-v601-file]');
+  if(button)send('documents','document_manage','',p?.id||'',button.dataset.v601File);
+ });
+ root.querySelector('#v601DocExport')?.addEventListener('click',()=>exportDocumentCatalog(all||[]));
+ draw();
+}
 const activityHtml=()=>{
  const p=current(),ev=(view().events||[]).filter(e=>!p||e.projectId===p.id);
  return '<section class="panel padded"><h3>Nhật ký tác nghiệp tập trung</h3><p>Nhật ký ghi từ máy chủ, gắn tài khoản Google; lưu dạng sự kiện ký xác thực trên Drive.</p>'+
@@ -86,19 +216,23 @@ export function renderCloudPage(section){
  section==='documents'?docsHtml():
  section==='activity'?activityHtml():'');
 }
-const send=(section,op,taskId='',projectId='')=>{
+export function requestDocumentInventory(){
+ if(!Array.isArray(view().fileInventory))send('documents','document_inventory');
+}
+const send=(section,op,taskId='',projectId='',fileId='')=>{
  const currentProject=current();
  const token=window.__xdDriveNonce;
  if(!token)return;
  const requestId=(globalThis.crypto?.randomUUID?.()||String(Date.now())+'-'+Math.random().toString().slice(2)).replace(/-/g,'').slice(0,32);
  window.parent.postMessage({
   channel:'XD_MEP_DRIVE_V1',nonce:token,kind:'workspace',section,op,
-  projectId:projectId||currentProject?.id||'',taskId:taskId||'',
+  projectId:projectId||currentProject?.id||'',taskId:taskId||'',fileId:fileId||'',
   actionId:requestId,
  },'*');
 };
 let backupHandlerAttached=false;
 export function bindCloudPage(root,section){
+ if(section==='documents')bindDocumentInventory(root);
  root.querySelector('#cloudProjectSelect')?.addEventListener('change',e=>send(section,'select','',''+e.target.value));
  root.querySelectorAll('[data-workspace-op]').forEach(b=>b.addEventListener('click',()=>{
   const op=b.dataset.workspaceOp;

@@ -1,6 +1,6 @@
 {
   "project": "Công ty Xây dựng & MEP AI 3D",
-  "artifact_version": "0.6.0-streamlit-shared-workspace-rc1",
+  "artifact_version": "0.6.0.1-drive-document-control",
   "release_date": "2026-11-16",
   "modules": [
     {
@@ -110,6 +110,12 @@
       "area": "Verified internal approvals and document revision register",
       "entry": "drive_storage/workspace_ui.py",
       "status": "implemented_needs_live_two_account_acceptance_not_legal_signature"
+    },
+    {
+      "label": "V6.0.1",
+      "area": "Reconciled Drive inventory, per-file document control and approval audit",
+      "entry": "drive_storage/document_control.py",
+      "status": "implemented_unit_tested_live_streamlit_acceptance_required"
     }
   ],
   "data_categories": {
@@ -129,7 +135,8 @@
     "language": "Vietnamese and English (local browser preference)",
     "standards_updates": "bundled JSON + optional GitHub refresh + manual JSON import",
     "active_mode": "Streamlit Google OIDC + signed Google Drive event metadata; offline Android remains separate",
-    "shared_workspaces": "server_side_projects_tasks_approvals_documents"
+    "shared_workspaces": "server_side_projects_tasks_approvals_documents",
+    "document_control": "all_project_categories_inventory_revision_status_signed_audit"
   },
   "warnings": [
     "No real AI agents connected",
@@ -145,14 +152,17 @@
     "V5.9/V6.0 metadata is a signed Google Drive event ledger, not a PostgreSQL deployment.",
     "Legacy localStorage/IndexedDB documents are not auto-uploaded; Admin may explicitly import metadata backup after review.",
     "The new Streamlit shared-workspace feature still needs live two-account and 500 MB acceptance testing.",
-    "Signed Drive event metadata is limited to 2500 events and lacks SQL transactional concurrency."
+    "Signed Drive event metadata is limited to 2500 events and lacks SQL transactional concurrency.",
+    "V6.0.1 can show 500 files in the inline table; native dialog offers full inventory/CSV to 3000 files per project.",
+    "Legacy Drive uploads have unknown individual uploader identity until registered through the authenticated app.",
+    "Live two-account browser acceptance and 500 MB upload testing not completed for V6.0.1."
   ],
   "divisions": {
     "shared": "Ban giám đốc",
     "mep": "Cơ điện",
     "construction": "Xây dựng"
   },
-  "current_version": "V6.0 (Streamlit cloud workflow)",
+  "current_version": "V6.0.1 (Streamlit document control)",
   "backend": {
     "framework": "FastAPI",
     "database": "PostgreSQL or SQLite local",

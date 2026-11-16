@@ -10,6 +10,7 @@ import secrets
 from pathlib import PurePath
 
 from drive_storage.manager import ALLOWED_EXTENSIONS, FOLDER_CATEGORIES, MAX_FILE_SIZE, from_streamlit_secrets
+from drive_storage.document_control import base_code
 from drive_storage.access_control import (
     ROLE_NAMES, identity_for, read_policy,
     legacy_policy, write_policy, set_user, revoke_user, clean_email,
@@ -89,6 +90,7 @@ def mount_bridge(st) -> dict | None:
               op: workspaceAction ? String(d.op || "").slice(0, 32) : "",
               projectId: workspaceAction ? String(d.projectId || "").slice(0, 160) : "",
               taskId: workspaceAction ? String(d.taskId || "").slice(0, 160) : "",
+              fileId: workspaceAction ? String(d.fileId || "").slice(0, 160) : "",
               actionId: workspaceAction ? String(d.actionId || "").slice(0, 32) : ""
             });
           }
@@ -113,6 +115,7 @@ def mount_bridge(st) -> dict | None:
             "kind": "workspace", "section": section, "op": op,
             "projectId": str(action.get("projectId") or "")[:160],
             "taskId": str(action.get("taskId") or "")[:160],
+            "fileId": str(action.get("fileId") or "")[:160],
             "actionId": str(action.get("actionId") or "")[:32],
         }
     if action.get("section") == "settings" and action.get("kind") == "access":
@@ -219,8 +222,7 @@ def drive_dialog(st) -> None:
                     key="v60_index_file_" + action["section"] + project["id"] + category,
                 )
                 doc_code = st.text_input(
-                    "Mã hồ sơ", value=re.sub(r"_R[0-9]{2,4}(?=\\.)", "",
-                                              str(selected["name"]), flags=re.I)[:80],
+                    "Mã hồ sơ", value=base_code(selected["name"]),
                     key="v60_index_code_" + selected["id"],
                 )
                 note = st.text_input(
@@ -298,7 +300,7 @@ def drive_dialog(st) -> None:
                 try:
                     service_for(st).register_document(
                         identity, project_id=project["id"], category=category,
-                        file_id=result["id"], code=upload_code or upload.name,
+                        file_id=result["id"], code=upload_code or base_code(result["name"]),
                         description=upload_note,
                         task_id=upload_task["id"] if upload_task else "",
                     )

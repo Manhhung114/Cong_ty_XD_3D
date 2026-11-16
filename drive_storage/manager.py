@@ -233,6 +233,69 @@ class DriveStorage:
                                       category=category, filename=filename, data=data)
 
 
+    def list_project_files(self, *, project_id: str) -> list[dict]:
+        """Enumerate actual project files across configured categories in one tree scan.
+
+        Reuses each folder's children list instead of repeatedly resolving
+        the same project root, parent and nested category folders. This read
+        never creates or moves folders and refuses ambiguous paths.
+        """
+        project = self.project_by_id(project_id)
+        root = project["id"]
+        cache: dict[str, list[dict]] = {}
+        folder_mime = "application/vnd.google-apps.folder"
+
+        def children(parent: str):
+            if parent in cache:
+                return cache[parent]
+            query = f"'{_quote(parent)}' in parents and trashed = false"
+            records, token = [], None
+            while True:
+                response = self.service.files().list(
+                    q=query, pageSize=1000, pageToken=token,
+                    fields=("nextPageToken,files(id,name,mimeType,size,createdTime,"
+                            "modifiedTime,md5Checksum,webViewLink,parents,appProperties)"),
+                ).execute()
+                records.extend(
+                    x for x in response.get("files", [])
+                    if parent in x.get("parents", [])
+                )
+                token = response.get("nextPageToken")
+                if not token:
+                    break
+            cache[parent] = records
+            return records
+
+        result = []
+        seen_ids = set()
+        for category, path in FOLDER_CATEGORIES.items():
+            parent = root
+            exists = True
+            for directory in path:
+                folders = [
+                    x for x in children(parent)
+                    if x.get("mimeType") == folder_mime and x.get("name") == directory
+                ]
+                if len(folders) > 1:
+                    raise RuntimeError("Thư mục hồ sơ trùng tên, cần kiểm tra Google Drive")
+                if not folders:
+                    exists = False
+                    break
+                parent = folders[0]["id"]
+            if not exists:
+                continue
+            for file in children(parent):
+                if file.get("mimeType") == folder_mime:
+                    continue
+                fid = str(file.get("id") or "")
+                if fid in seen_ids:
+                    raise RuntimeError("Tệp xuất hiện ở nhiều nhóm hồ sơ trong dự án")
+                seen_ids.add(fid)
+                result.append({**file, "category": category})
+                if len(result) > 3000:
+                    raise RuntimeError("Kho hồ sơ trên 3.000 tệp, cần phân trang trên máy chủ")
+        return sorted(result, key=lambda x: x.get("modifiedTime", ""), reverse=True)
+
     def list_category_files(self, *, project_id: str, category: str) -> list[dict]:
         """List only regular files in a verified project/category folder."""
         parent = self.destination_by_id(project_id, category)
@@ -241,7 +304,7 @@ class DriveStorage:
         items, token = [], None
         while True:
             response = self.service.files().list(
-                q=q, fields="nextPageToken,files(id,name,size,mimeType,modifiedTime,webViewLink,webContentLink,parents)",
+                q=q, fields="nextPageToken,files(id,name,size,mimeType,createdTime,modifiedTime,md5Checksum,webViewLink,webContentLink,parents,appProperties)",
                 pageSize=100, pageToken=token,
             ).execute()
             items.extend(x for x in response.get("files", []) if parent in x.get("parents", []))
