@@ -26,8 +26,9 @@ class StaticStreamlitTests(unittest.TestCase):
         cfg = tomllib.loads((ROOT / ".streamlit/config.toml").read_text(encoding="utf-8"))
         self.assertTrue(cfg["server"]["enableStaticServing"])
         launcher = (ROOT / "streamlit_app.py").read_text(encoding="utf-8")
-        self.assertIn('components.iframe(url, height=980', launcher)
-        self.assertIn('from scripts.build_streamlit_inline import build', launcher)
+        self.assertIn('st.iframe(page, height=1050', launcher)
+        self.assertIn('components.html(page, height=1050', launcher)
+        self.assertIn('from scripts.build_streamlit_runtime_v2 import build', launcher)
 
 if __name__ == "__main__":
     unittest.main()
