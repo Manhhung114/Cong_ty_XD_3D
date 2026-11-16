@@ -33,7 +33,7 @@ FOLDER_CATEGORIES = {
     "audit": ("13_NHAT_KY",),
 }
 ALLOWED_EXTENSIONS = {".pdf", ".xlsx", ".xls", ".csv", ".doc", ".docx", ".dwg", ".dxf", ".ifc", ".rvt", ".nwd", ".png", ".jpg", ".jpeg", ".txt", ".json", ".zip"}
-MAX_FILE_SIZE = 25 * 1024 * 1024
+MAX_FILE_SIZE = 500 * 1024 * 1024
 CODE_PATTERN = re.compile(r"^[A-Z0-9][A-Z0-9_-]{1,49}$")
 
 
@@ -188,7 +188,7 @@ class DriveStorage:
     def _upload_to_parent(self, *, parent: str, project_code: str,
                           category: str, filename: str, data: bytes) -> dict:
         if not data or len(data) > MAX_FILE_SIZE:
-            raise ValueError("Tệp phải có dung lượng từ 1 byte đến 25 MB")
+            raise ValueError("Tệp phải có dung lượng từ 1 byte đến 500 MB")
         original = safe_filename(filename)
         extension = PurePath(original).suffix
         stem = original[:-len(extension)]
@@ -231,6 +231,100 @@ class DriveStorage:
         code = (record.get("appProperties") or {}).get("projectCode") or record["name"].split("_", 1)[0]
         return self._upload_to_parent(parent=parent, project_code=code.upper(),
                                       category=category, filename=filename, data=data)
+
+
+    def list_category_files(self, *, project_id: str, category: str) -> list[dict]:
+        """List only regular files in a verified project/category folder."""
+        parent = self.destination_by_id(project_id, category)
+        q = (f"'{_quote(parent)}' in parents and trashed = false "
+             "and mimeType != 'application/vnd.google-apps.folder'")
+        items, token = [], None
+        while True:
+            response = self.service.files().list(
+                q=q, fields="nextPageToken,files(id,name,size,mimeType,modifiedTime,webViewLink,webContentLink,parents)",
+                pageSize=100, pageToken=token,
+            ).execute()
+            items.extend(x for x in response.get("files", []) if parent in x.get("parents", [parent]))
+            token = response.get("nextPageToken")
+            if not token:
+                return sorted(items, key=lambda f: f.get("modifiedTime", ""), reverse=True)
+
+    def upload_stream_to_project(self, *, project_id: str, category: str,
+                                 filename: str, stream, size: int,
+                                 progress=None) -> dict:
+        """Resumable 8 MiB-chunk Drive upload, avoiding a second in-memory 500 MB copy."""
+        if not isinstance(size, int) or not 0 < size <= MAX_FILE_SIZE:
+            raise ValueError("Tệp phải có dung lượng từ 1 byte đến 500 MB")
+        original = safe_filename(filename)
+        record = self.project_by_id(project_id)
+        parent = self.destination_by_id(project_id, category)
+        extension = PurePath(original).suffix
+        stem = re.sub(r"_R\d{2,4}$", "", original[:-len(extension)], flags=re.I)
+        for revision in range(1, 1000):
+            name = f"{stem}_R{revision:02d}{extension}"
+            q = (f"'{_quote(parent)}' in parents and "
+                 f"name = '{_quote(name)}' and trashed = false")
+            matches = self.service.files().list(
+                q=q, fields="files(id)", pageSize=2,
+            ).execute().get("files", [])
+            if not matches:
+                break
+        else:
+            raise RuntimeError("Đã đạt giới hạn phiên bản tệp")
+        from googleapiclient.http import MediaIoBaseUpload
+        stream.seek(0)
+        media = MediaIoBaseUpload(
+            stream,
+            mimetype=mimetypes.guess_type(name)[0] or "application/octet-stream",
+            chunksize=8 * 1024 * 1024,
+            resumable=True,
+        )
+        code = ((record.get("appProperties") or {}).get("projectCode")
+                or record["name"].split("_", 1)[0]).upper()
+        request = self.service.files().create(
+            body={"name": name, "parents": [parent], "appProperties": {
+                "projectCode": code, "category": category,
+                "originalName": original, "revision": str(revision),
+            }},
+            media_body=media,
+            fields="id,name,mimeType,size,webViewLink,parents",
+        )
+        result = None
+        while result is None:
+            status, result = request.next_chunk(num_retries=3)
+            if status is not None and progress is not None:
+                progress(min(1.0, float(status.progress())))
+        if parent not in result.get("parents", []):
+            raise RuntimeError("Drive trả về vị trí lưu không khớp")
+        if progress is not None:
+            progress(1.0)
+        return result
+
+    def download_small_file(self, *, project_id: str, category: str,
+                            file_id: str, max_bytes: int = 40 * 1024 * 1024) -> bytes:
+        """Server download only after validating the requested file belongs to the category."""
+        if not re.fullmatch(r"[\w-]{12,160}", file_id or ""):
+            raise ValueError("ID tệp không hợp lệ")
+        files = self.list_category_files(project_id=project_id, category=category)
+        matches = [f for f in files if f["id"] == file_id]
+        if len(matches) != 1:
+            raise PermissionError("Tệp không thuộc dự án và mục hồ sơ đã chọn")
+        size = int(matches[0].get("size") or 0)
+        if size > max_bytes:
+            raise ValueError("Tệp lớn: hãy dùng liên kết mở Google Drive để tải trực tiếp")
+        from googleapiclient.http import MediaIoBaseDownload
+        output = io.BytesIO()
+        downloader = MediaIoBaseDownload(
+            output,
+            self.service.files().get_media(fileId=file_id),
+            chunksize=8 * 1024 * 1024,
+        )
+        done = False
+        while not done:
+            _, done = downloader.next_chunk(num_retries=3)
+            if output.tell() > max_bytes:
+                raise ValueError("Tệp vượt giới hạn tải qua trình duyệt")
+        return output.getvalue()
 
 
 def from_streamlit_secrets(config: dict) -> DriveStorage:
