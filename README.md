@@ -1,3 +1,12 @@
+# Truy cập bản Web 3D V5.7.9 qua Streamlit Community Cloud
+
+- Khởi chạy: `streamlit_app.py` (nhánh `main`).
+- Hướng dẫn: [`docs/DEPLOY_STREAMLIT_V579.md`](docs/DEPLOY_STREAMLIT_V579.md).
+- App web gốc nằm ở `static/index.html` và mở toàn màn hình từ nút đầu trang Streamlit.
+- Dữ liệu là cục bộ theo từng trình duyệt; không đồng bộ qua máy chủ. Không đưa API key lên GitHub.
+
+---
+
 # V5.7.7 — Thư viện pháp luật có STT và thống kê
 
 Trong **Pháp luật & tiêu chuẩn**, bảng thống kê đếm các bản ghi theo `(lĩnh vực, số hiệu)` sau khi bỏ trùng. Nhóm số gồm Luật, Nghị định, Thông tư, TCVN, QCVN, văn bản hợp nhất và khác. Bảng hiển thị STT theo thứ tự lọc. Nguồn tra cứu tăng từ 6 lên **9 cổng** (gồm CSDL quốc gia tra cứu nâng cao, Bộ Công an, Bộ KH&CN); đây là số địa chỉ, không phải số văn bản. Những mục phát hiện mới vẫn **chờ đối chiếu** và không vào tổng số liệu. Xem `docs/LEGAL_CATALOG_V577.md`.
