@@ -10,7 +10,7 @@ import streamlit as st
 import streamlit.components.v1 as legacy_components
 
 from scripts.build_streamlit_runtime_v2 import build
-from drive_storage.in_app import require_login, mount_bridge, drive_dialog
+from drive_storage.in_app import require_login, mount_bridge, drive_dialog, access_management_dialog
 
 st.set_page_config(
     page_title="Công ty Xây dựng & MEP AI 3D", page_icon="🏗️",
@@ -27,7 +27,7 @@ st.markdown("""<style>
 role = require_login(st)
 left, right = st.columns([7, 1], vertical_alignment="center")
 with left:
-    st.caption("XD & MEP AI 3D  ·  " + ("Admin" if role == "admin" else "Nhân viên"))
+    st.caption("XD & MEP AI 3D · " + {"admin": "Admin", "update": "Cập nhật", "read": "Chỉ đọc"}.get(role, "Nhân viên"))
 with right:
     if st.button("Đăng xuất", key="logout_from_app", help="Đăng xuất tài khoản Google"):
         st.logout()
@@ -59,4 +59,8 @@ else:
 # Native file controls are shown as a dialog over the selected app sheet,
 # not a separate uploader page.
 if st.session_state.get("drive_in_app_action"):
-    drive_dialog(st)
+    current_action = st.session_state["drive_in_app_action"]
+    if current_action.get("kind") == "access" and current_action.get("section") == "settings":
+        access_management_dialog(st)
+    else:
+        drive_dialog(st)
