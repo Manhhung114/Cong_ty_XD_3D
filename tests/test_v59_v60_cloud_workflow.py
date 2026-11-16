@@ -163,6 +163,34 @@ class CloudWorkflowTests(unittest.TestCase):
         with self.assertRaises(PermissionError):
             self.ws.snapshot(self.admin)
 
+    def test_explicit_legacy_import_preserves_old_status_as_unverified(self):
+        backup = {
+            "version": 1,
+            "projects": [{
+                "id": "old-project-001", "code": "LEG001", "name": "Du an cu",
+                "client": "Chu dau tu", "location": "TP HCM"
+            }],
+            "tasks": [{
+                "id": "old-task-001", "projectId": "old-project-001",
+                "title": "Bao cao cu can doi chieu", "dept": "electrical",
+                "assignee": "Kỹ sư", "status": "done",
+                "report": "Kết quả duyệt trước khi đồng bộ máy chủ."
+            }],
+        }
+        result = self.ws.import_legacy_workspace(self.admin, backup)
+        self.assertEqual(result["projects"], 1)
+        self.assertEqual(result["newTasks"], 1)
+        snapshot = self.ws.snapshot(self.admin)
+        imported = [t for t in snapshot["tasks"] if t["title"] == "Bao cao cu can doi chieu"]
+        self.assertEqual(len(imported), 1)
+        self.assertEqual(imported[0]["status"], "todo")
+        self.assertEqual(imported[0]["legacy"]["status"], "done")
+        self.assertEqual(imported[0]["reviewHistory"], [])
+        again = self.ws.import_legacy_workspace(self.admin, backup)
+        self.assertEqual(again["newTasks"], 0)
+        with self.assertRaises(PermissionError):
+            self.ws.import_legacy_workspace(self.editor, backup)
+
     def test_create_project_and_no_duplicate_codes(self):
         pid = self.ws.create_project(self.admin, code="NEW001", name="Du an MEP",
                                      client="Chu dau tu")
