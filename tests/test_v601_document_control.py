@@ -7,7 +7,7 @@ from drive_storage.document_control import (
     update_metadata, submit_document, review_document, archive_document,
 )
 from drive_storage.document_control_ui import _csv_cell, inventory_csv
-from tests.test_v59_v60_cloud_workflow import (
+from test_v59_v60_cloud_workflow import (
     FakeStorage, CloudWorkflowTests, PROJECT, SECOND, SIGNING_KEY,
 )
 from drive_storage.shared_workspace import SharedWorkspace
