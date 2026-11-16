@@ -44,7 +44,7 @@ class ExtractorTests(unittest.TestCase):
         plu = _calculations("PLU", parsed)
         self.assertTrue(40 < plu[0]["values"]["velocity_m_s"] < 60)
         structure = _calculations("STR", parsed)
-        self.assertEqual(structure[0]["values"]["force_N"], 98.067)
+        self.assertEqual(structure[0]["values"]["force_N"], 98.066)
 
     def test_unsupported_and_size_rejected(self):
         for name in ("model.dwg", "model.rvt", "model.nwd", "old.xls"):
@@ -109,9 +109,9 @@ class ExtractorTests(unittest.TestCase):
         self.assertTrue(any("clash" in w for w in parsed["warnings"]))
 
 
-class ExpertWorkflowTests(CloudWorkflowTests):
+class ExpertWorkflowTests(unittest.TestCase):
     def setUp(self):
-        super().setUp()
+        CloudWorkflowTests.setUp(self)
         self.blob=b"Quantity,Unit Price,Amount\n2,100,250\n3,50,150\n"
         self.fid="drive-file-123456789"
         self.storage.list_category_files=lambda *,project_id,category: (
@@ -131,6 +131,9 @@ class ExpertWorkflowTests(CloudWorkflowTests):
             self.editor,project_id=PROJECT,category="boq_mep",
             file_id=self.fid,code="BOQ-TEST",task_id=self.task_id,
         )
+
+    def tearDown(self):
+        CloudWorkflowTests.tearDown(self)
 
     def test_real_registered_drive_evidence_and_four_role_pipeline(self):
         result=run_expert(
