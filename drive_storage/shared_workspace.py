@@ -223,23 +223,37 @@ class SharedWorkspace:
                                                   "note": data.get("comment", "")})
             elif action == "document.registered":
                 did = data["file_id"]
-                if did in documents:
-                    raise ValueError("Một tệp Drive được đăng ký nhiều lần vào sổ hồ sơ")
-                documents[did] = {
-                    "id": did, "projectId": pid, "code": data["code"],
-                    "filename": data["filename"], "category": data["category"],
-                    "revision": data.get("revision", ""),
-                    "description": data.get("description", ""),
-                    "taskId": data.get("task_id", ""),
-                    "sizeBytes": data.get("size_bytes", 0),
-                    "md5Checksum": data.get("md5_checksum", ""),
-                    "registeredAt": event["at"], "updatedAt": event["at"],
-                    "actor": event["actor"], "status": "draft",
-                    "history": [{
-                        "at": event["at"], "actor": event["actor"],
-                        "action": "document.registered", "note": data.get("description", ""),
-                    }],
+                history_entry = {
+                    "at": event["at"], "actor": event["actor"],
+                    "action": "document.registered", "note": data.get("description", ""),
                 }
+                if did in documents:
+                    # V6.0 allowed registering the same Drive file repeatedly.
+                    # Preserve those historical events and do NOT reset an
+                    # already approved/archived status or lose its audit trail.
+                    old = documents[did]
+                    if old["projectId"] != pid or old["category"] != data["category"]:
+                        raise ValueError("Tệp được ghi sổ dưới nhiều dự án/nhóm hồ sơ")
+                    old.update({
+                        "code": data["code"],
+                        "description": data.get("description", ""),
+                        "taskId": data.get("task_id", ""),
+                        "updatedAt": event["at"],
+                    })
+                    old["history"].append(history_entry)
+                else:
+                    documents[did] = {
+                        "id": did, "projectId": pid, "code": data["code"],
+                        "filename": data["filename"], "category": data["category"],
+                        "revision": data.get("revision", ""),
+                        "description": data.get("description", ""),
+                        "taskId": data.get("task_id", ""),
+                        "sizeBytes": data.get("size_bytes", 0),
+                        "md5Checksum": data.get("md5_checksum", ""),
+                        "registeredAt": event["at"], "updatedAt": event["at"],
+                        "actor": event["actor"], "status": "draft",
+                        "history": [history_entry],
+                    }
             elif action.startswith("document."):
                 did = data.get("file_id")
                 doc = documents.get(did)
