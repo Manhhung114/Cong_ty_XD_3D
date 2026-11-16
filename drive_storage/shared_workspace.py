@@ -393,7 +393,7 @@ class SharedWorkspace:
             pid = matching["id"] if matching else self.storage.ensure_project_tree(
                 p["code"], p["name"]
             )
-            event_id = hashlib.sha256(("xd-import-project:" + p["code"]).encode("utf8")).hexdigest()
+            event_id = hashlib.sha256(("xd-import-project:" + p["code"]).encode("utf8")).hexdigest()[:32]
             self._append(identity=identity, project_id=pid, action="project.created",
                          data={"name": p["name"], "client": p["client"],
                                "location": p["location"], "division": "all",
@@ -403,7 +403,7 @@ class SharedWorkspace:
         for p, data, old_task_id in prepared:
             digest = hashlib.sha256(
                 ("xd-import-task:" + p["code"] + ":" + old_task_id).encode("utf8")
-            ).hexdigest()
+            ).hexdigest()[:32]
             project_id = next(linked[old_id] for old_id, v in source_projects.items()
                               if v is p)
             result = self._append(identity=identity, project_id=project_id,
