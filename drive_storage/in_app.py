@@ -248,7 +248,8 @@ def access_management_dialog(st) -> None:
             config = dict(st.secrets.get("drive", {}))
             owner = clean_email(config.get("allowed_email"))
             store = from_streamlit_secrets(config)
-            file_id, managed = read_policy(store)
+            signature_key = str(st.secrets.get("auth", {}).get("cookie_secret", ""))
+            file_id, managed = read_policy(store, signature_key)
             policy = managed if managed is not None else legacy_policy(st.secrets.get("access", {}).get("members", []))
             projects = store.list_projects()
         except Exception:
@@ -318,7 +319,7 @@ def access_management_dialog(st) -> None:
                     projects=["*"] if all_projects else chosen, active=active,
                     actor=actor["email"], owner=owner,
                 )
-                write_policy(store, updated, file_id)
+                write_policy(store, updated, file_id, signature_key)
                 st.success("Đã lưu phân quyền trên Google Drive. Tài khoản được áp dụng từ lần tải lại tiếp theo.")
                 st.rerun()
             except (ValueError, PermissionError) as exc:
@@ -335,7 +336,7 @@ def access_management_dialog(st) -> None:
                 if st.button("Thu hồi quyền", disabled=not confirmed, key="access_revoke_button"):
                     try:
                         updated = revoke_user(policy, email=target, actor=actor["email"], owner=owner)
-                        write_policy(store, updated, file_id)
+                        write_policy(store, updated, file_id, signature_key)
                         st.success("Đã thu hồi quyền tài khoản.")
                         st.rerun()
                     except (ValueError, PermissionError) as exc:
