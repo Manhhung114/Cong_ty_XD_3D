@@ -17,7 +17,7 @@ class StaticStreamlitTests(unittest.TestCase):
 
     def test_html_paths(self):
         html = (STATIC / "index.html").read_text(encoding="utf-8")
-        for path in re.findall(r'(?:href|src)="\\./([^"]+)"', html):
+        for path in re.findall(r'(?:href|src)="\./([^"]+)"', html):
             self.assertTrue((STATIC / path).exists(), path)
 
     def test_streamlit_config(self):
