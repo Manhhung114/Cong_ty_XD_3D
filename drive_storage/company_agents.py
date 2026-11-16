@@ -156,6 +156,9 @@ def preflight(state: dict, project_id: str, task_id: str, agent_id: str) -> dict
         missing.append("Chưa có hạn công việc")
     if docs and not any(d.get("status") == "approved" for d in docs):
         missing.append("Chưa có hồ sơ liên quan đã được Admin duyệt")
+    expected = a.get("expected_categories", [])
+    if expected and not any(d.get("category") in expected for d in docs):
+        missing.append("Thiếu bằng chứng bộ môn: " + ", ".join(expected))
     risks = []
     if task.get("dueDate") and task["dueDate"] < _today_vn() and task["status"] != "done":
         risks.append("Công việc đã quá hạn, cần PM xử lý")
@@ -177,6 +180,8 @@ def preflight(state: dict, project_id: str, task_id: str, agent_id: str) -> dict
             for d in docs
         ],
         "skills": a["skills"], "partners": a["partners"],
+        "expectedCategories": a.get("expected_categories", []),
+        "qualityGate": a["quality_gate"],
         "missing": missing, "risks": risks,
     }
     return payload
@@ -297,6 +302,27 @@ def run_agent(workspace, identity, *, project_id: str, task_id: str,
     note = _clean_text(note, MAX_NOTE)
     info = preflight(state, pid, task_id, agent_id)
     info["userNote"] = note
+    if event_id:
+        # Check idempotency *before* contacting a chargeable provider.
+        # An existing event with another action/owner is not reusable.
+        for prior in workspace.events():
+            if prior["id"] != event_id:
+                continue
+            data = prior.get("data", {})
+            if (prior.get("action") != "agent.completed"
+                    or prior.get("project_id") != pid
+                    or prior.get("actor") != identity["email"]
+                    or data.get("task_id") != task_id
+                    or data.get("agent_id") != agent_id
+                    or data.get("mode") != mode):
+                raise PermissionError("Mã thực thi Agent đã được dùng cho thao tác khác")
+            return {
+                "eventId": prior["id"], "existing": True,
+                "agentId": agent_id, "provider": data.get("provider", "none"),
+                "mode": mode, "draft": data.get("result", ""),
+                "missing": data.get("missing", []), "risks": data.get("risks", []),
+                "reviewRequired": True,
+            }
     if mode == "llm":
         if not consent:
             raise PermissionError("Cần người dùng chấp thuận gửi metadata dự án cho nhà cung cấp AI")
@@ -314,6 +340,8 @@ def run_agent(workspace, identity, *, project_id: str, task_id: str,
             ) if info["documents"] else "Chưa có"),
             "THIẾU DỮ LIỆU: " + ("; ".join(info["missing"]) or "Chưa phát hiện thiếu dữ liệu cơ bản"),
             "RỦI RO: " + ("; ".join(info["risks"]) or "Chưa phát hiện từ metadata"),
+            "HỒ SƠ BỘ MÔN KỲ VỌNG: " + ", ".join(agent.get("expected_categories", [])),
+            "ĐIỀU KIỆN CHẤT LƯỢNG: " + "; ".join(agent["quality_gate"]),
             "BÀN GIAO: " + "; ".join(agent["partners"]),
             "YÊU CẦU: kỹ sư kiểm tra nội dung gốc, số liệu và quy chuẩn trước mọi quyết định.",
         ]
