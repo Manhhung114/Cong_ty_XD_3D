@@ -478,7 +478,7 @@ class SharedWorkspace:
         return self._append(identity=identity, project_id=pid, action="document.registered",
                             data={"file_id": fid, "filename": filename, "category": category,
                                   "revision": revision, "code": _clean_text(code, 80) or
-                                  re.sub(r"_R\\d{2,4}$", "", filename.rsplit(".", 1)[0], flags=re.I),
+                                  re.sub(r"_R\d{2,4}$", "", filename.rsplit(".", 1)[0], flags=re.I),
                                   "description": _clean_text(description, 600), "task_id": task_id,
                                   "size_bytes": int(matching.get("size") or 0),
                                   "md5_checksum": str(matching.get("md5Checksum") or "")[:64]},
