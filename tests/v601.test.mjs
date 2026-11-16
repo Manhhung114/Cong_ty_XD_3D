@@ -57,7 +57,7 @@ test('V6.0.1 frontend and Streamlit runtime retain same source',()=>{
  const mirror=fs.readFileSync(new URL('../static/src/core/cloud_workspace.js',import.meta.url),'utf8');
  assert.equal(source,mirror);
  assert.match(source,/data-v601-file/);
- assert.match(source,/escape/);
+ assert.match(source,/const h=value/);
  const backend=fs.readFileSync(new URL('../drive_storage/workspace_ui.py',import.meta.url),'utf8');
  assert.match(backend,/xd_doc_inventory_requested/);
  assert.match(backend,/document_manage/);
