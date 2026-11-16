@@ -36,7 +36,7 @@ EVENT_ID = re.compile(r"^[0-9a-f]{32}$")
 
 
 def _now():
-    return datetime.now(timezone.utc).isoformat(timespec="milliseconds")
+    return datetime.now(timezone.utc).isoformat(timespec="microseconds")
 
 
 def _serial(data):
