@@ -92,7 +92,7 @@ class SharedWorkspace:
                 name = str(row.get("name") or "")
                 if (parent not in row.get("parents", [])
                         or row.get("mimeType") != "application/json"
-                        or not re.fullmatch(r"ev_[0-9a-f]{32}\\.json", name)
+                        or not re.fullmatch(r"ev_[0-9a-f]{32}\.json", name)
                         or int(row.get("size") or 0) > MAX_EVENT_BYTES):
                     raise RuntimeError("Tệp nhật ký dự án không hợp lệ; từ chối tải dữ liệu")
                 items.append(row)
@@ -268,7 +268,7 @@ class SharedWorkspace:
         pid = self._check_project(identity, project_id, True)
         if dept not in DEPARTMENTS:
             raise ValueError("Bộ môn không hợp lệ")
-        if due_date and not re.fullmatch(r"\\d{4}-\\d{2}-\\d{2}", due_date):
+        if due_date and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", due_date):
             raise ValueError("Ngày hạn không hợp lệ")
         return self._append(
             identity=identity, project_id=pid, action="task.created",
@@ -333,7 +333,7 @@ class SharedWorkspace:
                        for t in self.snapshot(identity)["tasks"]):
                 raise PermissionError("Nhiệm vụ đính kèm không thuộc dự án")
         filename = _clean_text(matching["name"], 180, True)
-        match = re.search(r"_R(\\d{2,4})\\.", filename, flags=re.I)
+        match = re.search(r"_R(\d{2,4})\.", filename, flags=re.I)
         revision = "R" + match.group(1) if match else ""
         return self._append(identity=identity, project_id=pid, action="document.registered",
                             data={"file_id": fid, "filename": filename, "category": category,
