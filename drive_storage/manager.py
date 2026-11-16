@@ -241,7 +241,7 @@ class DriveStorage:
         items, token = [], None
         while True:
             response = self.service.files().list(
-                q=q, fields="nextPageToken,files(id,name,size,mimeType,modifiedTime,webViewLink,webContentLink,parents)",
+                q=q, fields="nextPageToken,files(id,name,size,mimeType,createdTime,modifiedTime,md5Checksum,webViewLink,webContentLink,parents,appProperties)",
                 pageSize=100, pageToken=token,
             ).execute()
             items.extend(x for x in response.get("files", []) if parent in x.get("parents", []))
