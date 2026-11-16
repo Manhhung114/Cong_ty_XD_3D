@@ -1,6 +1,72 @@
 {
   "schema": "mepxd-official-discovery-v1",
-  "generatedAt": null,
-  "sources": {},
-  "candidates": []
+  "generatedAt": "2026-11-16T09:34:04.411801+00:00",
+  "sources": {
+    "vbpl_moc": {
+      "status": "unavailable",
+      "reason": "HTTPError"
+    },
+    "government": {
+      "status": "ok",
+      "found": 0
+    },
+    "congbao": {
+      "status": "ok",
+      "found": 3
+    },
+    "moc": {
+      "status": "unavailable",
+      "reason": "SSLError"
+    },
+    "vsqi": {
+      "status": "unavailable",
+      "reason": "SSLError"
+    },
+    "vsqi_xd": {
+      "status": "ok",
+      "found": 0
+    },
+    "national_vbpl_search": {
+      "status": "unavailable",
+      "reason": "ConnectionError"
+    },
+    "bca_legal": {
+      "status": "ok",
+      "found": 0
+    },
+    "mst_standards_regulations": {
+      "status": "ok",
+      "found": 0
+    }
+  },
+  "method": "Unverified official-site links only",
+  "candidates": [
+    {
+      "linhVuc": "Xây dựng – Quản lý dự án",
+      "soHieu": "30/2026/VBHN-TT",
+      "ten": "Văn bản hợp nhất số 30/2026/VBHN-TT-BKHCN Hợp nhất Thông tư Quy định chi tiết và hướng dẫn về lập dự toán, quản lý sử dụng và quyết toán một số nội dung chi ngân sách nhà nước thực hiện nhiệm vụ khoa học, công nghệ và đổi mới sáng tạo",
+      "duongDan": "https://congbao.chinhphu.vn/van-ban/van-ban-hop-nhat-so-30-2026-vbhn-tt-bkhcn-470941.htm",
+      "nguon": "Công báo Chính phủ",
+      "tinhTrang": "Chờ đối chiếu nguồn và hiệu lực",
+      "kiemChung": "Chỉ phát hiện liên kết trên trang nguồn, chưa xác minh hiệu lực"
+    },
+    {
+      "linhVuc": "Xây dựng – Quản lý dự án",
+      "soHieu": "402/2026/NĐ-CP",
+      "ten": "Nghị định số 402/2026/NĐ-CP sửa đổi, bổ sung một số điều của Nghị định số 114/2018/NĐ-CP ngày 04 tháng 9 năm 2018 của Chính phủ về quản lý an toàn đập, hồ chứa nước",
+      "duongDan": "https://congbao.chinhphu.vn/van-ban/nghi-dinh-so-402-2026-nd-cp-470930.htm",
+      "nguon": "Công báo Chính phủ",
+      "tinhTrang": "Chờ đối chiếu nguồn và hiệu lực",
+      "kiemChung": "Chỉ phát hiện liên kết trên trang nguồn, chưa xác minh hiệu lực"
+    },
+    {
+      "linhVuc": "Xây dựng – Quản lý dự án",
+      "soHieu": "401/2026/NĐ-CP",
+      "ten": "Nghị định số 401/2026/NĐ-CP quy định xử phạt vi phạm hành chính trong lĩnh vực công nghiệp công nghệ số",
+      "duongDan": "https://congbao.chinhphu.vn/van-ban/nghi-dinh-so-401-2026-nd-cp-470923.htm",
+      "nguon": "Công báo Chính phủ",
+      "tinhTrang": "Chờ đối chiếu nguồn và hiệu lực",
+      "kiemChung": "Chỉ phát hiện liên kết trên trang nguồn, chưa xác minh hiệu lực"
+    }
+  ]
 }
