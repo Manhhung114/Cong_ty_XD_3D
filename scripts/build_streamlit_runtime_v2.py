@@ -18,7 +18,7 @@ ENTRY = re.compile(r'<script\s+type="module"\s+src="\./src/app\.js"\s*></script>
 ASSET = re.compile(r"(['\"])(\./assets/[^'\"\n]+\.(?:webp|png|jpg|jpeg|svg))\1")
 
 
-def build(static: Path) -> str:
+def build(static: Path, *, role: str = 'member', nonce: str = '') -> str:
     static = Path(static).resolve()
     cache: dict[Path,str] = {}
     order: list[Path] = []
@@ -77,7 +77,60 @@ def build(static: Path) -> str:
     if cn<1:raise ValueError('No CSS inlined')
     # This is necessary because iframe srcdoc uses parent origin and otherwise
     # relative JSON/doc URLs would resolve from / instead of /app/static/.
-    page=page.replace('<head>','<head>\n<base href="/app/static/">',1)
+    if role not in ("admin", "member"):
+        raise ValueError("Invalid server-side role")
+    if nonce and not re.fullmatch(r"[A-Za-z0-9_-]{20,100}", nonce):
+        raise ValueError("Invalid Drive bridge nonce")
+    # Embed only *public* metadata/templates in the authenticated iframe:
+    # static web serving is disabled so the full app is no longer accessible
+    # without Streamlit's top-level st.login guard.
+    resources = {}
+    data_dir = static / "data"
+    if data_dir.is_dir():
+        for file in data_dir.rglob("*"):
+            if file.is_file() and file.suffix.lower() in (".json", ".csv", ".txt"):
+                path = safe(file)
+                key = str(path.relative_to(static)).replace("\\", "/")
+                resources[key] = path.read_text(encoding="utf-8")
+    if sum(map(len, resources.values())) > 2_000_000:
+        raise ValueError("Excessive size of public embedded catalog")
+    resources_json = json.dumps(resources, ensure_ascii=False).replace("<", "\\u003c")
+    role_json = json.dumps(role)
+    nonce_json = json.dumps(nonce)
+    bootstrap = """<script>
+window.__xdAuthRole = """ + role_json + """;
+window.__xdDriveNonce = """ + nonce_json + """;
+const __xdEmbeddedResources = """ + resources_json + """;
+const __xdOriginalFetch = window.fetch.bind(window);
+function __xdResourceKey(raw) {
+  if (typeof raw !== "string" || !raw.startsWith("./data/")) return "";
+  return raw.slice(2);
+}
+window.fetch = function(request, options) {
+  const raw = typeof request === "string" ? request : request?.url;
+  const key = __xdResourceKey(raw);
+  if (Object.prototype.hasOwnProperty.call(__xdEmbeddedResources, key)) {
+    const txt = __xdEmbeddedResources[key];
+    return Promise.resolve(new Response(txt, {status:200,
+      headers:{"content-type":key.endsWith(".json")?"application/json":"text/plain;charset=utf-8"}}));
+  }
+  return __xdOriginalFetch(request, options);
+};
+document.addEventListener("click", function(event) {
+  const a = event.target.closest("a[href^='./data/templates/']");
+  if (!a) return;
+  const key = a.getAttribute("href").slice(2);
+  if (!Object.prototype.hasOwnProperty.call(__xdEmbeddedResources,key)) return;
+  event.preventDefault();
+  const blob = new Blob([__xdEmbeddedResources[key]],{type:"text/csv;charset=utf-8"});
+  const uri=URL.createObjectURL(blob), link=document.createElement("a");
+  link.href=uri; link.download=key.split("/").pop();
+  document.body.appendChild(link); link.click(); link.remove();
+  setTimeout(()=>URL.revokeObjectURL(uri),2000);
+});
+</script>"""
+    page = page.replace("<head>", "<head>\n"+bootstrap, 1)
+
     js=js.replace('</script','<\\/script')
     page,ns=ENTRY.subn(lambda m:'<script>\n'+js+'\n</script>',page)
     if ns!=1:raise ValueError('App ESM entry not found')

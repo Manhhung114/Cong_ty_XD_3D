@@ -1,59 +1,58 @@
-"""Streamlit Community Cloud launcher for XD & MEP AI 3D (V5.7.9).
+"""Private, Google-authenticated Construction & MEP AI 3D Streamlit app.
 
-Render trusted bundled HTML directly in Streamlit's JavaScript-enabled iframe.
-Avoid serving JS modules or data: module imports from the static endpoint.
+Only logged-in, allowlisted users can see the 3D app. The Settings sheet is
+admin-only; uploads/downloads are native dialogs on the existing sheets.
+The Google Drive refresh token never reaches the iframe/browser.
 """
 from pathlib import Path
 
 import streamlit as st
-import streamlit.components.v1 as components
+import streamlit.components.v1 as legacy_components
 
 from scripts.build_streamlit_runtime_v2 import build
-from drive_storage.streamlit_panel import display as render_google_drive_storage
+from drive_storage.in_app import require_login, mount_bridge, drive_dialog
 
 st.set_page_config(
-    page_title="Công ty Xây dựng & MEP AI 3D",
-    page_icon="🏗️",
-    layout="wide",
-    initial_sidebar_state="collapsed",
+    page_title="Công ty Xây dựng & MEP AI 3D", page_icon="🏗️",
+    layout="wide", initial_sidebar_state="collapsed",
 )
+st.markdown("""<style>
+[data-testid="stHeader"],[data-testid="stToolbar"]{display:none}
+[data-testid="stAppViewContainer"]{background:#07131f}
+[data-testid="stMainBlockContainer"]{padding-top:.3rem;padding-bottom:0;max-width:none}
+[data-testid="stVerticalBlock"]{gap:.2rem}
+</style>""", unsafe_allow_html=True)
 
-def render_page() -> str:
-    # Rebuild on every run: Streamlit source-code caching may retain outdated JS after GitHub updates.
-    return build(Path(__file__).resolve().parent / "static")
+# The login gate precedes the iframe, bridge and all Google Drive operations.
+role = require_login(st)
+left, right = st.columns([7, 1], vertical_alignment="center")
+with left:
+    st.caption("XD & MEP AI 3D  ·  " + ("Admin" if role == "admin" else "Nhân viên"))
+with right:
+    if st.button("Đăng xuất", key="logout_from_app", help="Đăng xuất tài khoản Google"):
+        st.logout()
 
-# Google OAuth is handled at the top-level Streamlit page, never in the embedded 3D iframe.
-# This private screen is linked from Cài đặt → Google Drive in the 3D UI.
-if st.query_params.get("drive") == "settings":
-    st.markdown("## Google Drive · Cài đặt kho hồ sơ")
-    st.link_button("← Trở về Văn phòng 3D", "https://congtyxd.streamlit.app/")
-    render_google_drive_storage(st, expanded=True)
-    st.stop()
-
+# Bridge listening for in-sheet actions ("Tải lên" and "Tải xuống").
+action = mount_bridge(st)
+if action:
+    st.session_state.drive_in_app_action = action
 
 try:
-    page = render_page()
-except Exception as exc:
-    st.error("Không thể khởi tạo giao diện 3D. Kiểm tra Manage app → Logs.")
-    st.exception(exc)
+    page = build(
+        Path(__file__).resolve().parent / "static",
+        role=role,
+        nonce=st.session_state.drive_bridge_nonce,
+    )
+except Exception:
+    st.error("Không thể khởi tạo Văn phòng 3D. Xem Manage app → Logs.")
     st.stop()
 
-st.markdown("""
-<style>
-[data-testid="stHeader"], [data-testid="stToolbar"] { display:none; }
-[data-testid="stAppViewContainer"] { background:#07131f; }
-[data-testid="stMainBlockContainer"] { padding-top:0.3rem; padding-bottom:0; max-width:none; }
-[data-testid="stVerticalBlock"] { gap:0.25rem; }
-.streamlit-open { display:block; padding:0.8rem 1rem; margin:0 0 0.25rem; border-radius:0.8rem; text-decoration:none !important; color:#052331 !important; background:linear-gradient(90deg,#66d9ce,#8ddfec); font-weight:700; text-align:center; }
-</style>
-<a class="streamlit-open" href="/?embed=true" target="_blank" rel="noopener noreferrer">
-  Mở giao diện rộng trên điện thoại · Open wide view
-</a>
-""", unsafe_allow_html=True)
-
-# Streamlit 1.63+ supports st.iframe with trusted HTML strings.
-# Older installations can still use the Streamlit component iframe.
 if hasattr(st, "iframe"):
-    st.iframe(page, height=1050, width="stretch")
+    st.iframe(page, height=1100, width="stretch")
 else:
-    components.html(page, height=1050, scrolling=True)
+    legacy_components.html(page, height=1100, scrolling=True)
+
+# Native file controls are shown as a dialog over the selected app sheet,
+# not a separate uploader page.
+if st.session_state.get("drive_in_app_action"):
+    drive_dialog(st)
