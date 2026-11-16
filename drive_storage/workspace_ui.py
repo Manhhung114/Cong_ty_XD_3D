@@ -191,10 +191,12 @@ def workspace_dialog(st):
                 )
                 submitted = st.form_submit_button(
                     "Nhập dữ liệu cũ", type="primary",
-                    disabled=not confirmed or upload is None,
+
                 )
             if submitted:
                 try:
+                    if not confirmed:
+                        raise PermissionError("Cần xác nhận trước khi nhập dữ liệu")
                     if upload is None or not 0 < upload.size <= 1_000_000:
                         raise ValueError("Tệp JSON phải nhỏ hơn 1 MB")
                     raw = json.loads(upload.getvalue().decode("utf8"))
@@ -270,9 +272,11 @@ def workspace_dialog(st):
                 comment = st.text_area("Nhận xét / lý do trả lại", max_chars=2000)
                 confirmed = st.checkbox("Tôi xác nhận quyết định bằng tài khoản Admin hiện tại")
                 submitted = st.form_submit_button("Lưu quyết định", type="primary",
-                                                  disabled=not confirmed)
+)
             if submitted:
                 try:
+                    if not confirmed:
+                        raise PermissionError("Cần xác nhận quyết định phê duyệt")
                     server.review_task(actor, project_id=pid, task_id=task["id"],
                                        decision=decision, comment=comment,
                                        event_id=action["actionId"])
