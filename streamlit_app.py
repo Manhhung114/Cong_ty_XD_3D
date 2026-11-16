@@ -9,6 +9,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 from scripts.build_streamlit_runtime_v2 import build
+from drive_storage.streamlit_panel import display as render_google_drive_storage
 
 st.set_page_config(
     page_title="Công ty Xây dựng & MEP AI 3D",
@@ -20,6 +21,8 @@ st.set_page_config(
 def render_page() -> str:
     # Rebuild on every run: Streamlit source-code caching may retain outdated JS after GitHub updates.
     return build(Path(__file__).resolve().parent / "static")
+
+render_google_drive_storage(st)
 
 try:
     page = render_page()
