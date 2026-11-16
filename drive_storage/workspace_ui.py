@@ -43,7 +43,8 @@ def load_snapshot(st) -> dict:
     actor = identity_for(st)
     if not actor:
         raise PermissionError("Phiên đăng nhập không còn quyền truy cập")
-    snapshot = service_for(st).snapshot(actor)
+    workspace = service_for(st)
+    snapshot = workspace.snapshot(actor)
     requested = str(st.session_state.get("xd_selected_cloud_project", ""))
     valid = {p["id"] for p in snapshot["projects"]}
     selected = requested if requested in valid else (snapshot["projects"][0]["id"] if snapshot["projects"] else "")
@@ -51,7 +52,7 @@ def load_snapshot(st) -> dict:
     snapshot.update({"enabled": True, "selectedProjectId": selected})
     if st.session_state.get("xd_doc_inventory_requested") and selected:
         from drive_storage.document_control import inventory
-        verified = inventory(service_for(st), actor, selected)
+        verified = inventory(workspace, actor, selected, snapshot["documents"])
         snapshot["fileInventory"] = verified["items"]
         snapshot["fileCounts"] = verified["counts"]
     else:
@@ -109,9 +110,10 @@ def handle_workspace_action(st, action: dict):
     if op == "document_manage":
         from drive_storage.document_control import inventory
         wanted = str(action.get("fileId") or "")
-        if wanted and not any(
-            row["id"] == wanted for row in inventory(service_for(st), actor, pid)["items"]
-        ):
+        files = current.get("fileInventory")
+        if files is None:
+            files = inventory(service_for(st), actor, pid)["items"]
+        if wanted and not any(row["id"] == wanted for row in files):
             raise PermissionError("Tệp không nằm trong kho dự án được cấp quyền")
         st.session_state.xd_doc_inventory_requested = True
     if op not in INTERACTIVE:
