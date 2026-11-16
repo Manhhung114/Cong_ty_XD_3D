@@ -106,6 +106,7 @@ const docsHtml=()=>{
    ['THAY ĐỔI FILE',counts.modified||0]].map(([l,v])=>
    '<div class="xd-doc-counter"><small>'+h(l)+'</small><strong>'+h(v)+'</strong></div>'
   ).join('')+'</div>'+
+  ((counts.truncated)?'<div class="info-strip">Bảng hiển thị '+h(counts.displayed)+'/'+h(counts.total)+' tệp đầu tiên để bảo đảm hiệu năng. Chọn Quản lý hồ sơ để tìm và xuất CSV đầy đủ trên máy chủ.</div>':'')+
   '<div class="xd-doc-filters">'+
   '<label>Tìm kiếm<input id="v601DocSearch" type="search" placeholder="Tên file, mã hồ sơ, người ghi sổ…" autocomplete="off"></label>'+
   '<label>Nhóm hồ sơ<select id="v601DocCategory"><option value="all">Tất cả nhóm</option>'+
@@ -120,7 +121,7 @@ const docsHtml=()=>{
   '</div>'+
   '<div class="portal-review-actions xd-doc-toolbar"><label class="xd-doc-check">'+
   '<input type="checkbox" id="v601DocLatest"> Chỉ hiển thị revision mới nhất</label>'+
-  '<button type="button" class="btn outline small" id="v601DocExport">⬇ Xuất danh mục CSV</button>'+
+  '<button type="button" class="btn outline small" id="v601DocExport">⬇ CSV danh sách đang hiển thị</button>'+
   '<span id="v601DocResults" class="mini-label" aria-live="polite"></span></div>'+
   '<div class="xd-doc-table-scroll"><table class="xd-doc-table">'+
   '<thead><tr><th>Mã hồ sơ / Tên file</th><th>Nhóm</th><th>Phiên bản</th>'+
