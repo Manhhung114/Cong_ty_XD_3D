@@ -6,17 +6,17 @@ ROOT = Path(__file__).resolve().parents[1]
 class TestGoogleDriveLoginUI(unittest.TestCase):
     def test_server_route(self):
         text = (ROOT / "streamlit_app.py").read_text(encoding="utf8")
-        self.assertIn('st.query_params.get("drive") == "settings"', text)
-        self.assertIn("render_google_drive_storage(st, expanded=True)", text)
-        self.assertNotIn("\nrender_google_drive_storage(st)\n", text)
+        self.assertIn("require_login(st)",text)
+        self.assertIn("drive_dialog(st)",text)
+        self.assertNotIn("render_google_drive_storage(st)", text)
 
     def test_iframe_settings_link(self):
         one = (ROOT / "src/core/api_settings.js").read_text(encoding="utf8")
         two = (ROOT / "static/src/core/api_settings.js").read_text(encoding="utf8")
         self.assertEqual(one, two)
         self.assertIn('id="driveSettingsCard"', one)
-        self.assertIn("https://congtyxd.streamlit.app/?drive=settings", one)
-        self.assertIn('target="_blank"', one)
+        self.assertIn("Google Drive đã tích hợp", one)
+        self.assertNotIn('href="https://congtyxd.streamlit.app/?drive=settings"', one)
 
     def test_admin_preflight(self):
         panel = (ROOT / "drive_storage/streamlit_panel.py").read_text(encoding="utf8")

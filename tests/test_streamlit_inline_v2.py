@@ -13,7 +13,9 @@ class StreamlitV2Tests(unittest.TestCase):
 
     def test_embedded_script_and_styles(self):
         self.assertIn('<script>\n(function(){',self.html)
-        self.assertIn('<base href="/app/static/">',self.html)
+        self.assertNotIn('<base href="/app/static/">', self.html)
+        self.assertIn("__xdEmbeddedResources",self.html)
+        self.assertIn("window.__xdAuthRole",self.html)
         self.assertGreaterEqual(self.html.count("<style>"),3)
 
     def test_no_module_url_dependencies(self):
@@ -29,9 +31,9 @@ class StreamlitV2Tests(unittest.TestCase):
     def test_launcher_uses_html_instead_of_static_url(self):
         src=(ROOT/"streamlit_app.py").read_text(encoding="utf8")
         self.assertIn('st.iframe(page,',src)
-        self.assertIn('components.html(page,',src)
+        self.assertIn('legacy_components.html(page,',src)
         self.assertNotIn('components.iframe(url',src)
-        self.assertIn('href="/?embed=true"',src)
+        self.assertIn("require_login(st)",src)
 
     def test_public_files_only(self):
         for path in ("src/app.js","src/core/tvpl_sources.js","data/legal/MEP_XD_official_catalog.json"):

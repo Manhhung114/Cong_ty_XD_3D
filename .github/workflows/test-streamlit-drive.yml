@@ -1,0 +1,34 @@
+name: Verify app and Drive auth
+on:
+  push:
+    branches: [main]
+    paths:
+      - "streamlit_app.py"
+      - "drive_storage/**"
+      - "scripts/**"
+      - "src/**"
+      - "static/**"
+      - "tests/**"
+      - "requirements.txt"
+      - ".streamlit/**"
+      - ".github/workflows/test-streamlit-drive.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Python unit tests (no real OAuth token)
+        run: python -m unittest discover -s tests -p 'test_*.py' -v
+      - name: JavaScript regression
+        run: npm test
+      - name: Python compilation
+        run: python -m compileall -q drive_storage scripts streamlit_app.py
