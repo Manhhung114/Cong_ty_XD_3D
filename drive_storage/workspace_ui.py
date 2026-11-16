@@ -17,7 +17,7 @@ COMMANDS = {
     "projects": {"refresh", "select", "project_create", "project_import"},
     "tasks": {"refresh", "select", "task_create", "task_start", "task_submit"},
     "reviews": {"refresh", "select", "task_review"},
-    "documents": {"refresh", "select"},
+    "documents": {"refresh", "select", "document_inventory", "document_manage"},
     "activity": {"refresh", "select"},
 }
 DEPARTMENT_NAMES = {
@@ -28,7 +28,8 @@ DEPARTMENT_NAMES = {
     "xd_planning": "Kế hoạch", "xd_site": "Hiện trường",
     "xd_safety": "An toàn XD", "xd_material": "Vật tư",
 }
-INTERACTIVE = {"project_create", "project_import", "task_create", "task_submit", "task_review"}
+INTERACTIVE = {"project_create", "project_import", "task_create", "task_submit",
+               "task_review", "document_manage"}
 
 
 def service_for(st):
@@ -48,6 +49,14 @@ def load_snapshot(st) -> dict:
     selected = requested if requested in valid else (snapshot["projects"][0]["id"] if snapshot["projects"] else "")
     st.session_state.xd_selected_cloud_project = selected
     snapshot.update({"enabled": True, "selectedProjectId": selected})
+    if st.session_state.get("xd_doc_inventory_requested") and selected:
+        from drive_storage.document_control import inventory
+        verified = inventory(service_for(st), actor, selected)
+        snapshot["fileInventory"] = verified["items"]
+        snapshot["fileCounts"] = verified["counts"]
+    else:
+        snapshot["fileInventory"] = None
+        snapshot["fileCounts"] = {}
     return snapshot
 
 
@@ -65,7 +74,9 @@ def handle_workspace_action(st, action: dict):
     if not actor:
         raise PermissionError("Phiên đăng nhập không hợp lệ")
     st.session_state.xd_current_sheet = section
-    if op == "refresh":
+    if op in {"refresh", "document_inventory"}:
+        if section == "documents":
+            st.session_state.xd_doc_inventory_requested = True
         st.session_state.xd_last_workspace_request = request_id
         return
     current = load_snapshot(st)
@@ -95,11 +106,20 @@ def handle_workspace_action(st, action: dict):
         st.session_state.xd_last_workspace_request = request_id
         st.session_state.xd_workspace_feedback = "Đã bắt đầu công việc, dữ liệu đã lưu lên Drive."
         return
+    if op == "document_manage":
+        from drive_storage.document_control import inventory
+        wanted = str(action.get("fileId") or "")
+        if wanted and not any(
+            row["id"] == wanted for row in inventory(service_for(st), actor, pid)["items"]
+        ):
+            raise PermissionError("Tệp không nằm trong kho dự án được cấp quyền")
+        st.session_state.xd_doc_inventory_requested = True
     if op not in INTERACTIVE:
         raise PermissionError("Lệnh không được phép")
     st.session_state.xd_workspace_dialog = {
         "op": op, "section": section, "projectId": pid,
         "taskId": task_id, "actionId": request_id,
+        "fileId": str(action.get("fileId") or "")[:160],
     }
     st.session_state.xd_last_workspace_request = request_id
 
@@ -107,6 +127,10 @@ def handle_workspace_action(st, action: dict):
 def workspace_dialog(st):
     action = st.session_state.get("xd_workspace_dialog")
     if not isinstance(action, dict) or action.get("op") not in INTERACTIVE:
+        return
+    if action.get("op") == "document_manage":
+        from drive_storage.document_control_ui import document_control_dialog
+        document_control_dialog(st, action)
         return
     titles = {
         "project_create": "V5.9 · Tạo dự án trên máy chủ",
