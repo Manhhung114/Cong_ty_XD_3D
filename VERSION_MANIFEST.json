@@ -1,6 +1,6 @@
 {
   "project": "Công ty Xây dựng & MEP AI 3D",
-  "artifact_version": "0.6.0.1-drive-document-control",
+  "artifact_version": "0.6.3-company-agents",
   "release_date": "2026-11-16",
   "modules": [
     {
@@ -116,6 +116,24 @@
       "area": "Reconciled Drive inventory, per-file document control and approval audit",
       "entry": "drive_storage/document_control.py",
       "status": "implemented_unit_tested_live_streamlit_acceptance_required"
+    },
+    {
+      "label": "V6.1",
+      "area": "18 agents with discipline evidence contracts, optional real server-only LLM and signed drafts",
+      "entry": "drive_storage/company_agents.py",
+      "status": "implemented_provider_configuration_and_live_acceptance_pending"
+    },
+    {
+      "label": "V6.2",
+      "area": "Project-scoped company KPI dashboard, RACI, high-priority work and signed handoff queue",
+      "entry": "src/core/company_suite.js",
+      "status": "implemented_live_multiuser_acceptance_pending"
+    },
+    {
+      "label": "V6.3",
+      "area": "Admin audit integrity report and non-destructive metadata backup",
+      "entry": "drive_storage/company_ui.py",
+      "status": "implemented_disaster_recovery_not_verified"
     }
   ],
   "data_categories": {
@@ -136,7 +154,10 @@
     "standards_updates": "bundled JSON + optional GitHub refresh + manual JSON import",
     "active_mode": "Streamlit Google OIDC + signed Google Drive event metadata; offline Android remains separate",
     "shared_workspaces": "server_side_projects_tasks_approvals_documents",
-    "document_control": "all_project_categories_inventory_revision_status_signed_audit"
+    "document_control": "all_project_categories_inventory_revision_status_signed_audit",
+    "agent_execution": "optional_verified_google_user_triggered_openai_or_gemini_server_only_if_configured",
+    "company_orchestration": "signed_task_handoffs_department_workload_raci",
+    "audit_backup": "admin_only_signed_ledger_metadata_sha256_export"
   },
   "warnings": [
     "No real AI agents connected",
@@ -155,14 +176,18 @@
     "Signed Drive event metadata is limited to 2500 events and lacks SQL transactional concurrency.",
     "V6.0.1 can show 500 files in the inline table; native dialog offers full inventory/CSV to 3000 files per project.",
     "Legacy Drive uploads have unknown individual uploader identity until registered through the authenticated app.",
-    "Live two-account browser acceptance and 500 MB upload testing not completed for V6.0.1."
+    "Live two-account browser acceptance and 500 MB upload testing not completed for V6.0.1.",
+    "Real AI requires explicit [ai] provider/api_key/model in server Secrets; currently no connected provider can be inferred.",
+    "Agent results read only metadata and are drafts requiring engineering review, not verified physical computations, BIM geometry or legal signatures.",
+    "18 agents do not have autonomous background execution; there is no production task queue/notification service.",
+    "V6.3 metadata backup excludes binary Drive files and cannot be restored automatically; PostgreSQL is not deployed."
   ],
   "divisions": {
     "shared": "Ban giám đốc",
     "mep": "Cơ điện",
     "construction": "Xây dựng"
   },
-  "current_version": "V6.0.1 (Streamlit document control)",
+  "current_version": "V6.3 (Agent & Company Operations)",
   "backend": {
     "framework": "FastAPI",
     "database": "PostgreSQL or SQLite local",
@@ -172,7 +197,8 @@
     "active_in_ui": false,
     "available_as_source_for_future": true,
     "streamlit_shared_workspace_active": true,
-    "postgresql_deployed": false
+    "postgresql_deployed": false,
+    "streamlit_optional_real_ai_execution": true
   },
   "latest": null
 }
