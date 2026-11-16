@@ -1,6 +1,6 @@
 {
   "project": "Công ty Xây dựng & MEP AI 3D",
-  "artifact_version": "0.6.3-company-agents",
+  "artifact_version": "0.6.6-expert-evidence-pilot",
   "release_date": "2026-11-16",
   "modules": [
     {
@@ -134,6 +134,24 @@
       "area": "Admin audit integrity report and non-destructive metadata backup",
       "entry": "drive_storage/company_ui.py",
       "status": "implemented_disaster_recovery_not_verified"
+    },
+    {
+      "label": "V6.4",
+      "area": "Read-only registered Drive PDF/XLSX/CSV/DXF/IFC parser with source references and MD5/SHA256",
+      "entry": "drive_storage/expert_tools.py",
+      "status": "implemented_small_files_live_acceptance_pending"
+    },
+    {
+      "label": "V6.5",
+      "area": "BOQ arithmetic and bounded formula checks plus 18 expert rule contracts",
+      "entry": "drive_storage/expert_rules.py",
+      "status": "implemented_not_full_design_or_standards_certification"
+    },
+    {
+      "label": "V6.6",
+      "area": "Signed specialist/DOC/QAC/PM evidence workflow with optional consent-based LLM",
+      "entry": "drive_storage/expert_orchestrator.py",
+      "status": "implemented_human_approval_required"
     }
   ],
   "data_categories": {
@@ -157,7 +175,10 @@
     "document_control": "all_project_categories_inventory_revision_status_signed_audit",
     "agent_execution": "optional_verified_google_user_triggered_openai_or_gemini_server_only_if_configured",
     "company_orchestration": "signed_task_handoffs_department_workload_raci",
-    "audit_backup": "admin_only_signed_ledger_metadata_sha256_export"
+    "audit_backup": "admin_only_signed_ledger_metadata_sha256_export",
+    "engineering_file_reader": "PDF XLSX CSV DXF IFC small registered Drive files up to 8 MiB",
+    "engineering_rules": "BOQ quantity-times-price, 3phase current, ACH, pipe velocity, gravity example",
+    "expert_orchestrator": "user_triggered_specialist_doc_qac_pm_quality_gates"
   },
   "warnings": [
     "No real AI agents connected",
@@ -180,14 +201,18 @@
     "Real AI requires explicit [ai] provider/api_key/model in server Secrets; currently no connected provider can be inferred.",
     "Agent results read only metadata and are drafts requiring engineering review, not verified physical computations, BIM geometry or legal signatures.",
     "18 agents do not have autonomous background execution; there is no production task queue/notification service.",
-    "V6.3 metadata backup excludes binary Drive files and cannot be restored automatically; PostgreSQL is not deployed."
+    "V6.3 metadata backup excludes binary Drive files and cannot be restored automatically; PostgreSQL is not deployed.",
+    "V6.4 DWG/RVT/NWD raw parsing, IFC geometry clash and >8 MB analysis require a separate worker not deployed.",
+    "V6.5 formula checks are preliminary, not certified TCVN/QCVN compliance or full engineering design.",
+    "V6.6 executes deterministic quality gates, not four independently running autonomous AI agents.",
+    "Streamlit parser deployment and real two-account engineering file acceptance are not yet verified."
   ],
   "divisions": {
     "shared": "Ban giám đốc",
     "mep": "Cơ điện",
     "construction": "Xây dựng"
   },
-  "current_version": "V6.3 (Agent & Company Operations)",
+  "current_version": "V6.6 (Evidence-driven specialists)",
   "backend": {
     "framework": "FastAPI",
     "database": "PostgreSQL or SQLite local",

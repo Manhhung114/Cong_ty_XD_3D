@@ -1,3 +1,15 @@
+# V6.4–V6.6 – Chuyên gia kỹ thuật đọc hồ sơ có nguồn & kiểm tra độc lập
+
+18 Agent đã có **chế độ chuyên gia trên hồ sơ thật** trong sheet **Nhân viên AI**. V6.4 dùng Python đọc file PDF, XLSX, CSV, DXF và các phần tử IFC đã ghi sổ trên Google Drive (tối đa 8 MB trong Streamlit); V6.5 tính phép kiểm tra có nguồn cho BOQ, dòng điện 3 pha, trao đổi khí, vận tốc ống và kiểm kê BIM; V6.6 lưu chuỗi kiểm soát **chuyên gia → DOC → QA/QC → PM** với mã tệp, revision và SHA-256.
+
+Đăng nhập bằng Google, chọn dự án và công việc, chọn Agent đúng bộ môn và **Chuyên gia phân tích file thật**. Muốn sử dụng AI model trên trích xuất cần cấu hình `[ai]` trong Streamlit Cloud Secrets và đồng ý chia sẻ mẫu nội dung. Báo cáo là **bản nháp**, không tự phê duyệt hồ sơ hoặc thay thế thẩm tra kỹ sư.
+
+**Giới hạn hiện hữu:** chưa phân tích DWG/RVT nhị phân, chưa chạy clash hình học IFC, chưa đọc toàn bộ hồ sơ lớn hơn 8 MB, chưa tự kiểm định TCVN/QCVN; cần worker, bộ công cụ CAD/BIM có bản quyền phù hợp và bộ quy tắc đã được kỹ sư duyệt. Kho tài liệu vẫn hỗ trợ lưu file tới mức đã cấu hình 500 MB, tách biệt với giới hạn phân tích. Không xóa dữ liệu/phiên bản cũ.
+
+[Hướng dẫn, công thức và checklist nghiệm thu V6.4–V6.6](docs/V64_V66_ENGINEERING_EXPERTS.md).
+
+---
+
 # V6.1–V6.3 — 18 Agent chuyên môn và điều hành toàn công ty
 
 Bản nâng cấp trên Streamlit có hai sheet **Nhân viên AI (V6.1)** và **Điều hành công ty (V6.2–V6.3)**. Danh mục 18 Agent đã được bổ sung nhiệm vụ/chức trách/kỹ năng/nguồn kiểm chứng theo bộ môn; mỗi lần chạy là **được người dùng chủ động kích hoạt** trên công việc được cấp quyền. Kết quả ký và lưu dưới dạng **nháp phải kiểm duyệt**, không tự phê duyệt.

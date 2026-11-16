@@ -28,6 +28,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - name: Install production parser dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements.txt
       - name: Python unit tests (no real OAuth token)
         run: python -m unittest discover -s tests -p 'test_*.py' -v
       - name: JavaScript regression

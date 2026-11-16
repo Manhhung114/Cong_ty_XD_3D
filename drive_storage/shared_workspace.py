@@ -261,7 +261,7 @@ class SharedWorkspace:
                 if (profile["department"] != task["dept"]
                         and agent_id not in {"PM", "CEO", "DOC", "QAC"}):
                     raise ValueError("Agent không thuộc bộ môn nhiệm vụ")
-                if not data.get("reviewRequired") or data.get("mode") not in {"llm", "preflight"}:
+                if not data.get("reviewRequired") or data.get("mode") not in {"llm", "preflight", "expert", "expert_llm"}:
                     raise ValueError("Kết quả Agent không có kiểm duyệt")
                 agent_runs.append({
                     "id": event["id"], "projectId": pid,
@@ -273,6 +273,10 @@ class SharedWorkspace:
                     "result": data["result"], "missing": data.get("missing", []),
                     "risks": data.get("risks", []), "evidence": data.get("evidence", []),
                     "reviewRequired": True,
+                    "workflowStages": data.get("workflowStages", []),
+                    "expertEvidence": data.get("expertEvidence", {}),
+                    "qualityGate": data.get("qualityGate", "human_review_required"),
+                    "standardCheck": data.get("standardCheck", "not_assessed"),
                 })
             elif action == "document.registered":
                 did = data["file_id"]

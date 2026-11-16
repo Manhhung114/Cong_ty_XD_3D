@@ -37,7 +37,7 @@ function agentCards(){
  '<div class="company-notice">'+(configured?
  'Đã kết nối mô hình <strong>'+h(s.aiStatus.provider+' / '+s.aiStatus.model)+'</strong> trên máy chủ. Khi chạy AI, yêu cầu sự đồng ý gửi metadata dự án ra nhà cung cấp.':
  'Chưa cấu hình AI máy chủ. <strong>Kiểm tra checklist đầu vào</strong> vẫn chạy thật; chưa có phân tích từ mô hình AI. Admin cần đặt [ai] trong Streamlit Secrets.')+
- '<br>Kết quả AI chỉ là <strong>bản nháp cần người kiểm chứng</strong>, không tự đọc DWG/IFC/PDF/Excel, tính toán hoặc phê duyệt.</div>'+
+ '<br>V6.4–6.6: đã có bộ đọc mẫu PDF/XLSX/CSV/DXF/IFC và kiểm tra BOQ/công thức có nguồn; <strong>DWG/RVT, IFC clash hình học và file trên 8 MB vẫn cần worker</strong>. Mọi báo cáo cần kỹ sư thẩm tra.</div>'+
  '<div class="company-agent-grid">'+profiles.map(a=>{
  const isCoordinator=['CEO','PM','DOC','QAC'].includes(a.id);
  const compatible=tasks.filter(t=>t.dept===a.department||isCoordinator);
@@ -48,6 +48,9 @@ function agentCards(){
  '<span class="company-state">'+(l?(l.mode==='llm'?'Đã chạy AI':'Đã kiểm tra checklist'):'Chưa chạy')+'</span></div>'+
  '<p><b>Nhiệm vụ:</b> '+h(a.mission)+'</p><p><b>Đầu ra:</b> '+h(a.output)+'</p>'+
  '<div class="company-skills"><b>Kỹ năng:</b> '+a.skills.map(x=>'<span>'+h(x)+'</span>').join('')+'</div>'+
+ '<p class="company-secondary"><b>Hồ sơ cần:</b> '+h((a.expected_categories||[]).join(', ')||'Theo dự án')+'</p>'+
+ '<p class="company-secondary"><b>Công cụ chuyên gia:</b> '+
+   h((a.expert_tools||[]).join(' · ')||'Theo nhiệm vụ')+'</p>'+
  '<p class="company-secondary"><b>Phối hợp:</b> '+a.partners.map(h).join(' • ')+'</p>'+
  '<details><summary>Giới hạn chuyên môn & kiểm tra chất lượng</summary>'+
  '<p>'+h(a.prohibition)+'</p><ul>'+a.quality_gate.map(x=>'<li>'+h(x)+'</li>').join('')+'</ul></details>'+
@@ -58,7 +61,12 @@ function agentCards(){
  '<div class="company-secondary">Chưa có công việc phù hợp. Vào Công việc để giao nhiệm vụ.</div><button class="btn outline small" data-go="tasks">Giao công việc</button>')+
  '</div>':'<p class="company-secondary">Quyền Chỉ đọc: chỉ xem kết quả đã lưu.</p>')+
  (l?'<details><summary>Kết quả gần nhất · '+h(l.at.slice(0,16))+'</summary>'+
- '<p><b>Loại:</b> '+h(l.mode==='llm'?'Phân tích AI':'Kiểm tra quy tắc')+' · '+h(l.actor)+'</p>'+
+ '<p><b>Loại:</b> '+h(
+   l.mode==='expert_llm'?'AI phân tích từ file':
+   l.mode==='expert'?'Chuyên gia kiểm tra file thật':
+   l.mode==='llm'?'AI metadata':'Checklist')+' · '+h(l.actor)+'</p>'+
+ (l.expertEvidence?.provenance?'<p><b>File:</b> '+h(l.expertEvidence.provenance.filename)+
+  ' · SHA256 '+h(l.expertEvidence.provenance.sha256.slice(0,12))+'…</p>':'')+
  '<pre class="company-result">'+h(l.result)+'</pre><p>Yêu cầu kỹ sư kiểm chứng trước khi sử dụng.</p></details>':'')+
  '</article>';
  }).join('')+'</div></section>';
@@ -70,9 +78,17 @@ function runHistory(){
  '<span class="mini-label">'+runs.length+' KẾT QUẢ GẦN ĐÂY</span></div>'+
  (!runs.length?'<p>Chưa có Agent nào tạo báo cáo nháp cho dự án này.</p>':
  runs.map(r=>'<details class="company-run"><summary>'+
- h((lookupAgent(r.agentId)?.title||r.agentId)+' · '+(r.mode==='llm'?'AI thực':'Checklist')+
+ h((lookupAgent(r.agentId)?.title||r.agentId)+' · '+(
+   r.mode==='expert_llm'?'AI + file thật':
+   r.mode==='expert'?'Chuyên gia tệp thật':
+   r.mode==='llm'?'AI metadata':'Checklist')+
  ' · '+r.at.slice(0,16))+'</summary><p>'+h(r.actor)+' · '+h(r.taskId)+'</p>'+
- '<pre class="company-result">'+h(r.result)+'</pre><p class="company-secondary">'+
+ '<pre class="company-result">'+h(r.result)+'</pre>'+
+ (r.workflowStages?.length?'<ul>'+r.workflowStages.map(st=>'<li>'+
+   h(st.expert)+' → '+h(st.status)+' · '+h(st.detail)+'</li>').join('')+'</ul>':'')+
+ (r.expertEvidence?.provenance?'<p class="company-secondary">Nguồn: '+
+   h(r.expertEvidence.provenance.filename)+' · '+h(r.expertEvidence.provenance.sha256.slice(0,16))+'…</p>':'')+
+ '<p class="company-secondary">'+
  'Chưa phải tài liệu đã được phê duyệt. Kỹ sư phải xác nhận bằng chứng, số liệu và tiêu chuẩn.</p></details>').join(''))+
  '</section>';
 }
@@ -132,7 +148,7 @@ function companyDashboard(){
  '</section>'+
  '<section class="panel padded company-suite"><h3>V6.3 · Kiểm soát vận hành</h3>'+
  '<p>Mỗi lần tạo công việc, trình duyệt, chạy Agent hoặc bàn giao đều lưu email và thời gian theo nhật ký đã ký HMAC. Admin có thể kiểm tra và xuất bản sao dữ liệu, không xuất token hay file nhị phân.</p>'+
- '<p class="company-secondary">Chưa có PostgreSQL sản xuất, không có hàng đợi Agent chạy nền, không có ký số pháp lý, không có khả năng xem hình học IFC ngay trong app. File BIM được quản lý theo metadata và revision, muốn kiểm tra hình học cần engine IFC riêng.</p></section>';
+ '<p class="company-secondary">V6.4–6.6: chuyên gia đã có bộ đọc mẫu PDF/Excel/DXF/IFC và một số công thức kiểm tra có nguồn. Chưa có PostgreSQL sản xuất, worker CAD/BIM cho DWG/RVT hoặc IFC clash hình học, tính toán thiết kế đầy đủ hay ký số pháp lý. Bộ điều phối gồm các cổng kiểm soát, không phải hệ thống tự phê duyệt.</p></section>';
 }
 export function renderCompanySuite(section){
  if(!state().enabled)return '';

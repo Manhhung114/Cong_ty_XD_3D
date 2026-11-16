@@ -14,6 +14,8 @@ from drive_storage.company_agents import (
     export_integrity_report,
 )
 from drive_storage.workspace_ui import service_for, DEPARTMENT_NAMES
+from drive_storage.expert_orchestrator import run_expert
+from drive_storage.expert_tools import SUPPORTED, NOT_SUPPORTED
 
 OPS = {"agent_run", "handoff_create", "handoff_resolve", "ops_audit"}
 
@@ -89,28 +91,53 @@ def company_dialog(st, action):
             st.caption("Nhiệm vụ: " + task["title"] + " · Bộ môn: " +
                        DEPARTMENT_NAMES.get(task["dept"], task["dept"]))
             st.write("Đầu ra dự kiến: " + profile["output"])
-            st.warning(
-                "Agent chỉ đọc metadata công việc và hồ sơ đã ghi sổ; KHÔNG đọc "
-                "hình học DWG/IFC, thông số trong PDF/Excel hay tự kiểm định tiêu chuẩn. "
-                "Kết quả là nháp, kỹ sư phải kiểm chứng và quyết định."
+            st.info(
+                "V6.4 đọc có giới hạn các file PDF, Excel (.xlsx), CSV, DXF và "
+                "phần tử IFC đã ghi sổ trên Drive (tối đa 8 MB). "
+                "V6.5 kiểm tra công thức với nguồn đối chiếu; V6.6 tổ chức "
+                "chuyên gia → DOC → QA/QC → PM. DWG/RVT, IFC geometry clash "
+                "và file lớn vẫn cần bộ chuyển đổi/worker riêng. "
+                "Kết quả không thay thế nghiệm thu và chữ ký kỹ sư."
             )
             configured = ai_status(st)
+            from pathlib import PurePath
+            allowed_categories = set(profile.get("expected_categories", []))
+            file_docs = [
+                d for d in state["documents"]
+                if d["projectId"] == pid
+                and (d["category"] in allowed_categories
+                     or agent_id in {"CEO", "PM", "DOC", "QAC"})
+                and PurePath(d["filename"]).suffix.lower() in SUPPORTED
+                and d.get("status") not in {"archived"}
+            ]
             with st.form("v61_agent_run_form"):
-                choices = ["preflight"] + (["llm"] if configured["configured"] else [])
+                choices = ["preflight", "expert"]
+                if configured["configured"]:
+                    choices += ["llm", "expert_llm"]
                 mode = st.radio(
                     "Cách thực hiện", choices, horizontal=True,
-                    format_func=lambda x: "Kiểm tra checklist (không AI)" if x == "preflight"
-                    else f'Chạy AI thực · {configured["provider"]}/{configured["model"]}',
+                    format_func=lambda x: {
+                        "preflight": "Checklist hồ sơ",
+                        "expert": "Chuyên gia phân tích file thật",
+                        "llm": f'AI metadata · {configured["provider"]}',
+                        "expert_llm": f'AI + trích xuất file · {configured["provider"]}',
+                    }[x],
+                )
+                selected = st.selectbox(
+                    "File kỹ thuật đã ghi sổ (áp dụng khi chọn Chuyên gia)",
+                    [None, *file_docs],
+                    format_func=lambda d: "— Chưa chọn file —" if d is None else
+                        d["code"] + " · " + d.get("revision", "") + " · " + d["filename"],
                 )
                 note = st.text_area("Yêu cầu bổ sung cho Agent (tùy chọn)",
-                                    max_chars=1200, height=110)
+                                    max_chars=700, height=110)
                 consent = st.checkbox(
-                    "Tôi đồng ý gửi metadata công việc/dự án/hồ sơ cho nhà cung cấp AI "
-                    "(nếu chọn chạy AI). Không gửi file nhị phân.",
+                    "Nếu chạy AI: tôi đồng ý gửi metadata hoặc trích xuất MẪU "
+                    "từ file kỹ thuật đến nhà cung cấp AI. Không gửi tệp nhị phân.",
                     value=False,
                 )
                 submit = st.form_submit_button(
-                    "Chạy kiểm tra và lưu báo cáo nháp", type="primary"
+                    "Chạy chuyên gia và lưu báo cáo nháp", type="primary"
                 )
             if not configured["configured"]:
                 st.caption("Chưa kích hoạt nhà cung cấp AI trên máy chủ. "
@@ -118,19 +145,28 @@ def company_dialog(st, action):
                            "Checklist vẫn hoạt động độc lập.")
             if submit:
                 try:
-                    if mode == "llm" and not consent:
-                        raise PermissionError("Chưa xác nhận truyền dữ liệu qua nhà cung cấp AI")
-                    # One unique event ID per opened dialog; duplicate submissions
-                    # never create a second signed report.
-                    result = run_agent(
-                        server, identity, project_id=pid,
-                        task_id=task_id, agent_id=agent_id,
-                        mode=mode, note=note, consent=consent,
-                        ai_config=dict(st.secrets.get("ai", {})),
-                        event_id=action["actionId"],
-                    )
-                    done("Đã lưu kết quả nháp của Agent vào lịch sử dự án. "
-                         "Cần kỹ sư kiểm tra trước khi sử dụng.")
+                    if mode in {"llm", "expert_llm"} and not consent:
+                        raise PermissionError("Chưa xác nhận truyền dữ liệu đến nhà cung cấp AI")
+                    if mode in {"expert", "expert_llm"}:
+                        if selected is None:
+                            raise ValueError("Cần chọn file đã ghi sổ để phân tích kỹ thuật")
+                        result = run_expert(
+                            server, identity, project_id=pid, task_id=task_id,
+                            agent_id=agent_id, file_id=selected["id"], mode=mode,
+                            note=note, consent=consent,
+                            ai_config=dict(st.secrets.get("ai", {})),
+                            event_id=action["actionId"],
+                        )
+                    else:
+                        result = run_agent(
+                            server, identity, project_id=pid,
+                            task_id=task_id, agent_id=agent_id,
+                            mode=mode, note=note, consent=consent,
+                            ai_config=dict(st.secrets.get("ai", {})),
+                            event_id=action["actionId"],
+                        )
+                    done("Đã lưu báo cáo chuyên gia kèm bằng chứng và luồng QA. "
+                         "Kỹ sư vẫn phải thẩm tra trước khi phê duyệt.")
                 except (PermissionError, ValueError, RuntimeError) as exc:
                     st.error(str(exc))
                 except Exception:
