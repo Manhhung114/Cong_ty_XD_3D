@@ -7,7 +7,7 @@ import {exportJson} from './core/export.js';
 import {Office3D} from './3d/scene.js';
 import {IllustratedOffice} from './3d/illustrated.js';
 import {LocalProjectPortal} from './local_portal.js';
-import {renderCloudPage,bindCloudPage} from './core/cloud_workspace.js';
+import {renderCloudPage,bindCloudPage,requestDocumentInventory} from './core/cloud_workspace.js';
 import {APISettings} from './core/api_settings.js';
 import {getLanguage,setLanguage,translateText,translateDom} from './core/i18n.js';
 import {STANDARDS_FILE,STANDARDS_REMOTE,STANDARDS_TEMPLATE,getStandardsCache,validateStandards,mergeStandards,saveManualStandards,checkRemoteStandards,clearImportedStandards} from './core/standards.js';
@@ -175,7 +175,9 @@ function switchTab(next){
  if(next==='construction'){next='overview';state.officeView='construction';persistState(state);}
  if(!pageContent[next] || (next==='settings'&&window.__xdAuthRole!=='admin'))return;
  // Preserve selected division when switching between Office and AI staff.
- tab=next;document.querySelector('.sidebar').classList.remove('opened');render();window.scrollTo({top:0,behavior:'instant'});}
+ tab=next;document.querySelector('.sidebar').classList.remove('opened');render();
+ if(next==='documents'&&window.__xdCloud?.enabled)requestDocumentInventory();
+ window.scrollTo({top:0,behavior:'instant'});}
 function render(){office?.destroy();office=null;const nav=visibleNav().find(n=>n.id===tab)||visibleNav()[0];document.querySelectorAll('[data-dock]').forEach(b=>{const selected=b.dataset.dock===tab;b.classList.toggle('active',selected);b.setAttribute('aria-current',selected?'page':'false');});$('nav').innerHTML=visibleNav().map(n=>`<button class="nav-item ${n.id===tab?'active':''}" data-nav="${n.id}"><span class="nav-icon">${n.icon}</span><span>${n.name}</span></button>`).join('');document.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>switchTab(b.dataset.nav));$('crumb').textContent=nav.name;$('pageTitle').textContent=tab==='overview'?'Công ty Xây dựng & MEP 3D':nav.name;$('pageSubtitle').textContent=subtitles[tab];const showMetrics=['overview','tasks','reviews'].includes(tab);$('metrics').hidden=!showMetrics;if(showMetrics)metricCards();else $('metrics').innerHTML='';const projectPill=document.querySelector('.project-pill');if(projectPill){const compact=window.matchMedia?.('(max-width:750px)')?.matches;const cp=window.__xdCloud?.enabled?(window.__xdCloud.projects||[]).find(p=>p.id===window.__xdCloud.selectedProjectId):portal.currentProject;
  projectPill.textContent=cp?(compact?'● '+cp.code:'● '+cp.code+' · '+cp.name):(window.__xdCloud?.enabled?'● ☁ CHƯA CÓ DỰ ÁN':(compact?'● CỤC BỘ':'● LƯU CỤC BỘ · CHƯA CÓ DỰ ÁN'));}let pageRendered=true;try{$('body').innerHTML=driveToolbar(tab)+pageContent[tab]();}catch(err){console.error('Unable to render '+tab,err);if(tab==='legal'){try{$('body').innerHTML=legalRecoveryPage(err);pageRendered=true;}catch(recoveryError){pageRendered=false;console.error('Legal recovery error',recoveryError);}}else pageRendered=false;if(!pageRendered)$('body').innerHTML='<section class="panel padded"><h3>Không tải được nội dung trang</h3><p>Vui lòng thử mở lại hoặc tải mới trang.</p><button id="retryPage" class="btn primary" type="button">Thử lại</button></section>';}bindGlobal();if(pageRendered)bindPage();else $('retryPage').onclick=()=>render();translateDom(document.getElementById('app'),language);document.title=language==='en'?'Construction & MEP AI 3D | Command Center':'Công ty XD & MEP AI 3D | Văn phòng số';document.documentElement.lang=language;}
 function refresh(){render();}
