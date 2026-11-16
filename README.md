@@ -1,3 +1,16 @@
+# V6.1–V6.3 — 18 Agent chuyên môn và điều hành toàn công ty
+
+Bản nâng cấp trên Streamlit có hai sheet **Nhân viên AI (V6.1)** và **Điều hành công ty (V6.2–V6.3)**. Danh mục 18 Agent đã được bổ sung nhiệm vụ/chức trách/kỹ năng/nguồn kiểm chứng theo bộ môn; mỗi lần chạy là **được người dùng chủ động kích hoạt** trên công việc được cấp quyền. Kết quả ký và lưu dưới dạng **nháp phải kiểm duyệt**, không tự phê duyệt.
+
+- **V6.1:** kiểm tra checklist công việc/hồ sơ (không AI) hoạt động ngay cả khi không có API key; tùy chọn chạy OpenAI hoặc Gemini thật **chỉ qua máy chủ** với người dùng xác nhận gửi metadata dự án. Không gửi file gốc hoặc khóa API xuống trình duyệt.
+- **V6.2:** KPI danh mục dự án theo quyền Google, cảnh báo quá hạn/chưa giao/chờ duyệt, công việc ưu tiên cao, thống kê phòng ban, RACI và phiếu phối hợp liên ngành có lịch sử.
+- **V6.3:** Admin kiểm tra chữ ký nhật ký, xuất bản sao metadata/đầu ra Agent/luồng bàn giao có SHA-256; không cung cấp tính năng khôi phục phá hủy, không thay đổi tệp Drive cũ.
+- **Giới hạn:** PostgreSQL production và engine hình học IFC chưa triển khai; Agent không tự tính toán kỹ thuật hoặc đọc bản vẽ DWG/RVT/IFC, còn cần kiểm chứng nguồn và ký duyệt của kỹ sư. Không có tác vụ nền hay thông báo tự động. Việc chạy AI thật yêu cầu cấu hình `[ai]` trong Streamlit Secrets và thử nghiệm provider.
+
+Chi tiết và checklist nghiệm thu: [docs/V61_V63_COMPANY_AGENTS.md](docs/V61_V63_COMPANY_AGENTS.md). Hệ thống Kho tài liệu V6.0.1 và Google Drive OAuth giữ nguyên.
+
+---
+
 # V6.0.1 — Kho tài liệu có kiểm kê và theo dõi hồ sơ Google Drive
 
 **Cập nhật trực tiếp trong sheet Kho tài liệu:** quét toàn bộ 18 nhóm hồ sơ trong dự án được cấp quyền, đối chiếu với sổ tài liệu có chữ ký máy chủ. Bảng quản lý có mã hồ sơ, tên file, nhóm, revision R01/R02, ngày tải, người ghi sổ, dung lượng, trạng thái, tìm kiếm/lọc và CSV. File Drive chưa ghi sổ hiện **Chưa lập sổ**; nếu bị chuyển/xóa hiện **Không tìm thấy**.
