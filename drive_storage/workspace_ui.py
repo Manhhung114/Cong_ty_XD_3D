@@ -175,6 +175,45 @@ def workspace_dialog(st):
                 except Exception:
                     st.error("Không thể tạo dự án. Kiểm tra dữ liệu, mã trùng và quyền Drive.")
 
+        elif op == "project_import":
+            st.info(
+                "Chỉ Admin được nhập metadata dự án/công việc cũ. Không xóa dữ liệu "
+                "trên thiết bị hoặc tệp IndexedDB. Lịch sử duyệt cũ được giữ làm "
+                "thông tin tham khảo, không chuyển thành quyết định xác thực."
+            )
+            with st.form("v59_legacy_import"):
+                upload = st.file_uploader(
+                    "Tệp JSON từ nút Sao lưu dữ liệu cũ",
+                    type=["json"], max_upload_size=2,
+                )
+                confirmed = st.checkbox(
+                    "Tôi đã kiểm tra bản sao và đồng ý nhập vào dữ liệu dùng chung"
+                )
+                submitted = st.form_submit_button(
+                    "Nhập dữ liệu cũ", type="primary",
+                    disabled=not confirmed or upload is None,
+                )
+            if submitted:
+                try:
+                    if upload is None or not 0 < upload.size <= 1_000_000:
+                        raise ValueError("Tệp JSON phải nhỏ hơn 1 MB")
+                    raw = json.loads(upload.getvalue().decode("utf8"))
+                    result = server.import_legacy_workspace(actor, raw)
+                    st.session_state.xd_workspace_dialog = None
+                    st.session_state.xd_workspace_feedback = (
+                        f"Đã liên kết {result['projects']} dự án, "
+                        f"nhập mới {result['newTasks']} công việc. "
+                        "Bản sao cũ vẫn được giữ."
+                    )
+                    st.rerun()
+                except (ValueError, PermissionError) as exc:
+                    st.error(str(exc))
+                except Exception:
+                    st.error(
+                        "Nhập chưa hoàn tất. Dữ liệu đã lưu vẫn còn trên Drive; "
+                        "có thể nhập lại mà không tạo công việc trùng."
+                    )
+
         elif op == "task_create":
             with st.form("cloud_task_create"):
                 st.caption("Dự án: " + project["code"] + " · " + project["name"])
