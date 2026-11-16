@@ -32,6 +32,7 @@ ACTIONS = {
     "task.submitted", "task.approved", "task.returned", "document.registered",
     "document.metadata_updated", "document.submitted", "document.approved",
     "document.returned", "document.archived",
+    "agent.completed", "handoff.requested", "handoff.resolved",
 }
 ID = re.compile(r"^[A-Za-z0-9_-]{12,160}$")
 EVENT_ID = re.compile(r"^[0-9a-f]{32}$")
@@ -180,7 +181,7 @@ class SharedWorkspace:
             raise PermissionError("Chưa được cấp quyền")
         projects = self._projects(identity)
         allowed = {p["id"] for p in projects}
-        task_map, documents, audit = {}, {}, []
+        task_map, documents, audit, handoff_map, agent_runs = {}, {}, [], {}, []
         for event in self.events():
             pid = event["project_id"]
             if pid not in allowed:
@@ -221,6 +222,57 @@ class SharedWorkspace:
                     task["reviewHistory"].append({"at": event["at"], "actor": event["actor"],
                                                   "decision": "approve" if action == "task.approved" else "reject",
                                                   "note": data.get("comment", "")})
+            elif action == "handoff.requested":
+                task_id = data.get("task_id")
+                task = task_map.get(task_id)
+                if task is None or task["projectId"] != pid:
+                    raise ValueError("Luồng phối hợp tham chiếu nhiệm vụ không thuộc dự án")
+                from drive_storage.company_agents import agents
+                target = data.get("target_dept")
+                if (target not in {p["department"] for p in agents().values()}
+                        or target == task["dept"]):
+                    raise ValueError("Phòng nhận phối hợp không hợp lệ")
+                handoff_map[event["id"]] = {
+                    "id": event["id"], "projectId": pid, "taskId": task_id,
+                    "title": task["title"], "sourceDept": task["dept"],
+                    "targetDept": target, "status": "open",
+                    "reason": data["reason"], "response": "",
+                    "actor": event["actor"], "createdAt": event["at"],
+                    "resolvedBy": "", "resolvedAt": "",
+                }
+            elif action == "handoff.resolved":
+                handoff = handoff_map.get(data.get("handoff_id"))
+                if handoff is None or handoff["projectId"] != pid:
+                    raise ValueError("Luồng phối hợp không tồn tại")
+                if handoff["status"] != "open":
+                    raise ValueError("Luồng phối hợp đã được đóng")
+                handoff.update({
+                    "status": "resolved", "response": data["response"],
+                    "resolvedAt": event["at"], "resolvedBy": event["actor"],
+                })
+            elif action == "agent.completed":
+                from drive_storage.company_agents import agents
+                task_id, agent_id = data.get("task_id"), data.get("agent_id")
+                task = task_map.get(task_id)
+                profile = agents().get(agent_id)
+                if not task or task["projectId"] != pid or not profile:
+                    raise ValueError("Báo cáo Agent không gắn với công việc hoặc Agent hợp lệ")
+                if (profile["department"] != task["dept"]
+                        and agent_id not in {"PM", "CEO", "DOC", "QAC"}):
+                    raise ValueError("Agent không thuộc bộ môn nhiệm vụ")
+                if not data.get("reviewRequired") or data.get("mode") not in {"llm", "preflight"}:
+                    raise ValueError("Kết quả Agent không có kiểm duyệt")
+                agent_runs.append({
+                    "id": event["id"], "projectId": pid,
+                    "taskId": task_id, "agentId": agent_id,
+                    "agentTitle": profile["title"],
+                    "actor": event["actor"], "at": event["at"],
+                    "mode": data["mode"], "provider": data.get("provider", "none"),
+                    "model": data.get("model", ""),
+                    "result": data["result"], "missing": data.get("missing", []),
+                    "risks": data.get("risks", []), "evidence": data.get("evidence", []),
+                    "reviewRequired": True,
+                })
             elif action == "document.registered":
                 did = data["file_id"]
                 history_entry = {
@@ -288,8 +340,10 @@ class SharedWorkspace:
                 })
             audit.append({**entry, "detail": _clean_text(data.get("title", data.get("code", "")), 160)})
         tasks = sorted(task_map.values(), key=lambda x: x["createdAt"], reverse=True)
-        return {"version": 59, "projects": projects, "tasks": tasks,
+        return {"version": 63, "projects": projects, "tasks": tasks,
                 "documents": list(documents.values()), "events": audit[-200:],
+                "handoffs": sorted(handoff_map.values(), key=lambda h: h["createdAt"], reverse=True),
+                "agentRuns": sorted(agent_runs, key=lambda r: r["at"], reverse=True)[:200],
                 "role": identity["role"], "actor": identity["email"]}
 
     def _check_project(self, identity, project_id, write=False):
