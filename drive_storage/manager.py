@@ -244,7 +244,7 @@ class DriveStorage:
                 q=q, fields="nextPageToken,files(id,name,size,mimeType,modifiedTime,webViewLink,webContentLink,parents)",
                 pageSize=100, pageToken=token,
             ).execute()
-            items.extend(x for x in response.get("files", []) if parent in x.get("parents", [parent]))
+            items.extend(x for x in response.get("files", []) if parent in x.get("parents", []))
             token = response.get("nextPageToken")
             if not token:
                 return sorted(items, key=lambda f: f.get("modifiedTime", ""), reverse=True)

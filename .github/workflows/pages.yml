@@ -1,4 +1,4 @@
-name: Publish Web 3D (Pages)
+name: Publish login-only landing page (Pages)
 
 on:
   push:
@@ -37,20 +37,19 @@ jobs:
           node-version: '22'
       - name: Verify web application
         run: node --test tests/*.test.mjs
-      - name: Stage public, static-only files
+      - name: Stage public login-only landing page
         run: |
-          mkdir -p _public/data
-          cp index.html _public/index.html
-          cp -r src assets _public/
-          cp -r data/legal data/templates _public/data/
-          test -f _public/index.html
-          test -f _public/src/app.js
-          test -f _public/data/legal/MEP_XD_official_catalog.json
-          test -f _public/data/legal/MEP_XD_tvpl_candidates.json
-          test ! -d _public/backend
-          test ! -f _public/.env
-      # The owner must first enable Settings > Pages > Source: GitHub Actions.
-      # Do not auto-create a Pages site with GITHUB_TOKEN (permission denied).
+          mkdir -p _public
+          cat > _public/index.html <<'HTML'
+          <!doctype html>
+          <html lang="vi"><head><meta charset="utf-8">
+          <meta name="robots" content="noindex,nofollow">
+          <meta http-equiv="refresh" content="0;url=https://congtyxd.streamlit.app/">
+          <title>Công ty XD &amp; MEP AI 3D · Đăng nhập</title></head>
+          <body><p><a href="https://congtyxd.streamlit.app/">Đăng nhập qua Streamlit</a></p></body></html>
+          HTML
+          test ! -d _public/src
+          test ! -d _public/data
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
       - name: Upload static website

@@ -36,12 +36,16 @@ with right:
 action = mount_bridge(st)
 if action:
     st.session_state.drive_in_app_action = action
+    st.session_state.xd_current_sheet = action['section']
 
 try:
     page = build(
         Path(__file__).resolve().parent / "static",
         role=role,
         nonce=st.session_state.drive_bridge_nonce,
+        initial_section=st.session_state.get('xd_current_sheet', 'overview'),
+        account_email=str(st.user.get('email', '')) if role == 'admin' else '',
+        drive_configured=all(bool(st.secrets.get('drive', {}).get(k)) for k in ('root_folder_id','refresh_token','client_id','client_secret')),
     )
 except Exception:
     st.error("Không thể khởi tạo Văn phòng 3D. Xem Manage app → Logs.")
