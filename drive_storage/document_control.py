@@ -57,45 +57,55 @@ def inventory(workspace, identity, project_id: str, registered_documents=None) -
         if d["projectId"] == pid
     }
     items, found_ids = [], set()
-    for category in FOLDER_CATEGORIES:
-        for row in workspace.storage.list_category_files(project_id=pid, category=category):
-            fid = _require_id(row.get("id"), "Tệp Drive")
-            if fid in found_ids:
-                raise RuntimeError("Một tệp nằm trong nhiều nhóm hồ sơ; cần kiểm tra Drive")
-            found_ids.add(fid)
-            doc = registered.get(fid, {})
-            name = _clean_text(row.get("name"), 180, True)
-            mtype = str(row.get("mimeType") or "")
-            size = int(row.get("size") or 0)
-            md5 = str(row.get("md5Checksum") or "")
-            stored_md5 = str(doc.get("md5Checksum") or "")
-            recorded_size = int(doc.get("sizeBytes") or 0)
-            changed = bool(
-                (stored_md5 and md5 and stored_md5.lower() != md5.lower())
-                or (recorded_size and recorded_size != size)
-            )
-            items.append({
-                "id": fid, "projectId": pid,
-                "code": str(doc.get("code") or base_code(name)),
-                "filename": name, "category": category,
-                "revision": str(doc.get("revision") or revision(name, row.get("appProperties"))),
-                "status": str(doc.get("status") or "unregistered"),
-                "registered": bool(doc), "missing": False,
-                "sizeBytes": size, "mimeType": mtype,
-                "createdTime": str(row.get("createdTime") or ""),
-                "modifiedTime": str(row.get("modifiedTime") or ""),
-                "md5Checksum": md5,
-                "integrityWarning": changed,
-                "webViewLink": allowed_drive_link(row.get("webViewLink")),
-                "actor": str(doc.get("actor") or ""),
-                "registeredAt": str(doc.get("registeredAt") or ""),
-                "updatedAt": str(doc.get("updatedAt") or ""),
-                "description": str(doc.get("description") or ""),
-                "taskId": str(doc.get("taskId") or ""),
-                "history": doc.get("history", []),
-            })
-            if len(items) > MAX_INVENTORY:
-                raise RuntimeError("Kho có hơn 3.000 tệp; cần phân trang/đưa sang backend SQL")
+    # Prefer the cached one-pass Drive folder traversal; fake/legacy
+    # storage implementations may still expose only per-category listing.
+    if hasattr(workspace.storage, "list_project_files"):
+        project_files = workspace.storage.list_project_files(project_id=pid)
+    else:
+        project_files = [
+            {**row, "category": category}
+            for category in FOLDER_CATEGORIES
+            for row in workspace.storage.list_category_files(project_id=pid, category=category)
+        ]
+    for row in project_files:
+        category = row["category"]
+        fid = _require_id(row.get("id"), "Tệp Drive")
+        if fid in found_ids:
+            raise RuntimeError("Một tệp nằm trong nhiều nhóm hồ sơ; cần kiểm tra Drive")
+        found_ids.add(fid)
+        doc = registered.get(fid, {})
+        name = _clean_text(row.get("name"), 180, True)
+        mtype = str(row.get("mimeType") or "")
+        size = int(row.get("size") or 0)
+        md5 = str(row.get("md5Checksum") or "")
+        stored_md5 = str(doc.get("md5Checksum") or "")
+        recorded_size = int(doc.get("sizeBytes") or 0)
+        changed = bool(
+            (stored_md5 and md5 and stored_md5.lower() != md5.lower())
+            or (recorded_size and recorded_size != size)
+        )
+        items.append({
+            "id": fid, "projectId": pid,
+            "code": str(doc.get("code") or base_code(name)),
+            "filename": name, "category": category,
+            "revision": str(doc.get("revision") or revision(name, row.get("appProperties"))),
+            "status": str(doc.get("status") or "unregistered"),
+            "registered": bool(doc), "missing": False,
+            "sizeBytes": size, "mimeType": mtype,
+            "createdTime": str(row.get("createdTime") or ""),
+            "modifiedTime": str(row.get("modifiedTime") or ""),
+            "md5Checksum": md5,
+            "integrityWarning": changed,
+            "webViewLink": allowed_drive_link(row.get("webViewLink")),
+            "actor": str(doc.get("actor") or ""),
+            "registeredAt": str(doc.get("registeredAt") or ""),
+            "updatedAt": str(doc.get("updatedAt") or ""),
+            "description": str(doc.get("description") or ""),
+            "taskId": str(doc.get("taskId") or ""),
+            "history": doc.get("history", []),
+        })
+        if len(items) > MAX_INVENTORY:
+            raise RuntimeError("Kho có hơn 3.000 tệp; cần phân trang/đưa sang backend SQL")
     # A deleted/moved Drive file must not disappear from the controlled ledger.
     for fid, doc in registered.items():
         if fid not in found_ids:
