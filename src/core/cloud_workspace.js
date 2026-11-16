@@ -8,7 +8,12 @@ const actionLabels={
  'project.created':'Tạo dự án', 'task.created':'Giao công việc',
  'task.started':'Bắt đầu công việc', 'task.submitted':'Trình phê duyệt',
  'task.approved':'Chấp thuận', 'task.returned':'Trả lại',
- 'document.registered':'Đăng ký hồ sơ trên Drive'
+ 'document.registered':'Đăng ký hồ sơ trên Drive',
+ 'document.metadata_updated':'Cập nhật sổ hồ sơ',
+ 'document.submitted':'Trình hồ sơ',
+ 'document.approved':'Duyệt hồ sơ',
+ 'document.returned':'Trả hồ sơ yêu cầu sửa',
+ 'document.archived':'Chuyển hồ sơ lưu trữ'
 };
 const view=()=>window.__xdCloud||{enabled:false,projects:[],tasks:[],documents:[],events:[]};
 const current=()=>{
