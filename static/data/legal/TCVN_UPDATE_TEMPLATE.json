@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "vanBan": [
+    {
+      "id": "QLDA-VPS-TCVN-001",
+      "linhVuc": "Xây dựng – Quản lý dự án",
+      "nhom": "Kết cấu",
+      "loai": "Tiêu chuẩn TCVN",
+      "soHieu": "TCVN 2737:2023",
+      "ten": "Tải trọng và tác động",
+      "tenAnh": "Loads and Actions",
+      "coQuan": "Bộ Khoa học và Công nghệ",
+      "ngayBanHanh": "",
+      "ngayHieuLuc": "",
+      "tinhTrang": "Còn hiệu lực (VSQI)",
+      "nguon": "Cổng TCVN/VSQI",
+      "duongDan": "https://tieuchuan.vsqi.gov.vn/tieuchuan/view?sohieu=TCVN%202737%3A2023",
+      "ghiChu": "Lịch sử thay thế/viện dẫn: TCVN 2737:1995",
+      "ngayRaSoat": "2026-11-15",
+      "nguonThamKhao": "https://github.com/Manhhung114/QLDA_ver612_VPS/blob/main/src/qlda/runtime_core/legal_standards_backfill.py",
+      "kiemChung": "VSQI",
+      "trangThaiHeThong": "active"
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+export const BIM_CAPABILITIES={available:false,requires:['Backend xử lý IFC','Web viewer IFC','Kiểm tra va chạm BIM'],message:'V3.0 hiện mới quản lý hồ sơ IFC/RVT theo phiên bản. Để xem mô hình hoặc kiểm tra va chạm cần tích hợp viewer và engine BIM chuyên dụng.'};
