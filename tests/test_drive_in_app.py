@@ -12,7 +12,7 @@ class TestInAppDrive(unittest.TestCase):
         text=(ROOT/"drive_storage/in_app.py").read_text(encoding="utf8")
         self.assertIn("st.login()", text)
         self.assertIn("st.stop()", text)
-        self.assertIn("st.user.get(\"email_verified\"",text)
+        self.assertIn("email_verified", (ROOT / "drive_storage/access_control.py").read_text(encoding="utf8"))
     def test_bridge_no_secrets(self):
         text=(ROOT/"drive_storage/in_app.py").read_text(encoding="utf8")
         self.assertIn("XD_MEP_DRIVE_V1",text)
