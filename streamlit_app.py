@@ -17,8 +17,8 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
-@st.cache_data(show_spinner=False)
 def render_page() -> str:
+    # Rebuild on every run: Streamlit source-code caching may retain outdated JS after GitHub updates.
     return build(Path(__file__).resolve().parent / "static")
 
 try:
