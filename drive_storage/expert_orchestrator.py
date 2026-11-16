@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from hashlib import sha256
 import json
+import re
 
 from drive_storage.access_control import can_upload
 from drive_storage.company_agents import (
@@ -82,7 +83,8 @@ def run_expert(workspace, identity, *, project_id, task_id, agent_id,
     _require_id(task_id, "Công việc")
     fid = _require_id(file_id, "Tệp kỹ thuật")
     if event_id:
-        _require_id(event_id, "Lượt thực thi") if len(event_id) != 32 else None
+        if not re.fullmatch(r"[0-9a-f]{32}", str(event_id)):
+            raise ValueError("Mã lượt thực thi chuyên gia không hợp lệ")
         # Deduplicate before touching a paid model or reading the file.
         for prior in workspace.events():
             if prior["id"] != event_id:
