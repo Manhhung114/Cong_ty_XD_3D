@@ -45,3 +45,51 @@
 .xd-doc-empty{text-align:center;padding:24px!important;color:#aec5d4!important}
 @media(max-width:980px){.xd-doc-filters{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:540px){.xd-doc-filters{grid-template-columns:1fr}.xd-doc-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.xd-doc-toolbar{gap:7px}.xd-doc-toolbar .btn{font-size:12px;white-space:normal}}
+
+/* V6.1–V6.3 · Company Operations Center and specialist agents */
+.company-suite{min-width:0}
+.company-suite h2{font-size:23px;line-height:1.25}
+.company-suite h3{font-size:18px;margin:18px 0 12px}
+.company-notice{background:#143344;border:1px solid #35657b;border-radius:12px;padding:14px 16px;margin:14px 0 18px;color:#d5eaf4;line-height:1.65;font-size:13px}
+.company-agent-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:14px;margin:18px 0}
+.company-agent-card{background:linear-gradient(160deg,#103043,#0b2331);border:1px solid rgba(124,208,221,.24);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px}
+.company-agent-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.company-agent-head>div{flex:1;min-width:130px}
+.company-agent-head strong{display:block;color:#eaf9ff;font-size:15px}
+.company-agent-head small{display:block;color:#9cc6d4;margin-top:5px}
+.company-avatar{width:43px;height:43px;flex:none;display:grid;place-items:center;border-radius:12px;background:#20556a;color:#bbf3ff;font-weight:750;font-size:15px;border:1px solid #37778b}
+.company-state{background:#1f4153;color:#aee3f0;border:1px solid #35667a;border-radius:8px;padding:5px 8px;font-size:11px;white-space:nowrap}
+.company-agent-card p{font-size:13px;line-height:1.6;color:#cbdfe9;margin:0}
+.company-agent-card b{color:#ddf6fb}
+.company-skills{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12px;color:#c5e8ef}
+.company-skills span{border:1px solid #3b6170;background:#173d4a;padding:5px 7px;border-radius:7px}
+.company-secondary{color:#9ebcca!important;font-size:12px!important}
+.company-agent-card details{padding:8px 10px;background:#0b2230;border:1px solid #294f62;border-radius:8px;font-size:12px;color:#b7d4df}
+.company-agent-card details summary{cursor:pointer;color:#a0e0ec;font-weight:600}
+.company-agent-card details ul{padding-left:20px;line-height:1.5}
+.company-agent-operate{display:grid;gap:10px;border-top:1px solid rgba(128,188,206,.18);padding-top:12px;margin-top:auto}
+.company-agent-operate label{display:grid;gap:5px;font-size:12px;color:#b7d6e1}
+.company-agent-operate select{width:100%;min-width:0;background:#0d2736;color:#e6f9ff;border:1px solid #37647c;border-radius:8px;padding:10px}
+.company-agent-operate .btn{justify-self:start}
+.company-result{white-space:pre-wrap;overflow-wrap:anywhere;max-height:440px;overflow-y:auto;background:#0a1d29;border-radius:8px;padding:12px;color:#b8e4e9;font:12px/1.6 ui-monospace,monospace}
+.company-run{margin:9px 0!important}
+.company-kpi-grid{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:12px;margin:16px 0}
+.company-kpi{border-radius:13px;border:1px solid #2e5871;background:#103246;display:flex;flex-direction:column;gap:8px;padding:16px}
+.company-kpi small{font-size:11px;letter-spacing:.04em;color:#99c7d9;font-weight:700}
+.company-kpi strong{font-size:29px;color:#e7fdff;line-height:1.1}
+.company-kpi span{color:#96c7d7;font-size:12px}
+.company-alert-list{display:grid;gap:9px;margin:10px 0}
+.company-alert{border-radius:10px;border:1px solid #79634b;background:#352d26;display:flex;flex-direction:column;gap:5px;padding:11px 13px}
+.company-alert strong{color:#f6dca7}
+.company-alert span{color:#e6d2b4;font-size:12px}
+.company-controls{display:flex;flex-wrap:wrap;gap:12px;padding:15px 0}
+.company-table-wrap{max-width:100%;overflow-x:auto;border:1px solid #345c70;border-radius:10px}
+.company-table{width:100%;min-width:630px;border-collapse:collapse;font-size:13px}
+.company-table th{padding:12px 14px;background:#17374c;color:#a6d8eb;text-align:left}
+.company-table td{padding:11px 14px;border-top:1px solid rgba(132,204,221,.16);color:#d5eaf3}
+.company-handoff-list{display:grid;gap:12px}
+.company-handoff{background:#102a3b;border:1px solid #356276;border-radius:12px;padding:16px}
+.company-handoff-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.company-handoff p{color:#b8d5e1;font-size:13px;overflow-wrap:anywhere}
+@media(max-width:1000px){.company-kpi-grid{grid-template-columns:repeat(2,minmax(120px,1fr))}}
+@media(max-width:570px){.company-agent-grid{grid-template-columns:1fr}.company-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.company-suite h2{font-size:19px}.company-kpi{padding:12px}.company-kpi strong{font-size:23px}}

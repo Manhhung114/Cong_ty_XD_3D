@@ -52,12 +52,22 @@ const tasksHtml=filter=>{
  (canWrite()&&!filter?'<div class="portal-review-actions">'+btn('＋ Tạo công việc','task_create','','primary')+'</div>':'')+
  '<div class="portal-tasks">'+tasks.map(t=>{
  const history=t.reviewHistory||[];
+ const reports=(view().agentRuns||[]).filter(r=>r.taskId===t.id&&r.projectId===t.projectId);
  return '<article class="portal-task"><div class="portal-task-head"><div><strong>'+h(t.title)+'</strong><small>'+h(t.code)+' · '+h(t.dept)+' · '+h(t.assignee||'Chưa giao')+
  '</small></div><span class="portal-pill '+(t.status==='review'?'review':t.status==='done'?'done':'')+'">'+h(labels[t.status]||t.status)+'</span></div>'+
  (t.dueDate?'<p>Hạn: '+h(t.dueDate)+'</p>':'')+
  (t.docCode?'<p>Hồ sơ: '+h(t.docCode)+'</p>':'')+
  (t.report?'<div class="portal-report"><b>Báo cáo</b><p>'+h(t.report)+'</p><p>'+h(t.findings)+'</p></div>':'')+
- '<div class="portal-review-actions">'+
+ (reports.length?'<details><summary>🤖 Báo cáo nháp Agent ('+reports.length+')</summary>'+
+ reports.map(run=>'<div class="company-run"><strong>'+h(run.agentTitle||run.agentId)+
+ ' · '+h(run.mode==='llm'?'AI thực':'Checklist')+'</strong><p>'+h(run.actor)+
+ ' · '+h(run.at.slice(0,16))+'</p><pre class="company-result">'+h(run.result)+'</pre>'+
+ '<p class="company-secondary">Kết quả này chưa được kỹ sư kiểm chứng hoặc phê duyệt.</p></div>').join('')+
+ '</details>':'')+
+ (t.priority&&t.priority!=='normal'?'<p><b>Ưu tiên: '+h(
+  {low:'Thấp',high:'Cao',critical:'Khẩn cấp'}[t.priority]||t.priority
+ )+'</b></p>':'')+
+  '<div class="portal-review-actions">'+
  (canWrite()&&t.status==='todo'?btn('Bắt đầu','task_start',t.id):'')+
  (canWrite()&&['todo','working'].includes(t.status)?btn('Gửi báo cáo phê duyệt','task_submit',t.id,'primary'):'')+
  (canReview()&&t.status==='review'?btn('Xét duyệt / Trả lại','task_review',t.id,'primary'):'')+

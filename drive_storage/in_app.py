@@ -78,7 +78,7 @@ def mount_bridge(st) -> dict | None:
             if (!d || d.channel !== "XD_MEP_DRIVE_V1" || d.nonce !== data.nonce) return;
             const userGrant = d.kind === "access" && d.section === "settings";
             const driveAction = ["upload","browse"].includes(d.kind) && allowed.has(d.section);
-            const workSections = new Set(["projects","tasks","reviews","documents","activity"]);
+            const workSections = new Set(["projects","tasks","reviews","documents","activity","agents","company"]);
             const workspaceAction = d.kind === "workspace" && workSections.has(d.section);
             if (!userGrant && !driveAction && !workspaceAction) return;
             if (event.source === window) return;
@@ -91,6 +91,8 @@ def mount_bridge(st) -> dict | None:
               projectId: workspaceAction ? String(d.projectId || "").slice(0, 160) : "",
               taskId: workspaceAction ? String(d.taskId || "").slice(0, 160) : "",
               fileId: workspaceAction ? String(d.fileId || "").slice(0, 160) : "",
+              agentId: workspaceAction ? String(d.agentId || "").slice(0, 20) : "",
+              handoffId: workspaceAction ? String(d.handoffId || "").slice(0, 160) : "",
               actionId: workspaceAction ? String(d.actionId || "").slice(0, 32) : ""
             });
           }
@@ -116,6 +118,8 @@ def mount_bridge(st) -> dict | None:
             "projectId": str(action.get("projectId") or "")[:160],
             "taskId": str(action.get("taskId") or "")[:160],
             "fileId": str(action.get("fileId") or "")[:160],
+            "agentId": str(action.get("agentId") or "")[:20],
+            "handoffId": str(action.get("handoffId") or "")[:160],
             "actionId": str(action.get("actionId") or "")[:32],
         }
     if action.get("section") == "settings" and action.get("kind") == "access":

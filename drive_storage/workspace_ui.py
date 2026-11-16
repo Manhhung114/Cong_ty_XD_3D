@@ -19,6 +19,8 @@ COMMANDS = {
     "reviews": {"refresh", "select", "task_review"},
     "documents": {"refresh", "select", "document_inventory", "document_manage"},
     "activity": {"refresh", "select"},
+    "agents": {"refresh", "select", "agent_run"},
+    "company": {"refresh", "select", "handoff_create", "handoff_resolve", "ops_audit"},
 }
 DEPARTMENT_NAMES = {
     "director": "Ban giám đốc", "electrical": "Điện", "hvac": "HVAC",
@@ -29,7 +31,8 @@ DEPARTMENT_NAMES = {
     "xd_safety": "An toàn XD", "xd_material": "Vật tư",
 }
 INTERACTIVE = {"project_create", "project_import", "task_create", "task_submit",
-               "task_review", "document_manage"}
+               "task_review", "document_manage", "agent_run", "handoff_create",
+               "handoff_resolve", "ops_audit"}
 
 
 def service_for(st):
@@ -50,6 +53,14 @@ def load_snapshot(st) -> dict:
     selected = requested if requested in valid else (snapshot["projects"][0]["id"] if snapshot["projects"] else "")
     st.session_state.xd_selected_cloud_project = selected
     snapshot.update({"enabled": True, "selectedProjectId": selected})
+    from drive_storage.company_agents import company_metrics, public_catalog
+    from drive_storage.company_ui import ai_status
+    snapshot["companyMetrics"] = company_metrics(snapshot)
+    snapshot["agentsCatalog"] = public_catalog()
+    snapshot["aiStatus"] = ai_status(st)
+    # Keep the iframe payload bounded. Full signed history remains on Drive.
+    snapshot["agentRuns"] = snapshot.get("agentRuns", [])[:18]
+    snapshot["handoffs"] = snapshot.get("handoffs", [])[:100]
     if (st.session_state.get("xd_doc_inventory_requested")
             and st.session_state.get("xd_current_sheet") == "documents"
             and selected):
@@ -109,15 +120,32 @@ def handle_workspace_action(st, action: dict):
         raise PermissionError("Chỉ Admin được tạo dự án")
     if op in {"task_create", "task_start", "task_submit"} and not can_upload(actor):
         raise PermissionError("Tài khoản Chỉ đọc không được cập nhật công việc")
+    if op in {"agent_run", "handoff_create", "handoff_resolve"} and not can_upload(actor):
+        raise PermissionError("Chỉ đọc không được chạy Agent hoặc gửi phối hợp")
+    if op == "ops_audit" and not can_admin(actor):
+        raise PermissionError("Chỉ Admin được kiểm soát và sao lưu hệ thống")
     if op == "task_review" and not can_admin(actor):
         raise PermissionError("Chỉ Admin có quyền duyệt")
-    if op not in {"project_create", "project_import"} and pid not in {p["id"] for p in current["projects"]}:
+    if op not in {"project_create", "project_import", "ops_audit"} and pid not in {p["id"] for p in current["projects"]}:
         raise PermissionError("Dự án không thuộc phạm vi")
     task_id = str(action.get("taskId") or "")
-    if op in {"task_start", "task_submit", "task_review"}:
+    if op in {"task_start", "task_submit", "task_review", "agent_run"}:
         if not any(t["id"] == task_id and t["projectId"] == pid
                    for t in current["tasks"]):
             raise PermissionError("Nhiệm vụ không thuộc dự án")
+    if op == "agent_run":
+        from drive_storage.company_agents import agents
+        profile = agents().get(str(action.get("agentId") or ""))
+        task = next((t for t in current["tasks"]
+                     if t["id"] == task_id and t["projectId"] == pid), None)
+        if not profile or not task or (profile["department"] != task["dept"]
+              and profile["id"] not in {"PM", "CEO", "DOC", "QAC"}):
+            raise PermissionError("Agent không phù hợp với công việc hoặc bộ môn")
+    if op == "handoff_resolve":
+        handoff_id = str(action.get("handoffId") or "")
+        if not any(h["id"] == handoff_id and h["projectId"] == pid
+                   and h["status"] == "open" for h in current.get("handoffs", [])):
+            raise PermissionError("Không có yêu cầu phối hợp đang mở")
     if op == "task_start":
         service_for(st).start_task(actor, project_id=pid, task_id=task_id,
                                    event_id=request_id)
@@ -139,6 +167,8 @@ def handle_workspace_action(st, action: dict):
         "op": op, "section": section, "projectId": pid,
         "taskId": task_id, "actionId": request_id,
         "fileId": str(action.get("fileId") or "")[:160],
+        "agentId": str(action.get("agentId") or "")[:20],
+        "handoffId": str(action.get("handoffId") or "")[:160],
     }
     st.session_state.xd_last_workspace_request = request_id
 
@@ -146,6 +176,10 @@ def handle_workspace_action(st, action: dict):
 def workspace_dialog(st):
     action = st.session_state.get("xd_workspace_dialog")
     if not isinstance(action, dict) or action.get("op") not in INTERACTIVE:
+        return
+    if action.get("op") in {"agent_run", "handoff_create", "handoff_resolve", "ops_audit"}:
+        from drive_storage.company_ui import company_dialog
+        company_dialog(st, action)
         return
     if action.get("op") == "document_manage":
         from drive_storage.document_control_ui import document_control_dialog
@@ -267,6 +301,9 @@ def workspace_dialog(st):
                                     format_func=lambda x: DEPARTMENT_NAMES.get(x, x))
                 assignee = st.text_input("Người phụ trách (tên hoặc email)", max_chars=160)
                 doc_code = st.text_input("Mã hồ sơ liên quan", max_chars=80)
+                priority = st.selectbox("Mức độ ưu tiên", ["normal", "low", "high", "critical"],
+                                        format_func=lambda p: {"normal": "Bình thường", "low": "Thấp",
+                                                               "high": "Cao", "critical": "Khẩn cấp"}[p])
                 deadline = st.date_input("Hạn hoàn thành", value=None, format="DD/MM/YYYY")
                 submitted = st.form_submit_button("Giao công việc", type="primary")
             if submitted:
@@ -274,6 +311,7 @@ def workspace_dialog(st):
                     server.create_task(
                         actor, project_id=pid, title=title, dept=dept,
                         assignee=assignee, doc_code=doc_code,
+                        priority=priority,
                         due_date=deadline.isoformat() if deadline else "",
                         event_id=action["actionId"],
                     )

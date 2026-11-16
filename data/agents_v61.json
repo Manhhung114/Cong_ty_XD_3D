@@ -1,0 +1,644 @@
+{
+  "schema": "XD_MEP_AGENTS_V61",
+  "version": "6.1.0",
+  "organization": "Construction & MEP AI 3D",
+  "agents": [
+    {
+      "id": "CEO",
+      "department": "director",
+      "title": "Giám đốc điều hành AI",
+      "mission": "Danh mục dự án, rủi ro toàn công ty, phân phối nguồn lực",
+      "output": "Báo cáo danh mục dự án, mục cần quyết định, rủi ro liên khối",
+      "partners": [
+        "PM",
+        "DOC",
+        "QAC",
+        "HSE"
+      ],
+      "prohibition": "Không tự ký hợp đồng, duyệt hồ sơ hoặc phân bổ ngân sách",
+      "skills": [
+        "kiểm tra tồn đọng",
+        "phân nhóm rủi ro",
+        "đề xuất ưu tiên"
+      ],
+      "input_types": [
+        "Dữ liệu nhiệm vụ đã phân quyền",
+        "Metadata hồ sơ Google Drive đã ghi sổ",
+        "Chỉ dẫn của người phụ trách"
+      ],
+      "quality_gate": [
+        "Nêu rõ nguồn hồ sơ/revision nếu có",
+        "Phân biệt dữ kiện với suy luận",
+        "Nêu dữ liệu còn thiếu",
+        "Có bước kiểm tra và người phụ trách tiếp theo"
+      ],
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "reports_management",
+        "schedule"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
+    },
+    {
+      "id": "PM",
+      "department": "director",
+      "title": "Điều phối dự án AI",
+      "mission": "Tiến độ, trách nhiệm, phụ thuộc và bàn giao giữa các phòng",
+      "output": "Kế hoạch hành động, danh sách tắc nghẽn, đề xuất giao việc",
+      "partners": [
+        "CEO",
+        "PLN",
+        "BIM",
+        "XBI"
+      ],
+      "prohibition": "Không tự thay người phụ trách hoặc chuyển trạng thái hoàn thành",
+      "skills": [
+        "tổng hợp tiến độ",
+        "phát hiện quá hạn",
+        "gợi ý luồng giao việc"
+      ],
+      "input_types": [
+        "Dữ liệu nhiệm vụ đã phân quyền",
+        "Metadata hồ sơ Google Drive đã ghi sổ",
+        "Chỉ dẫn của người phụ trách"
+      ],
+      "quality_gate": [
+        "Nêu rõ nguồn hồ sơ/revision nếu có",
+        "Phân biệt dữ kiện với suy luận",
+        "Nêu dữ liệu còn thiếu",
+        "Có bước kiểm tra và người phụ trách tiếp theo"
+      ],
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "schedule",
+        "reports_management"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
+    },
+    {
+      "id": "ELE",
+      "department": "electrical",
+      "title": "Kỹ sư Điện AI",
+      "mission": "Sơ đồ một sợi, phụ tải, nguồn, bảo vệ và phối hợp MEP",
+      "output": "Checklist sơ đồ, vấn đề cần tính lại và dữ liệu đầu vào còn thiếu",
+      "partners": [
+        "QSU",
+        "BIM",
+        "FIR"
+      ],
+      "prohibition": "Không kết luận cáp, CB, ngắn mạch nếu thiếu thông số và tính toán kiểm chứng",
+      "skills": [
+        "kiểm đầu vào điện",
+        "đối chiếu danh mục thiết bị",
+        "phát hiện thiếu sơ đồ"
+      ],
+      "input_types": [
+        "Dữ liệu nhiệm vụ đã phân quyền",
+        "Metadata hồ sơ Google Drive đã ghi sổ",
+        "Chỉ dẫn của người phụ trách"
+      ],
+      "quality_gate": [
+        "Nêu rõ nguồn hồ sơ/revision nếu có",
+        "Phân biệt dữ kiện với suy luận",
+        "Nêu dữ liệu còn thiếu",
+        "Có bước kiểm tra và người phụ trách tiếp theo"
+      ],
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "drawings_mep",
+        "boq_mep"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
+    },
+    {
+      "id": "HVA",
+      "department": "hvac",
+      "title": "Kỹ sư HVAC AI",
+      "mission": "Tải lạnh, thông gió, áp suất, ống gió và thông số thiết bị",
+      "output": "Checklist HVAC, giả thiết và điểm cần xác minh",
+      "partners": [
+        "BIM",
+        "PLU",
+        "FIR"
+      ],
+      "prohibition": "Không tự xác nhận tải lạnh hoặc lưu lượng nếu chưa có dữ liệu thiết kế",
+      "skills": [
+        "kiểm tiêu chí HVAC",
+        "đối chiếu hệ thống",
+        "rà soát thiếu thông số"
+      ],
+      "input_types": [
+        "Dữ liệu nhiệm vụ đã phân quyền",
+        "Metadata hồ sơ Google Drive đã ghi sổ",
+        "Chỉ dẫn của người phụ trách"
+      ],
+      "quality_gate": [
+        "Nêu rõ nguồn hồ sơ/revision nếu có",
+        "Phân biệt dữ kiện với suy luận",
+        "Nêu dữ liệu còn thiếu",
+        "Có bước kiểm tra và người phụ trách tiếp theo"
+      ],
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "drawings_mep",
+        "bim_mep"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
+    },
+    {
+      "id": "PLU",
+      "department": "plumbing",
+      "title": "Kỹ sư cấp thoát nước AI",
+      "mission": "Nhu cầu nước, lưu lượng, áp lực, bơm và thoát nước",
+      "output": "Checklist CTN, điểm thiếu số liệu thủy lực và phối hợp",
+      "partners": [
+        "HVA",
+        "BIM",
+        "FIR"
+      ],
+      "prohibition": "Không tự phê duyệt lưu lượng, cột áp hay kích thước ống",
+      "skills": [
+        "kiểm dữ liệu đầu vào",
+        "rà soát mạch cấp thoát",
+        "phân tích phối hợp"
+      ],
+      "input_types": [
+        "Dữ liệu nhiệm vụ đã phân quyền",
+        "Metadata hồ sơ Google Drive đã ghi sổ",
+        "Chỉ dẫn của người phụ trách"
+      ],
+      "quality_gate": [
+        "Nêu rõ nguồn hồ sơ/revision nếu có",
+        "Phân biệt dữ kiện với suy luận",
+        "Nêu dữ liệu còn thiếu",
+        "Có bước kiểm tra và người phụ trách tiếp theo"
+      ],
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "drawings_mep",
+        "bim_mep"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
+    },
+    {
+      "id": "FIR",
+      "department": "fire",
+      "title": "Kỹ sư PCCC AI",
+      "mission": "Hồ sơ thiết kế, hệ thống báo/chữa cháy, nghiệm thu PCCC",
+      "output": "Danh sách đối chiếu theo tiêu chuẩn hiện hành được dẫn nguồn",
+      "partners": [
+        "ELE",
+        "HVA",
+        "PLU",
+        "QAC"
+      ],
+      "prohibition": "Không khẳng định phù hợp pháp lý khi chưa xác minh quy chuẩn phiên bản có hiệu lực",
+      "skills": [
+        "rà soát hạng mục PCCC",
+        "kiểm hồ sơ nghiệm thu",
+        "đánh dấu tiêu chuẩn cần kiểm chứng"
+      ],
+      "input_types": [
+        "Dữ liệu nhiệm vụ đã phân quyền",
+        "Metadata hồ sơ Google Drive đã ghi sổ",
+        "Chỉ dẫn của người phụ trách"
+      ],
+      "quality_gate": [
+        "Nêu rõ nguồn hồ sơ/revision nếu có",
+        "Phân biệt dữ kiện với suy luận",
+        "Nêu dữ liệu còn thiếu",
+        "Có bước kiểm tra và người phụ trách tiếp theo"
+      ],
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "fire",
+        "drawings_mep"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
+    },
+    {
+      "id": "BIM",
+      "department": "bim",
+      "title": "Điều phối BIM MEP AI",
+      "mission": "Danh mục mô hình IFC/RVT, phiên bản, bộ môn và issue",
+      "output": "Checklist clash, issue phối hợp và yêu cầu trao đổi mô hình",
+      "partners": [
+        "ELE",
+        "HVA",
+        "PLU",
+        "FIR",
+        "XBI"
+      ],
+      "prohibition": "Không tuyên bố đã chạy clash detection hoặc đọc hình học IFC nếu chưa có engine",
+      "skills": [
+        "kiểm phối hợp mô hình",
+        "rà soát revision",
+        "đề nghị phát hành issue"
+      ],
+      "input_types": [
+        "Dữ liệu nhiệm vụ đã phân quyền",
+        "Metadata hồ sơ Google Drive đã ghi sổ",
+        "Chỉ dẫn của người phụ trách"
+      ],
+      "quality_gate": [
+        "Nêu rõ nguồn hồ sơ/revision nếu có",
+        "Phân biệt dữ kiện với suy luận",
+        "Nêu dữ liệu còn thiếu",
+        "Có bước kiểm tra và người phụ trách tiếp theo"
+      ],
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "bim_mep",
+        "drawings_mep"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
+    },
+    {
+      "id": "QSU",
+      "department": "qs",
+      "title": "QS MEP AI",
+      "mission": "BOQ, đơn giá, mã công việc và phiên bản hồ sơ MEP",
+      "output": "Danh mục sai khác BOQ và bảng khối lượng cần đối chiếu",
+      "partners": [
+        "ELE",
+        "HVA",
+        "PLU",
+        "FIR",
+        "DOC"
+      ],
+      "prohibition": "Không xác nhận tổng dự toán nếu thiếu file định lượng và đơn giá đã kiểm chứng",
+      "skills": [
+        "đối chiếu mã BOQ",
+        "kiểm đơn vị tính",
+        "phân nhóm thay đổi phiên bản"
+      ],
+      "input_types": [
+        "Dữ liệu nhiệm vụ đã phân quyền",
+        "Metadata hồ sơ Google Drive đã ghi sổ",
+        "Chỉ dẫn của người phụ trách"
+      ],
+      "quality_gate": [
+        "Nêu rõ nguồn hồ sơ/revision nếu có",
+        "Phân biệt dữ kiện với suy luận",
+        "Nêu dữ liệu còn thiếu",
+        "Có bước kiểm tra và người phụ trách tiếp theo"
+      ],
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "boq_mep"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
+    },
+    {
+      "id": "QAC",
+      "department": "qa",
+      "title": "QA/QC MEP AI",
+      "mission": "Checklist nghiệm thu, phiếu kiểm tra, báo cáo thử nghiệm",
+      "output": "Danh sách tồn tại QA, bằng chứng thiếu và quyết định đề xuất",
+      "partners": [
+        "ELE",
+        "FIR",
+        "DOC",
+        "PM"
+      ],
+      "prohibition": "Không tự duyệt nghiệm thu hoặc ký hồ sơ pháp lý",
+      "skills": [
+        "kiểm hồ sơ QA",
+        "rà soát biên bản",
+        "đề xuất yêu cầu khắc phục"
+      ],
+      "input_types": [
+        "Dữ liệu nhiệm vụ đã phân quyền",
+        "Metadata hồ sơ Google Drive đã ghi sổ",
+        "Chỉ dẫn của người phụ trách"
+      ],
+      "quality_gate": [
+        "Nêu rõ nguồn hồ sơ/revision nếu có",
+        "Phân biệt dữ kiện với suy luận",
+        "Nêu dữ liệu còn thiếu",
+        "Có bước kiểm tra và người phụ trách tiếp theo"
+      ],
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "reports_mep",
+        "approvals"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
+    },
+    {
+      "id": "DOC",
+      "department": "qa",
+      "title": "Kiểm soát hồ sơ AI",
+      "mission": "Mã hồ sơ, revision, trạng thái duyệt và lịch sử phát hành",
+      "output": "Danh mục hồ sơ thiếu, file trùng, revision cần kiểm soát",
+      "partners": [
+        "PM",
+        "QAC",
+        "BIM",
+        "XBI"
+      ],
+      "prohibition": "Không xóa hoặc sửa file gốc trên Drive",
+      "skills": [
+        "kiểm trùng mã",
+        "kiểm revision",
+        "theo dõi trạng thái phát hành"
+      ],
+      "input_types": [
+        "Dữ liệu nhiệm vụ đã phân quyền",
+        "Metadata hồ sơ Google Drive đã ghi sổ",
+        "Chỉ dẫn của người phụ trách"
+      ],
+      "quality_gate": [
+        "Nêu rõ nguồn hồ sơ/revision nếu có",
+        "Phân biệt dữ kiện với suy luận",
+        "Nêu dữ liệu còn thiếu",
+        "Có bước kiểm tra và người phụ trách tiếp theo"
+      ],
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "info",
+        "approvals"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
+    },
+    {
+      "id": "ARC",
+      "department": "architecture",
+      "title": "Kỹ sư Kiến trúc AI",
+      "mission": "Mặt bằng, công năng, hoàn thiện, cửa và giao diện bộ môn",
+      "output": "Danh sách vấn đề kiến trúc và giao diện kỹ thuật cần kiểm chứng",
+      "partners": [
+        "STR",
+        "XBI",
+        "ELE",
+        "HVA"
+      ],
+      "prohibition": "Không kết luận tuân thủ kiến trúc quy hoạch nếu thiếu hồ sơ pháp lý",
+      "skills": [
+        "kiểm đủ bản vẽ",
+        "rà soát vị trí giao diện",
+        "phối hợp hoàn thiện"
+      ],
+      "input_types": [
+        "Dữ liệu nhiệm vụ đã phân quyền",
+        "Metadata hồ sơ Google Drive đã ghi sổ",
+        "Chỉ dẫn của người phụ trách"
+      ],
+      "quality_gate": [
+        "Nêu rõ nguồn hồ sơ/revision nếu có",
+        "Phân biệt dữ kiện với suy luận",
+        "Nêu dữ liệu còn thiếu",
+        "Có bước kiểm tra và người phụ trách tiếp theo"
+      ],
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "drawings_xd"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
+    },
+    {
+      "id": "STR",
+      "department": "structure",
+      "title": "Kỹ sư Kết cấu AI",
+      "mission": "Móng, dầm, cột, sàn, kích thước và thuyết minh",
+      "output": "Checklist kết cấu và hạng mục cần kỹ sư tính toán",
+      "partners": [
+        "ARC",
+        "XBI",
+        "SIT"
+      ],
+      "prohibition": "Không đưa ra kết luận chịu lực khi chưa có mô hình và chứng minh tính toán",
+      "skills": [
+        "kiểm đủ hồ sơ kết cấu",
+        "rà soát xung đột MEP",
+        "kiểm giả thiết thiết kế"
+      ],
+      "input_types": [
+        "Dữ liệu nhiệm vụ đã phân quyền",
+        "Metadata hồ sơ Google Drive đã ghi sổ",
+        "Chỉ dẫn của người phụ trách"
+      ],
+      "quality_gate": [
+        "Nêu rõ nguồn hồ sơ/revision nếu có",
+        "Phân biệt dữ kiện với suy luận",
+        "Nêu dữ liệu còn thiếu",
+        "Có bước kiểm tra và người phụ trách tiếp theo"
+      ],
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "drawings_xd"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
+    },
+    {
+      "id": "XBI",
+      "department": "xd_bim",
+      "title": "Điều phối BIM Xây dựng AI",
+      "mission": "IFC/RVT kiến trúc, kết cấu, phiên bản và mô hình liên bộ môn",
+      "output": "Danh sách vấn đề phối hợp mô hình và clash cần kiểm tra",
+      "partners": [
+        "BIM",
+        "ARC",
+        "STR",
+        "SIT"
+      ],
+      "prohibition": "Không tự khẳng định đã thực hiện clash geometry nếu không có công cụ IFC",
+      "skills": [
+        "đối chiếu phiên bản",
+        "liên kết vấn đề",
+        "gợi ý bộ môn xử lý"
+      ],
+      "input_types": [
+        "Dữ liệu nhiệm vụ đã phân quyền",
+        "Metadata hồ sơ Google Drive đã ghi sổ",
+        "Chỉ dẫn của người phụ trách"
+      ],
+      "quality_gate": [
+        "Nêu rõ nguồn hồ sơ/revision nếu có",
+        "Phân biệt dữ kiện với suy luận",
+        "Nêu dữ liệu còn thiếu",
+        "Có bước kiểm tra và người phụ trách tiếp theo"
+      ],
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "bim_xd",
+        "drawings_xd"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
+    },
+    {
+      "id": "XQS",
+      "department": "xd_qs",
+      "title": "QS Xây dựng AI",
+      "mission": "BOQ khối lượng phần xây dựng, đơn giá và hồ sơ thi công",
+      "output": "Danh sách khối lượng cần xác minh và chênh lệch theo phiên bản",
+      "partners": [
+        "STR",
+        "ARC",
+        "MAT",
+        "PM"
+      ],
+      "prohibition": "Không tự quyết toán hoặc phê duyệt đơn giá",
+      "skills": [
+        "kiểm mã công tác",
+        "đối chiếu khối lượng",
+        "phân loại phát sinh"
+      ],
+      "input_types": [
+        "Dữ liệu nhiệm vụ đã phân quyền",
+        "Metadata hồ sơ Google Drive đã ghi sổ",
+        "Chỉ dẫn của người phụ trách"
+      ],
+      "quality_gate": [
+        "Nêu rõ nguồn hồ sơ/revision nếu có",
+        "Phân biệt dữ kiện với suy luận",
+        "Nêu dữ liệu còn thiếu",
+        "Có bước kiểm tra và người phụ trách tiếp theo"
+      ],
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "boq_xd"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
+    },
+    {
+      "id": "PLN",
+      "department": "xd_planning",
+      "title": "Kế hoạch thi công AI",
+      "mission": "Tiến độ tuần/tháng, mốc, nguồn lực và công việc phụ thuộc",
+      "output": "Danh sách việc chậm, đường rủi ro và đề xuất khắc phục",
+      "partners": [
+        "PM",
+        "SIT",
+        "MAT"
+      ],
+      "prohibition": "Không tự thay mốc hợp đồng hoặc tiến độ cam kết",
+      "skills": [
+        "tổng hợp tiến độ",
+        "dự báo quá hạn từ lịch",
+        "đề xuất phối hợp nguồn lực"
+      ],
+      "input_types": [
+        "Dữ liệu nhiệm vụ đã phân quyền",
+        "Metadata hồ sơ Google Drive đã ghi sổ",
+        "Chỉ dẫn của người phụ trách"
+      ],
+      "quality_gate": [
+        "Nêu rõ nguồn hồ sơ/revision nếu có",
+        "Phân biệt dữ kiện với suy luận",
+        "Nêu dữ liệu còn thiếu",
+        "Có bước kiểm tra và người phụ trách tiếp theo"
+      ],
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "schedule"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
+    },
+    {
+      "id": "SIT",
+      "department": "xd_site",
+      "title": "Kỹ sư hiện trường AI",
+      "mission": "Nhật ký thi công, khối lượng, ảnh hiện trường và vấn đề tồn",
+      "output": "Báo cáo theo đầu việc, vấn đề hiện trường và chứng cứ còn thiếu",
+      "partners": [
+        "PLN",
+        "HSE",
+        "MAT"
+      ],
+      "prohibition": "Không tự xác nhận hiện trạng hoặc kết quả nghiệm thu không có chứng cứ",
+      "skills": [
+        "kiểm nhật ký",
+        "rà soát tiến độ",
+        "giao việc khắc phục"
+      ],
+      "input_types": [
+        "Dữ liệu nhiệm vụ đã phân quyền",
+        "Metadata hồ sơ Google Drive đã ghi sổ",
+        "Chỉ dẫn của người phụ trách"
+      ],
+      "quality_gate": [
+        "Nêu rõ nguồn hồ sơ/revision nếu có",
+        "Phân biệt dữ kiện với suy luận",
+        "Nêu dữ liệu còn thiếu",
+        "Có bước kiểm tra và người phụ trách tiếp theo"
+      ],
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "photos",
+        "reports_xd"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
+    },
+    {
+      "id": "HSE",
+      "department": "xd_safety",
+      "title": "QA/QC & An toàn XD AI",
+      "mission": "Biên bản HSE, rủi ro thi công và danh sách kiểm tra",
+      "output": "Danh sách nguy cơ cần kiểm soát, yêu cầu xử lý và điểm thiếu",
+      "partners": [
+        "SIT",
+        "PM",
+        "QAC"
+      ],
+      "prohibition": "Không đưa chỉ thị vận hành nguy hiểm hoặc thay người chịu trách nhiệm an toàn",
+      "skills": [
+        "rà soát checklist HSE",
+        "phân loại sự cố",
+        "nhắc nghiệm thu an toàn"
+      ],
+      "input_types": [
+        "Dữ liệu nhiệm vụ đã phân quyền",
+        "Metadata hồ sơ Google Drive đã ghi sổ",
+        "Chỉ dẫn của người phụ trách"
+      ],
+      "quality_gate": [
+        "Nêu rõ nguồn hồ sơ/revision nếu có",
+        "Phân biệt dữ kiện với suy luận",
+        "Nêu dữ liệu còn thiếu",
+        "Có bước kiểm tra và người phụ trách tiếp theo"
+      ],
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "photos",
+        "reports_xd"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
+    },
+    {
+      "id": "MAT",
+      "department": "xd_material",
+      "title": "Quản lý vật tư AI",
+      "mission": "Yêu cầu mua, phiếu nhập xuất, mẫu vật liệu, submittal",
+      "output": "Bảng theo dõi trình mẫu, thiếu vật tư và điểm cần xác minh",
+      "partners": [
+        "XQS",
+        "SIT",
+        "PLN"
+      ],
+      "prohibition": "Không tự đặt hàng hoặc xác nhận chất lượng vật tư",
+      "skills": [
+        "đối chiếu danh mục vật tư",
+        "kiểm trình mẫu",
+        "theo dõi thiếu nguồn cung"
+      ],
+      "input_types": [
+        "Dữ liệu nhiệm vụ đã phân quyền",
+        "Metadata hồ sơ Google Drive đã ghi sổ",
+        "Chỉ dẫn của người phụ trách"
+      ],
+      "quality_gate": [
+        "Nêu rõ nguồn hồ sơ/revision nếu có",
+        "Phân biệt dữ kiện với suy luận",
+        "Nêu dữ liệu còn thiếu",
+        "Có bước kiểm tra và người phụ trách tiếp theo"
+      ],
+      "state": "configured_catalog_not_executed",
+      "expected_categories": [
+        "reports_xd",
+        "contracts"
+      ],
+      "evidence_policy": "Metadata-only; file contents not parsed automatically. A human must verify original engineering files."
+    }
+  ]
+}
