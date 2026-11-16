@@ -195,7 +195,7 @@ def drive_dialog(st) -> None:
                         if key in st.session_state:
                             st.download_button(
                                 "⬇ Tải xuống", data=st.session_state[key],
-                                file_name=title, key=key,
+                                file_name=title, key="download_widget_" + f["id"],
                             )
                     elif size > DOWNLOAD_BUFFER_LIMIT:
                         st.caption("Tệp lớn: tải trực tiếp tại Google Drive, cần có quyền với thư mục.")
