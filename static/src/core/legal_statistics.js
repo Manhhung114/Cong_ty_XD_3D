@@ -12,6 +12,15 @@ export function legalKind(d){
  if(t.includes('thong tu')||/\/TT-[A-Z]/.test(n))return 'circular';
  return 'other';
 }
+export function uniqueLegalRecords(records=[]){
+ const map=new Map();
+ for(const d of records){
+  const n=String(d?.soHieu||'').replace(/\s+/g,'').toUpperCase();
+  const sector=String(d?.linhVuc||'').trim();
+  if(n&&sector)map.set(sector+':'+n,d);
+ }
+ return Array.from(map.values());
+}
 export function legalStatistics(records=[]){
  const map=new Map();
  for(const d of records){const n=String(d?.soHieu||'').replace(/\s+/g,'').toUpperCase(),sector=String(d?.linhVuc||'').trim();if(n&&sector)map.set(sector+':'+n,d);}
