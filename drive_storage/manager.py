@@ -94,9 +94,73 @@ class DriveStorage:
         ).execute()
         return result["id"]
 
-    def project(self, code: str, project_name: str) -> str:
+    def _child_projects(self, projects_id: str) -> list[dict]:
+        """List direct project folders, paging through all entries."""
+        query = (f"'{_quote(projects_id)}' in parents and "
+                 "mimeType = 'application/vnd.google-apps.folder' and trashed = false")
+        items, token = [], None
+        while True:
+            response = self.service.files().list(
+                q=query, fields="nextPageToken,files(id,name,appProperties)",
+                pageSize=100, pageToken=token,
+            ).execute()
+            items.extend(response.get("files", []))
+            token = response.get("nextPageToken")
+            if not token:
+                return items
+
+    def list_projects(self) -> list[dict]:
+        """Only projects directly inside this app's configured Drive root."""
         projects = self.folder(self.root_id, ROOT_SUBDIR)
-        return self.folder(projects, validated_project_folder(code, project_name))
+        return sorted(self._child_projects(projects), key=lambda f: f["name"].casefold())
+
+    def project(self, code: str, project_name: str) -> str:
+        expected = validated_project_folder(code, project_name)
+        normalized_code = code.strip().upper()
+        projects = self.folder(self.root_id, ROOT_SUBDIR)
+        children = self._child_projects(projects)
+        # Match project names case-insensitively to avoid parallel folders like
+        # S234_SUNSHINE_SKY_CITY versus S234_Sunshine_Sky_City.
+        matches = [x for x in children if x["name"].casefold() == expected.casefold()]
+        if len(matches) != 1 and matches:
+            raise RuntimeError("Có nhiều thư mục dự án trùng tên. Kiểm tra Google Drive trước khi tiếp tục.")
+        if matches:
+            return matches[0]["id"]
+        # Same code with another name is an unsafe collision: never mix projects.
+        collisions = [x for x in children if (
+            str((x.get("appProperties") or {}).get("projectCode", "")).upper() == normalized_code
+            or x["name"].upper().startswith(normalized_code + "_")
+        )]
+        if collisions:
+            raise ValueError("Mã dự án đã có thư mục khác trên Drive. Hãy chọn dự án hiện có thay vì tạo bản trùng.")
+        return self.folder(projects, expected)
+
+    def ensure_project_tree(self, code: str, project_name: str) -> str:
+        """Create the complete 13-category tree once; idempotent on repeated calls."""
+        project_id = self.project(code, project_name)
+        for category_path in sorted(set(FOLDER_CATEGORIES.values())):
+            parent = project_id
+            for sub in category_path:
+                parent = self.folder(parent, sub)
+        return project_id
+
+    def project_by_id(self, project_id: str) -> dict:
+        """Resolve only direct child folders; never accept arbitrary Drive IDs."""
+        if not re.fullmatch(r"[\w-]{12,160}", project_id or ""):
+            raise ValueError("ID dự án không hợp lệ")
+        projects = self.list_projects()
+        matches = [p for p in projects if p["id"] == project_id]
+        if len(matches) != 1:
+            raise ValueError("Dự án không thuộc thư mục gốc của ứng dụng")
+        return matches[0]
+
+    def destination_by_id(self, project_id: str, category: str) -> str:
+        if category not in FOLDER_CATEGORIES:
+            raise ValueError("Nhóm hồ sơ không hợp lệ")
+        parent = self.project_by_id(project_id)["id"]
+        for sub in FOLDER_CATEGORIES[category]:
+            parent = self.folder(parent, sub)
+        return parent
 
     def destination(self, code: str, project_name: str, category: str) -> str:
         if category not in FOLDER_CATEGORIES:
@@ -106,30 +170,67 @@ class DriveStorage:
             parent = self.folder(parent, sub)
         return parent
 
-    def upload(self, *, code: str, project_name: str, category: str, filename: str, data: bytes) -> dict:
+    def verify_connection(self) -> dict:
+        """Confirm this OAuth identity can access the configured Drive root."""
+        profile = self.service.about().get(fields="user(emailAddress)").execute()
+        folder = self.service.files().get(
+            fileId=self.root_id,
+            fields="id,name,mimeType,trashed,capabilities(canAddChildren)",
+        ).execute()
+        if (folder.get("mimeType") != "application/vnd.google-apps.folder"
+                or folder.get("trashed")):
+            raise PermissionError("Thư mục gốc Google Drive không hợp lệ hoặc đã bị xóa")
+        if folder.get("capabilities", {}).get("canAddChildren") is False:
+            raise PermissionError("Tài khoản Drive không có quyền thêm tệp vào thư mục gốc")
+        return {"email": profile.get("user", {}).get("emailAddress", ""),
+                "root_name": folder.get("name", ""), "root_id": folder["id"]}
+
+    def _upload_to_parent(self, *, parent: str, project_code: str,
+                          category: str, filename: str, data: bytes) -> dict:
         if not data or len(data) > MAX_FILE_SIZE:
             raise ValueError("Tệp phải có dung lượng từ 1 byte đến 25 MB")
         original = safe_filename(filename)
-        parent = self.destination(code, project_name, category)
-        stem, ext = original[: -len(PurePath(original).suffix)], PurePath(original).suffix
+        extension = PurePath(original).suffix
+        stem = original[:-len(extension)]
         stem = re.sub(r"_R\d{2,4}$", "", stem, flags=re.I)
-        # Never overwrite the previous approved revision. A new upload creates a new file.
         for revision in range(1, 1000):
-            candidate = f"{stem}_R{revision:02d}{ext}"
-            q = f"'{_quote(parent)}' in parents and name = '{_quote(candidate)}' and trashed = false"
-            matches = self.service.files().list(q=q,fields="files(id)",pageSize=2).execute().get("files", [])
+            candidate = f"{stem}_R{revision:02d}{extension}"
+            query = (f"'{_quote(parent)}' in parents and "
+                     f"name = '{_quote(candidate)}' and trashed = false")
+            matches = self.service.files().list(q=query, fields="files(id)", pageSize=2).execute().get("files", [])
             if not matches:
                 break
         else:
             raise RuntimeError("Đã đạt giới hạn phiên bản tệp")
         from googleapiclient.http import MediaIoBaseUpload
-        media = MediaIoBaseUpload(io.BytesIO(data), mimetype=mimetypes.guess_type(candidate)[0] or "application/octet-stream",resumable=True)
+        media = MediaIoBaseUpload(io.BytesIO(data),
+                                  mimetype=mimetypes.guess_type(candidate)[0] or "application/octet-stream",
+                                  resumable=True)
         result = self.service.files().create(
-            body={"name":candidate,"parents":[parent],"appProperties":{"projectCode":code.strip().upper(),"category":category,"originalName":original,"revision":str(revision)}},
+            body={"name": candidate, "parents": [parent], "appProperties": {
+                "projectCode": project_code, "category": category,
+                "originalName": original, "revision": str(revision),
+            }},
             media_body=media,
             fields="id,name,mimeType,size,webViewLink,parents",
         ).execute()
+        if parent not in result.get("parents", []):
+            raise RuntimeError("Drive trả về vị trí lưu không khớp. Cần kiểm tra tệp vừa tải lên.")
         return result
+
+    def upload(self, *, code: str, project_name: str, category: str,
+               filename: str, data: bytes) -> dict:
+        parent = self.destination(code, project_name, category)
+        return self._upload_to_parent(parent=parent, project_code=code.strip().upper(),
+                                      category=category, filename=filename, data=data)
+
+    def upload_to_project(self, *, project_id: str, category: str,
+                          filename: str, data: bytes) -> dict:
+        record = self.project_by_id(project_id)
+        parent = self.destination_by_id(project_id, category)
+        code = (record.get("appProperties") or {}).get("projectCode") or record["name"].split("_", 1)[0]
+        return self._upload_to_parent(parent=parent, project_code=code.upper(),
+                                      category=category, filename=filename, data=data)
 
 
 def from_streamlit_secrets(config: dict) -> DriveStorage:

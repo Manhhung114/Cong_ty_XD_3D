@@ -1,3 +1,11 @@
+# Kết nối Google Drive từ Streamlit (Kho hồ sơ XD & MEP)
+
+Đã bổ sung mục **Google Drive · Kho hồ sơ dự án** ngay trên trang chính Streamlit, cho phép tài khoản quản trị đã đăng nhập chọn dự án, tạo đủ 13 thư mục, và tải tài liệu có revision mà không ghi đè. **Cần cấu hình Google OAuth trong Streamlit Cloud Secrets** trước khi tải tệp thật.
+
+Hướng dẫn từng bước: [`docs/GOOGLE_DRIVE_CONNECT_STREAMLIT.md`](docs/GOOGLE_DRIVE_CONNECT_STREAMLIT.md). Không đưa refresh token lên GitHub.
+
+---
+
 # Truy cập bản Web 3D V5.7.9 qua Streamlit Community Cloud
 
 - Khởi chạy: `streamlit_app.py` (nhánh `main`).

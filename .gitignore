@@ -25,3 +25,11 @@ backend/storage/
 *.db
 __pycache__/
 .pytest_cache/
+
+# Google Drive OAuth secret files (keep only on local machine)
+.streamlit/secrets.toml
+client_secret*.json
+credentials*.json
+drive_oauth_private*
+google_drive_tokens_private*
+*_tokens_private*.txt
