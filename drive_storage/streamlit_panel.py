@@ -21,10 +21,26 @@ def _config(st):
     return auth, drive
 
 
-def display(st):
+def display(st, expanded=False):
     """Render the uploader on the main page (not the hidden Streamlit sidebar)."""
-    with st.expander("☁️ Google Drive · Kho hồ sơ dự án", expanded=False):
+    with st.expander("☁️ Google Drive · Kho hồ sơ dự án", expanded=expanded):
         auth, drive = _config(st)
+        # Prevent common OAuth misconfiguration before calling st.login().
+        auth_keys = ("redirect_uri", "cookie_secret", "client_id", "client_secret", "server_metadata_url")
+        missing_auth = [k for k in auth_keys if not auth.get(k) or str(auth.get(k)).startswith("REPLACE")]
+        if missing_auth:
+            st.error("Thiếu cấu hình đăng nhập Google trong [auth]: " + ", ".join(missing_auth))
+            st.link_button("Xem hướng dẫn OAuth", DOCS_URL)
+            return
+        if str(auth["redirect_uri"]).strip() != "https://congtyxd.streamlit.app/oauth2callback":
+            st.error("Redirect URI không khớp. Kiểm tra [auth].redirect_uri và Authorized redirect URIs trên Google Cloud.")
+            return
+        if len(str(auth.get("cookie_secret", ""))) < 32:
+            st.error("cookie_secret quá ngắn hoặc chưa tạo khóa ngẫu nhiên. Hãy nhập chuỗi bí mật dài ít nhất 32 ký tự.")
+            return
+        if not str(auth.get("client_id", "")).endswith(".apps.googleusercontent.com"):
+            st.error("Client ID trong [auth] chưa đúng định dạng Google Web OAuth.")
+            return
         if not auth or any(not drive.get(k) for k in REQUIRED_DRIVE_KEYS):
             st.info("Google Drive chưa được kết nối với website. Cần cấu hình tài khoản Google và Streamlit Secrets một lần.")
             st.link_button("Hướng dẫn kết nối Google Drive", DOCS_URL)

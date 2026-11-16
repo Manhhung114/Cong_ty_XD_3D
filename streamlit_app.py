@@ -22,7 +22,14 @@ def render_page() -> str:
     # Rebuild on every run: Streamlit source-code caching may retain outdated JS after GitHub updates.
     return build(Path(__file__).resolve().parent / "static")
 
-render_google_drive_storage(st)
+# Google OAuth is handled at the top-level Streamlit page, never in the embedded 3D iframe.
+# This private screen is linked from Cài đặt → Google Drive in the 3D UI.
+if st.query_params.get("drive") == "settings":
+    st.markdown("## Google Drive · Cài đặt kho hồ sơ")
+    st.link_button("← Trở về Văn phòng 3D", "https://congtyxd.streamlit.app/")
+    render_google_drive_storage(st, expanded=True)
+    st.stop()
+
 
 try:
     page = render_page()
