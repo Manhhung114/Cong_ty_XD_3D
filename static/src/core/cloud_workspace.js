@@ -108,7 +108,7 @@ const tasksHtml=filter=>{
  const supervisor=p&&((p.assignee||'').toLowerCase()===actor);
  const canDelegate=canReview()||!!supervisor;
  const statusLabel=returned?'Yêu cầu sửa':(labels[t.status]||t.status);
- return '<article class="portal-task"><div class="portal-task-head"><div><strong>'+h(t.title)+'</strong><small>'+h(t.code)+' · '+h(t.dept)+' · '+h(t.assignee||'Chưa giao')+
+ return '<article class="portal-task portal-hierarchy-'+h(t.hierarchyStage||'none')+'" data-parent-task="'+h(t.parentTaskId||'')+'"><div class="portal-task-head"><div><strong>'+h(t.title)+'</strong><small>'+h(t.code)+' · '+h(t.dept)+' · '+h(t.assignee||'Chưa giao')+
  '</small></div><span class="portal-pill '+(t.status==='review'?'review':t.status==='done'?'done':t.status==='cancelled'?'cancelled':returned?'returned':'')+'">'+h(statusLabel)+'</span></div>'+
  (t.hierarchyStage?'<p class="company-secondary"><b>Tuyến phân cấp:</b> '+
   h(hierarchyStages[t.hierarchyStage]||t.hierarchyStage)+
