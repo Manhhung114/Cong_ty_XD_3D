@@ -165,15 +165,19 @@ def build_monitor_packet(identity, snapshot: dict, signed_events: list[dict],
         "priority": t.get("priority", "normal"),
     } for t in tasks]
     return {
-        "schema": "XD_MEP_MONITOR_V67",
+        "schema": "XD_MEP_MONITOR_V70",
         "readOnly": True, "authorizedProjects": len(allowed),
         "asOf": now.isoformat(), "pollSeconds": 15,
         "windowDays": WINDOW_DAYS, "events": limited,
         "eventsAvailable": eligible, "eventsTruncated": eligible > len(limited),
         "tasks": packet_tasks, "handoffs": packet_handoffs,
+        "agentActivity": [r for r in snapshot.get("agentActivity", [])
+                          if r["projectId"] in allowed][:100],
         "capabilities": {
             "mode": "polling_near_realtime",
             "agentRunningHeartbeat": False,
+            "signedAgentLifecycle": True,
+            "runningProof": "start-event-only-no-heartbeat",
             "crossSystemHandoffs": True,
             "websocket": False,
         },
