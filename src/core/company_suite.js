@@ -37,7 +37,7 @@ function agentCards(){
  '<div class="company-notice">'+(configured?
  'Đã cấu hình AI dùng chung trên máy chủ: <strong>'+h(s.aiStatus.provider+' / '+s.aiStatus.model)+'</strong> trên máy chủ. Khi chạy AI, yêu cầu sự đồng ý gửi metadata dự án ra nhà cung cấp.':
  'Chưa cấu hình AI máy chủ. <strong>Kiểm tra checklist đầu vào</strong> vẫn chạy thật; chưa có phân tích từ mô hình AI. Admin vào Cài đặt → API dùng chung để lưu khóa mã hóa một lần cho cả công ty.')+
- '<br>V6.4–6.6: đã có bộ đọc mẫu PDF/XLSX/CSV/DXF/IFC và kiểm tra BOQ/công thức có nguồn; <strong>DWG/RVT, IFC clash hình học và file trên 8 MB vẫn cần worker</strong>. Mọi báo cáo cần kỹ sư thẩm tra.</div>'+
+ '<br>V6.4–6.6: đã có bộ đọc mẫu PDF/XLSX/CSV/DXF/IFC và kiểm tra BOQ/công thức có nguồn; <strong>DWG/RVT, IFC clash hình học và file trên 50 MB vẫn cần worker</strong>. Mọi báo cáo cần kỹ sư thẩm tra.</div>'+
  '<div class="company-agent-grid">'+profiles.map(a=>{
  const isCoordinator=['CEO','PM','DOC','QAC'].includes(a.id);
  const compatible=tasks.filter(t=>t.dept===a.department||isCoordinator);
