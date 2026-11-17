@@ -21,7 +21,7 @@ Ngày: 17/11/2026. Dành cho dự án **Cong_ty_XD_3D** (Streamlit + Google OIDC
 - **Không phát sinh chi phí AI tự động:** phân phối deterministic sau duyệt Admin, chạy Agent thủ công bằng nút và consent hiện hành; không background worker.
 - **Không tạo nhiệm vụ trùng:** chỉ 1 phương án đang chờ hoặc đã phân phối cho 1 công việc CEO. HMAC ledger lưu riêng, không sửa hồ sơ Drive gốc.
 - **Không cho phê duyệt công việc gốc khi cấp dưới chưa duyệt**, không cho QA chạy trước chuyên gia. Khi quản lý muốn đổi người phụ trách nhiệm vụ con, chỉ cấp trên trực tiếp hoặc Admin.
-- **Không xóa công việc cha khi đã có con:** trước mắt cấm hủy đơn lẻ nút cha để tránh mất liên kết. Hủy cả cây phân phối theo phiên cần bổ sung luồng thu hồi có xác nhận riêng; không phá cây công việc qua hành vi cũ.
+- **Không xóa đơn lẻ công việc cha có con:** cấm thao tác hủy lẻ để tránh mất liên kết. Admin có nút **Dừng toàn bộ cây phân phối**, bắt buộc nhập lý do và xác nhận. Một sự kiện HMAC `hierarchy.stopped` hủy những công việc chưa duyệt, thu hồi người/Agent; những nhiệm vụ đã duyệt, báo cáo và hồ sơ vẫn giữ nguyên, không hủy ngầm hay xóa dữ liệu.
 - **Giới hạn môi trường:** Google Drive event ledger hiện có trần 2.500 sự kiện. Mỗi cây 1–4 bộ môn tạo 4–13 nhiệm vụ, và phê duyệt / Agent chạy tạo thêm sự kiện. Khi tăng quy mô doanh nghiệp sẽ cần PostgreSQL + job queue / worker riêng, không nên tự tăng trần ledger hay tự chạy 18 Agents đồng thời trên Streamlit.
 
 ## Checklist nghiệm thu
