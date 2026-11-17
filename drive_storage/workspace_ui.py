@@ -17,12 +17,13 @@ COMMANDS = {
     "overview": {"refresh"},
     "projects": {"refresh", "select", "project_create", "project_import"},
     "tasks": {"refresh", "select", "task_create", "task_assign", "task_withdraw", "task_start", "task_submit",
-              "org_roles", "hierarchy_propose", "hierarchy_review", "hierarchy_stop"},
+              "org_roles", "hierarchy_propose", "hierarchy_review", "hierarchy_stop", "meeting_create"},
     "reviews": {"refresh", "select", "task_review"},
     "documents": {"refresh", "select", "document_inventory", "document_manage"},
     "activity": {"refresh", "select"},
     "agents": {"refresh", "select", "agent_run"},
-    "company": {"refresh", "select", "handoff_create", "handoff_resolve", "ops_audit"},
+    "company": {"refresh", "select", "handoff_create", "handoff_resolve", "ops_audit",
+                "meeting_create", "meeting_minutes", "meeting_approve", "meeting_close"},
     "monitor": {"refresh", "select"},
 }
 DEPARTMENT_NAMES = {
@@ -37,7 +38,8 @@ DEPARTMENT_NAMES = {
 INTERACTIVE = {"project_create", "project_import", "task_create", "task_assign", "task_withdraw", "task_submit",
                "org_roles", "hierarchy_propose", "hierarchy_review", "hierarchy_stop",
                "task_review", "document_manage", "agent_run", "handoff_create",
-               "handoff_resolve", "ops_audit"}
+               "handoff_resolve", "ops_audit", "meeting_create", "meeting_minutes",
+               "meeting_approve", "meeting_close"}
 
 
 def service_for(st):
@@ -74,6 +76,8 @@ def load_snapshot(st) -> dict:
     from drive_storage.company_ui import ai_status
     snapshot["companyMetrics"] = company_metrics(snapshot)
     snapshot["agentsCatalog"] = public_catalog(selected)
+    from drive_storage.coordination import meetings_enabled
+    snapshot["meetingsAvailable"] = meetings_enabled()
     snapshot["aiStatus"] = ai_status(st)
     from agent_runtime.client import public_jobs
     runtime = public_jobs(st, actor, selected) if selected else {
@@ -153,11 +157,11 @@ def handle_workspace_action(st, action: dict):
         st.session_state.xd_selected_cloud_project = pid
         st.session_state.xd_last_workspace_request = request_id
         return
-    if op in {"project_create", "project_import", "org_roles", "hierarchy_review", "hierarchy_stop"} and not can_admin(actor):
+    if op in {"project_create", "project_import", "org_roles", "hierarchy_review", "hierarchy_stop", "meeting_approve", "meeting_close"} and not can_admin(actor):
         raise PermissionError("Chỉ Admin được tạo dự án")
     if op in {"task_create", "task_assign", "task_withdraw", "task_start", "task_submit", "hierarchy_propose"} and not can_upload(actor):
         raise PermissionError("Tài khoản Chỉ đọc không được cập nhật công việc")
-    if op in {"agent_run", "handoff_create", "handoff_resolve"} and not can_upload(actor):
+    if op in {"agent_run", "handoff_create", "handoff_resolve", "meeting_create", "meeting_minutes"} and not can_upload(actor):
         raise PermissionError("Chỉ đọc không được chạy Agent hoặc gửi phối hợp")
     if op == "ops_audit" and not can_admin(actor):
         raise PermissionError("Chỉ Admin được kiểm soát và sao lưu hệ thống")
@@ -181,6 +185,19 @@ def handle_workspace_action(st, action: dict):
         _, task, _, _ = _task_context(current, pid, task_id, str(action.get("agentId") or ""))
         require_operator(actor, task)
         require_qc_role(actor, task, current)
+    if op.startswith("meeting_"):
+        from drive_storage.coordination import meetings_enabled
+        if not meetings_enabled():
+            raise PermissionError("Họp phối hợp chưa được bật sau nghiệm thu")
+        meeting_id = str(action.get("meetingId") or "")
+        if op == "meeting_create":
+            if task_id and not any(t["id"] == task_id and t["projectId"] == pid
+                                   and t["status"] != "cancelled"
+                                   for t in current["tasks"]):
+                raise PermissionError("Không thể họp từ công việc đã hủy hoặc ngoài dự án")
+        elif not any(m["id"] == meeting_id and m["projectId"] == pid
+                     for m in current.get("meetings", [])):
+            raise PermissionError("Cuộc họp không thuộc dự án được cấp quyền")
     if op == "handoff_resolve":
         handoff_id = str(action.get("handoffId") or "")
         if not any(h["id"] == handoff_id and h["projectId"] == pid
@@ -209,6 +226,7 @@ def handle_workspace_action(st, action: dict):
         "fileId": str(action.get("fileId") or "")[:160],
         "agentId": str(action.get("agentId") or "")[:20],
         "handoffId": str(action.get("handoffId") or "")[:160],
+        "meetingId": str(action.get("meetingId") or "")[:160],
     }
     st.session_state.xd_last_workspace_request = request_id
 
@@ -220,6 +238,10 @@ def workspace_dialog(st):
     if action.get("op") in {"org_roles", "hierarchy_propose", "hierarchy_review", "hierarchy_stop"}:
         from drive_storage.hierarchy_ui import hierarchy_dialog
         hierarchy_dialog(st, action)
+        return
+    if action.get("op") in {"meeting_create", "meeting_minutes", "meeting_approve", "meeting_close"}:
+        from drive_storage.coordination_ui import meeting_dialog
+        meeting_dialog(st, action)
         return
     if action.get("op") in {"agent_run", "handoff_create", "handoff_resolve", "ops_audit"}:
         from drive_storage.company_ui import company_dialog
