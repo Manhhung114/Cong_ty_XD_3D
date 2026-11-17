@@ -205,3 +205,13 @@
  .company-meeting-card{padding:12px}
  .company-meeting-card .portal-review-actions button{width:100%}
 }
+
+/* Fast, accessible task focus controls on desktop and mobile */
+.portal-focus-tabs{display:flex;gap:7px;flex-wrap:wrap;margin:15px 0 12px}
+.portal-focus-tabs button{font:inherit;font-size:11px;font-weight:700;color:#bcdde8;background:#183d50;
+ border:1px solid #3f6576;border-radius:9px;padding:9px 12px;min-height:39px;cursor:pointer}
+.portal-focus-tabs button[aria-pressed="true"]{background:#a4ecdd;border-color:#a4ecdd;color:#0c3445}
+.portal-focus-tabs button:focus-visible{outline:2px solid #82e7f4;outline-offset:3px}
+.portal-task[hidden],.empty-state[hidden]{display:none!important}
+@media(max-width:750px){.portal-focus-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+ .portal-focus-tabs button{padding:10px 8px;font-size:10px}}
