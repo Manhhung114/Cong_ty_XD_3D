@@ -34,6 +34,7 @@ ACTIONS = {
     "document.metadata_updated", "document.submitted", "document.approved",
     "document.returned", "document.archived",
     "agent.completed", "handoff.requested", "handoff.resolved",
+    "org.role_set", "hierarchy.proposed", "hierarchy.approved", "hierarchy.rejected",
 }
 ID = re.compile(r"^[A-Za-z0-9_-]{12,160}$")
 EVENT_ID = re.compile(r"^[0-9a-f]{32}$")
@@ -183,6 +184,7 @@ class SharedWorkspace:
         projects = self._projects(identity)
         allowed = {p["id"] for p in projects}
         task_map, documents, audit, handoff_map, agent_runs = {}, {}, [], {}, []
+        org_roles, hierarchy_plans = {}, {}
         signed_events = self.events()
         for event in signed_events:
             pid = event["project_id"]
@@ -212,7 +214,92 @@ class SharedWorkspace:
                     "cancelledAt": "", "cancelledBy": "", "cancelReason": "",
                     "createdBy": event["actor"], "createdAt": event["at"],
                     "legacy": data.get("legacy", {}),
+                    "parentTaskId": "", "rootTaskId": tid,
+                    "hierarchyStage": "ceo" if data.get("agent_id") == "CEO" else "",
+                    "delegationPlanId": "", "dependsOn": [],
+                    "assignedBy": event["actor"],
                 }
+            elif action == "org.role_set":
+                from drive_storage.hierarchy import ORG_ROLES, DEPT_LABELS
+                email = clean_email(data["email"])
+                if data["role"] not in ORG_ROLES:
+                    raise ValueError("Vai trò tổ chức không hợp lệ")
+                department = data.get("department", "")
+                if department not in {*DEPT_LABELS, "director", "qa"}:
+                    raise ValueError("Bộ môn của vị trí không hợp lệ")
+                if data["role"] in {"director", "pm"} and department != "director":
+                    raise ValueError("Vị trí giám đốc/PM phải thuộc khối điều hành")
+                if data["role"] == "qa" and department != "qa":
+                    raise ValueError("QA/QC cần đúng bộ môn QA")
+                org_roles[(pid, email)] = {
+                    "projectId": pid, "email": email,
+                    "role": data["role"], "department": department,
+                    "active": data["role"] != "none",
+                    "updatedBy": event["actor"], "updatedAt": event["at"],
+                }
+            elif action == "hierarchy.proposed":
+                from drive_storage.hierarchy import normalize_departments
+                task = task_map.get(data["task_id"])
+                if not task or task["projectId"] != pid or task.get("assignedAgentId") != "CEO":
+                    raise ValueError("Chỉ nhiệm vụ CEO có thật mới được trình phân phối")
+                hierarchy_plans[event["id"]] = {
+                    "id": event["id"], "projectId": pid, "rootTaskId": task["id"],
+                    "departments": normalize_departments(data["departments"]),
+                    "instructions": data.get("instructions", ""),
+                    "status": "pending", "createdBy": event["actor"],
+                    "createdAt": event["at"], "reviewedBy": "", "reviewedAt": "",
+                    "reason": "", "dispatchId": "",
+                }
+            elif action == "hierarchy.rejected":
+                plan = hierarchy_plans.get(data["proposal_id"])
+                if not plan or plan["projectId"] != pid or plan["status"] != "pending":
+                    raise ValueError("Đề xuất phân phối không còn chờ duyệt")
+                plan.update({"status": "rejected", "reviewedBy": event["actor"],
+                             "reviewedAt": event["at"], "reason": data["reason"]})
+            elif action == "hierarchy.approved":
+                from drive_storage.hierarchy import STAGES
+                plan = hierarchy_plans.get(data["proposal_id"])
+                if not plan or plan["projectId"] != pid or plan["status"] != "pending":
+                    raise ValueError("Đề xuất phân phối chưa được phê duyệt")
+                nodes = data["children"]
+                if not 4 <= len(nodes) <= 13:
+                    raise ValueError("Số nhiệm vụ phân cấp không hợp lệ")
+                seen = set()
+                for node in nodes:
+                    nid = node["id"]
+                    parent = task_map.get(node["parent_id"])
+                    if (nid in task_map or nid in seen or not EVENT_ID.fullmatch(nid)
+                            or not parent or parent["projectId"] != pid
+                            or node["stage"] not in STAGES - {"ceo"}
+                            or node["department"] not in DEPARTMENTS
+                            or not isinstance(node.get("depends_on", []), list)
+                            or any(d not in task_map for d in node["depends_on"])):
+                        raise ValueError("Sơ đồ phân cấp không hợp lệ")
+                    seen.add(nid)
+                    task_map[nid] = {
+                        "id": nid, "projectId": pid,
+                        "code": "CV-" + nid[:8].upper(), "title": node["title"],
+                        "dept": node["department"], "assignee": node.get("assignee", ""),
+                        "assignedAgentId": node["agent_id"],
+                        "docCode": node.get("doc_code", ""),
+                        "dueDate": node.get("due_date", ""),
+                        "priority": node.get("priority", "normal"), "status": "todo",
+                        "report": "", "findings": "", "reviewHistory": [],
+                        "lastReviewDecision": "", "lastReviewNote": "",
+                        "lastReviewer": "", "lastReviewedAt": "",
+                        "lastSubmittedAt": "", "lastSubmittedBy": "",
+                        "withdrawnAt": "", "withdrawnBy": "", "withdrawReason": "",
+                        "cancelledAt": "", "cancelledBy": "", "cancelReason": "",
+                        "createdBy": event["actor"], "createdAt": event["at"],
+                        "parentTaskId": node["parent_id"],
+                        "rootTaskId": node["root_task_id"],
+                        "hierarchyStage": node["stage"],
+                        "delegationPlanId": plan["id"],
+                        "dependsOn": list(node["depends_on"]),
+                        "assignedBy": event["actor"], "legacy": {},
+                    }
+                plan.update({"status": "dispatched", "reviewedBy": event["actor"],
+                             "reviewedAt": event["at"], "dispatchId": event["id"]})
             elif action.startswith("task."):
                 task = task_map.get(data.get("task_id"))
                 if task is None or task["projectId"] != pid:
@@ -389,9 +476,15 @@ class SharedWorkspace:
                 })
             audit.append({**entry, "detail": _clean_text(data.get("title", data.get("code", "")), 160)})
         tasks = sorted(task_map.values(), key=lambda x: x["createdAt"], reverse=True)
+        from drive_storage.hierarchy import describe_progress
+        for task in tasks:
+            task["hierarchyProgress"] = describe_progress(task, tasks)
         result = {"version": 67, "projects": projects, "tasks": tasks,
                   "documents": list(documents.values()), "events": audit[-200:],
                   "handoffs": sorted(handoff_map.values(), key=lambda h: h["createdAt"], reverse=True),
+                  "orgRoles": [row for (p, _), row in org_roles.items() if p in allowed],
+                  "hierarchyPlans": [row for row in hierarchy_plans.values()
+                                     if row["projectId"] in allowed],
                   "agentRuns": sorted(agent_runs, key=lambda r: r["at"], reverse=True)[:200],
                   "role": identity["role"], "actor": identity["email"]}
         if include_monitor:
@@ -428,6 +521,90 @@ class SharedWorkspace:
         )
         return project_id
 
+    def set_org_role(self, identity, *, project_id, email, role, department, event_id=None):
+        from drive_storage.hierarchy import ORG_ROLES, DEPT_LABELS
+        if not can_admin(identity):
+            raise PermissionError("Chỉ Admin được cấu hình nhân sự phân cấp")
+        pid = self._check_project(identity, project_id, True)
+        email = clean_email(email)
+        if role not in ORG_ROLES or department not in {*DEPT_LABELS, "director", "qa"}:
+            raise ValueError("Chức danh hoặc bộ môn không hợp lệ")
+        if ((role in {"director", "pm"} and department != "director")
+                or (role == "qa" and department != "qa")):
+            raise ValueError("Vai trò phải phù hợp bộ môn")
+        return self._append(identity=identity, project_id=pid, action="org.role_set",
+                            data={"email": email, "role": role,
+                                  "department": department}, event_id=event_id)
+
+    def propose_hierarchy(self, identity, *, project_id, task_id, departments,
+                          instructions="", event_id=None):
+        from drive_storage.hierarchy import normalize_departments
+        pid, task = self._current_task(identity, project_id, task_id)
+        if (task.get("assignedAgentId") != "CEO" or task["dept"] != "director"
+                or task.get("parentTaskId") or task["status"] not in {"todo", "working"}):
+            raise ValueError("Chỉ công việc gốc giao CEO, chưa đóng, mới được phân phối")
+        if not can_admin(identity) and str(task.get("assignee") or "").lower() != identity["email"].lower():
+            raise PermissionError("Chỉ Giám đốc được giao hoặc Admin mới lập phương án")
+        state = self.snapshot(identity)
+        if any(p["rootTaskId"] == task_id and p["status"] in {"pending", "dispatched"}
+               for p in state["hierarchyPlans"]):
+            raise ValueError("Giám đốc đã có phương án đang chờ duyệt hoặc đã phân phối")
+        normalized = normalize_departments(departments)
+        note = _clean_text(instructions, 500)
+        return self._append(identity=identity, project_id=pid, action="hierarchy.proposed",
+                            data={"task_id": task_id, "departments": normalized,
+                                  "instructions": note}, event_id=event_id)
+
+    def review_hierarchy(self, identity, *, project_id, proposal_id, decision,
+                         reason="", event_id=None):
+        from drive_storage.hierarchy import plan_tasks
+        if not can_admin(identity):
+            raise PermissionError("Chỉ Admin được duyệt phương án phân phối")
+        pid = self._check_project(identity, project_id, True)
+        state = self.snapshot(identity)
+        plan = next((p for p in state["hierarchyPlans"]
+                     if p["id"] == proposal_id and p["projectId"] == pid), None)
+        if not plan or plan["status"] != "pending":
+            raise ValueError("Phương án không tồn tại hoặc đã được xét duyệt")
+        task = next((t for t in state["tasks"]
+                     if t["id"] == plan["rootTaskId"] and t["projectId"] == pid), None)
+        if not task or task["status"] not in {"todo", "working"}:
+            raise ValueError("Công việc gốc đã thay đổi trạng thái")
+        if decision == "reject":
+            reason = _clean_text(reason, 600, True)
+            if len(reason) < 5:
+                raise ValueError("Cần nêu lý do trả lại phương án")
+            return self._append(identity=identity, project_id=pid,
+                                action="hierarchy.rejected",
+                                data={"proposal_id": proposal_id, "reason": reason},
+                                event_id=event_id)
+        if decision != "approve":
+            raise ValueError("Quyết định phân phối không hợp lệ")
+        dispatch_id = str(event_id or uuid.uuid4().hex).lower()
+        nodes = plan_tasks(root=task, departments=plan["departments"],
+                           dispatch_id=dispatch_id, proposal_id=proposal_id,
+                           roles=[r for r in state["orgRoles"] if r["projectId"] == pid])
+        return self._append(identity=identity, project_id=pid,
+                            action="hierarchy.approved",
+                            data={"proposal_id": proposal_id, "children": nodes},
+                            event_id=dispatch_id)
+
+    def _hierarchy_guard(self, identity, task, *, submit=False):
+        from drive_storage.hierarchy import (
+            require_operator, dependencies_block, unfinished_children,
+        )
+        tasks = self.snapshot(identity)["tasks"]
+        require_operator(identity, task)
+        waiting = dependencies_block(task, tasks)
+        if waiting:
+            raise PermissionError("Công việc còn phụ thuộc nhiệm vụ chưa duyệt: " +
+                                  ", ".join("CV-" + x[:8].upper() for x in waiting))
+        if submit:
+            pending = unfinished_children(task, tasks)
+            if pending:
+                raise PermissionError("Chưa thể trình báo cáo cấp trên: còn " +
+                                      str(len(pending)) + " nhiệm vụ con chưa được phê duyệt")
+
     def create_task(self, identity, *, project_id, title, dept, assignee="",
                     doc_code="", due_date="", priority="normal", agent_id="", event_id=None):
         pid = self._check_project(identity, project_id, True)
@@ -462,6 +639,11 @@ class SharedWorkspace:
         pid, task = self._current_task(identity, project_id, task_id)
         if task["status"] not in {"todo", "working"}:
             raise ValueError("Chỉ điều chỉnh phân công khi nhiệm vụ chưa trình duyệt")
+        if task.get("hierarchyStage") and not can_admin(identity):
+            parent = next((t for t in self.snapshot(identity)["tasks"]
+                           if t["id"] == task.get("parentTaskId")), None)
+            if not parent or str(parent.get("assignee") or "").lower() != identity["email"].lower():
+                raise PermissionError("Chỉ cấp quản lý trực tiếp hoặc Admin được giao lại việc phân cấp")
         self._validate_task_agent(task["dept"], agent_id)
         assignee = _clean_text(assignee, 160)
         agent_id = _clean_text(agent_id, 20)
@@ -517,6 +699,7 @@ class SharedWorkspace:
         pid, task = self._current_task(identity, project_id, task_id)
         if task["status"] != "todo":
             raise ValueError("Nhiệm vụ không ở trạng thái chờ")
+        self._hierarchy_guard(identity, task)
         return self._append(identity=identity, project_id=pid, action="task.started",
                             data={"task_id": task_id}, event_id=event_id)
 
@@ -524,6 +707,7 @@ class SharedWorkspace:
         pid, task = self._current_task(identity, project_id, task_id)
         if task["status"] not in {"todo", "working"}:
             raise ValueError("Nhiệm vụ không ở trạng thái thực hiện")
+        self._hierarchy_guard(identity, task, submit=True)
         summary = _clean_text(summary, 4000, True)
         if len(summary) < 12:
             raise ValueError("Báo cáo phải có ít nhất 12 ký tự")
@@ -537,6 +721,10 @@ class SharedWorkspace:
         pid, task = self._current_task(identity, project_id, task_id)
         if task["status"] != "review":
             raise ValueError("Nhiệm vụ không ở trạng thái chờ duyệt")
+        if decision == "approve":
+            from drive_storage.hierarchy import unfinished_children
+            if unfinished_children(task, self.snapshot(identity)["tasks"]):
+                raise PermissionError("Không thể duyệt cấp trên khi còn nhiệm vụ con chưa hoàn thành")
         if decision not in {"approve", "reject"}:
             raise ValueError("Quyết định không hợp lệ")
         comment = _clean_text(comment, 2000, decision == "reject")
