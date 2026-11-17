@@ -1,6 +1,7 @@
-/* V6.7 — near-real-time signed event monitor, no mock data.
+/* V7.0 — signed event monitor + CEO 3D control center, no mock Agent runs.
    Native SVG charts avoid CDN/Plotly dependencies in Streamlit srcdoc iframe.
    Separate MEP & XD; actual cross-system handoffs, no invented agent edges. */
+import {renderCEOCommandCenter} from './hq_dashboard.js';
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const st=()=>window.__xdCloud||{};
 const mon=()=>st().monitorData||null;
@@ -17,6 +18,7 @@ const actions={
  'task.submitted':'Trình duyệt công việc','task.approved':'Đã duyệt công việc',
  'task.returned':'Trả lại công việc','task.unassigned':'Thu hồi phân công',
  'task.cancelled':'Hủy công việc','agent.completed':'Agent hoàn thành phân tích',
+ 'agent.started':'Agent bắt đầu lượt thực thi','agent.failed':'Agent báo lỗi thực thi',
  'handoff.requested':'Gửi phiếu phối hợp','handoff.resolved':'Đóng phiếu phối hợp',
  'document.registered':'Đăng ký hồ sơ','document.metadata_updated':'Sửa thông tin hồ sơ',
  'document.submitted':'Trình hồ sơ','document.approved':'Duyệt hồ sơ',
@@ -346,7 +348,7 @@ function filteredDashboard(f){
  const titles={all:'MEP + Xây dựng',mep:'Hệ MEP',xd:'Hệ Xây dựng',cross:'Phối hợp MEP ↔ XD'};
  const hint=f.system==='cross'?'Luồng liên hệ chỉ tính phiếu phối hợp giữa MEP và XD.':'KPI tồn đọng là trạng thái hiện tại; biểu đồ sự kiện theo khoảng thời gian đã chọn.';
  const agentLabels=id=>(st().agentsCatalog||[]).find(x=>x.id===id)?.title||id;
- return '<div class="v67-kpis">'+
+ return renderCEOCommandCenter(st(),f.project)+'<div class="v67-kpis">'+
  metric('LƯỢT AGENT HOÀN THÀNH',s.agentRuns,'Trong kỳ · '+s.agentsActiveInPeriod+' Agent','cyan','◎')+
  metric('CÔNG VIỆC ĐANG MỞ',s.tasks.filter(x=>!['done','cancelled'].includes(x.status)).length,'Tình trạng hiện tại','purple','▤')+
  metric('PHIẾU PHỐI HỢP ĐANG MỞ',s.pending.length,'MEP ↔ XD và nội bộ','green','⇄')+
@@ -374,7 +376,7 @@ function filteredDashboard(f){
 export function renderMonitorDashboard(){
  const packet=mon();
  if(!st().enabled||!packet)return '<section class="v67-shell">'+
- '<h2>Giám sát Agent V6.7</h2><p>Đang yêu cầu dữ liệu giám sát có chữ ký từ máy chủ…</p></section>';
+ '<h2>Giám sát Agent V7.0</h2><p>Đang yêu cầu dữ liệu giám sát có chữ ký từ máy chủ…</p></section>';
  const f=filters();
  const projectList=(st().projects||[]).filter(p=>p.id!==undefined);
  const deptOptions=Object.keys(departments).filter(d=>d!=='director');
@@ -382,7 +384,7 @@ export function renderMonitorDashboard(){
  '<option value="'+esc(v)+'"'+(current===v?' selected':'')+'>'+esc(t)+'</option>').join('')+'</select></label>';
  return '<div class="v67-shell"><div class="v67-hero">'+
  '<div class="v67-hero-title"><span class="v67-ecg">⌁</span><div><h2>Giám sát Agent — Hoạt động & Phối hợp</h2>'+
- '<p>V6.7 · Trung tâm vận hành của hai hệ MEP và Xây dựng</p></div></div>'+
+ '<p>V7.0 · Trung tâm điều hành CEO / MEP / Xây dựng</p></div></div>'+
  '<div class="v67-live-pill"><span class="v67-live-dot"></span>Gần thời gian thực · 15 giây</div></div>'+
  '<div class="v67-toolbar">'+
  control('v67-system','Phạm vi',['all','mep','xd','cross'].map(v=>[v,
@@ -393,7 +395,7 @@ export function renderMonitorDashboard(){
  '<div class="v67-toolbar-actions"><button class="v67-refresh" id="v67-refresh">↻ Làm mới ngay</button>'+
  '<label class="v67-auto"><input id="v67-auto" type="checkbox" checked> Tự cập nhật</label></div></div>'+
  '<p class="v67-last-sync">Nguồn: nhật ký Google Drive có chữ ký HMAC · Lần kiểm tra gần nhất: '+
- esc(fmtTime(packet.asOf))+' · Không có tiến trình Agent chạy nền/heartbeat.</p>'+
+ esc(fmtTime(packet.asOf))+' · Agent có sự kiện bắt đầu/kết thúc/thất bại có chữ ký; chưa có worker heartbeat.</p>'+
  '<div id="v67-dynamic">'+filteredDashboard(f)+'</div>'+
  '<footer class="v67-footer">Dữ liệu chỉ gồm các dự án được tài khoản Google cho phép xem. '+
  'Mỗi 15 giây hệ thống tải lại snapshot máy chủ; không phải WebSocket. '+

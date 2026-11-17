@@ -1,5 +1,5 @@
 import {DEPARTMENTS,AGENTS,FLOOR_HEIGHT,visibleDepartments} from '../core/config.js';
-import {getAgentState} from '../core/storage.js';
+import {agentEvidence} from '../core/agent_live.js';
 const TAU=Math.PI*2;
 const norm=a=>{let l=Math.hypot(...a)||1;return a.map(n=>n/l)};
 const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
@@ -95,10 +95,14 @@ export class Office3D{
   this.box(x+.42,y+.73,z+1.04,.07,.13,.54,'#d5e8f2');
  }
  avatar(a,x,z,t,y=0){
-  const status=getAgentState(this.state(),a.id),doing=status==='working',review=status==='review';
+  // A task marked "working" does not establish that the AI itself is running.
+  const status=agentEvidence(this.options.getCloud?.(),a.id);
+  const doing=status.state==='started_unconfirmed';
+  const review=status.state==='failed';
+  const complete=status.state==='completed';
   const bob=doing?.03*Math.sin(t*3.1+a.id.length):.01*Math.sin(t*1.1);
   const shirts=['#2b93d0','#f06997','#2a9e9b','#567db9','#eaa15c','#6476b7'];
-  const shirt=doing?'#319eaf':review?'#e0a252':shirts[(a.id.charCodeAt(0)+a.id.length)%shirts.length];
+  const shirt=doing?'#319eaf':review?'#cf5d64':complete?'#32a483':shirts[(a.id.charCodeAt(0)+a.id.length)%shirts.length];
   const skin=(a.id.charCodeAt(0)%3===0)?'#d8a17d':'#f0c6a5';
   // Legs and shoes, a seated employee facing a glowing desk display.
   this.box(x-.19,y+.38,z+1.10,.21,.68,.28,'#2d516d');
@@ -117,7 +121,7 @@ export class Office3D{
   this.box(x+.40,y+1.12+bob,z+.78,.20,.50,.27,shirt,doing?.22:0);
   this.box(x-.44,y+.90+bob,z+.48,.16,.18,.38,skin,doing?.22:0);
   this.box(x+.44,y+.90+bob,z+.48,.16,.18,.38,skin,doing?-.22:0);
-  this.ball(x,y+2.44+bob,z+.96,.13,doing?'#4cf2ce':review?'#e6c66e':'#8fadc6',doing?.78:.22);
+  this.ball(x,y+2.44+bob,z+.96,.13,doing?'#4cf2ce':review?'#ff718a':complete?'#6affc9':'#8fadc6',doing?.78:.22);
  }
 
  fallbackRender(){
@@ -145,7 +149,7 @@ export class Office3D{
       markup+=block(ax,az,y,1.65,.94,.85,'#eef8fd','#87acc4','#6793b0');
       markup+=block(ax,az-.36,y+.86,.82,.12,.42,d.color,'#245477','#28618c');
       const [bx,by]=P(ax,az+1.0,y+1.05),[hx,hy]=P(ax,az+1.0,y+1.93);
-      const working=getAgentState(this.state(),a.id)==='working';
+      const working=agentEvidence(this.options.getCloud?.(),a.id).state==='started_unconfirmed';
       markup+=`<ellipse cx="${bx}" cy="${by+8}" rx="10" ry="15" fill="${working?'#40c3b3':'#6c8a9c'}" opacity=".84"/><circle cx="${hx}" cy="${hy}" r="8.7" fill="#e3b799" stroke="#f5ccaf" stroke-width="1.5"/><path d="M ${hx-7} ${hy-6} Q ${hx} ${hy-15} ${hx+7} ${hy-6}" fill="none" stroke="#2b3444" stroke-width="4"/>`;
       markup+=`<circle cx="${hx+12}" cy="${hy-12}" r="3.8" fill="${working?'#61e6bf':'#89a9bd'}" class="svg-pulse"/>`;
     });

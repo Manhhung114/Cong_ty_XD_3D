@@ -1,4 +1,5 @@
-import {DEPARTMENTS,visibleDepartments} from '../core/config.js';
+import {DEPARTMENTS,visibleDepartments,AGENTS} from '../core/config.js';
+import {agentEvidence} from '../core/agent_live.js';
 
 // V5.1: interactive, high-fidelity 3D-styled illustration. This is an image
 // with accessible department hotspots; the WebGL view stays separately available.
@@ -80,7 +81,22 @@ export class IllustratedOffice {
     if(tip)tip.textContent='● Chạm từng phòng ban · Vuốt ngang để xem toàn cảnh';
   }
   refreshSelection(){
-    for(const [id,button] of this.pins)button.classList.toggle('selected',this.selected===id);
+    for(const [id,button] of this.pins){
+      button.classList.toggle('selected',this.selected===id);
+      const statuses=AGENTS.filter(a=>a.dept===id)
+        .map(a=>agentEvidence(this.options.getCloud?.(),a.id));
+      const status=statuses.some(s=>s.state==='started_unconfirmed')?'started':
+        statuses.some(s=>s.state==='failed')?'failed':
+        statuses.some(s=>s.state==='stale')?'stale':
+        statuses.some(s=>s.state==='completed')?'completed':'idle';
+      button.dataset.execution=status;
+      button.title=DEPARTMENTS.find(d=>d.id===id)?.name+
+        ' · '+(status==='started'?'Đã bắt đầu, chưa xác nhận heartbeat':
+        status==='failed'?'Có lượt Agent bị lỗi':
+        status==='completed'?'Có báo cáo nháp đã lưu':
+        status==='stale'?'Có lượt Agent chưa rõ kết quả':
+        'Chưa có lượt Agent được xác minh');
+    }
     const selected=DEPARTMENTS.find(d=>d.id===this.selected);
     this.badge.textContent=selected?'Đang chọn: '+selected.name:'Chọn phòng để xem nhân viên AI và nhiệm vụ';
   }

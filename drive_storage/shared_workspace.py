@@ -33,7 +33,7 @@ ACTIONS = {
     "task.unassigned", "task.cancelled", "document.registered",
     "document.metadata_updated", "document.submitted", "document.approved",
     "document.returned", "document.archived",
-    "agent.completed", "handoff.requested", "handoff.resolved",
+    "agent.started", "agent.failed", "agent.completed", "handoff.requested", "handoff.resolved",
     "org.role_set", "hierarchy.proposed", "hierarchy.approved", "hierarchy.rejected", "hierarchy.stopped",
 }
 ID = re.compile(r"^[A-Za-z0-9_-]{12,160}$")
@@ -417,6 +417,21 @@ class SharedWorkspace:
                     "status": "resolved", "response": data["response"],
                     "resolvedAt": event["at"], "resolvedBy": event["actor"],
                 })
+            elif action in {"agent.started", "agent.failed"}:
+                from drive_storage.company_agents import agents
+                from drive_storage.live_agents import ATTEMPT, ERROR_CODES
+                task = task_map.get(data.get("task_id"))
+                agent = agents().get(data.get("agent_id"))
+                if (not task or task["projectId"] != pid or not agent
+                        or (agent["department"] != task["dept"]
+                            and agent["id"] not in {"PM", "CEO", "DOC", "QAC"})
+                        or not ATTEMPT.fullmatch(str(data.get("attempt_id") or ""))
+                        or data.get("mode") not in {"preflight", "llm", "expert", "expert_llm"}):
+                    raise ValueError("Sự kiện vòng đời Agent không hợp lệ")
+                if action == "agent.failed" and data.get("code") not in ERROR_CODES:
+                    raise ValueError("Mã lỗi Agent không hợp lệ")
+                # No fabricated report or task status changes; events are
+                # projected separately into the read-only activity status.
             elif action == "agent.completed":
                 from drive_storage.company_agents import agents
                 task_id, agent_id = data.get("task_id"), data.get("agent_id")
@@ -514,18 +529,91 @@ class SharedWorkspace:
         from drive_storage.hierarchy import describe_progress
         for task in tasks:
             task["hierarchyProgress"] = describe_progress(task, tasks)
-        result = {"version": 67, "projects": projects, "tasks": tasks,
+        from drive_storage.live_agents import project_agent_activity
+        activity = project_agent_activity({"projects": projects, "tasks": tasks},
+                                          signed_events)
+        result = {"version": 70, "projects": projects, "tasks": tasks,
                   "documents": list(documents.values()), "events": audit[-200:],
                   "handoffs": sorted(handoff_map.values(), key=lambda h: h["createdAt"], reverse=True),
                   "orgRoles": [row for (p, _), row in org_roles.items() if p in allowed],
                   "hierarchyPlans": [row for row in hierarchy_plans.values()
                                      if row["projectId"] in allowed],
                   "agentRuns": sorted(agent_runs, key=lambda r: r["at"], reverse=True)[:200],
+                  "agentActivity": activity,
                   "role": identity["role"], "actor": identity["email"]}
         if include_monitor:
             from drive_storage.monitoring import build_monitor_packet
             result["monitorData"] = build_monitor_packet(identity, result, signed_events)
         return result
+
+    def record_agent_start(self, identity, *, project_id, task_id, agent_id,
+                           mode, attempt_id):
+        """Record a verified invocation, not proof of a durable running worker."""
+        from drive_storage.live_agents import execution_event_id
+        from drive_storage.company_agents import _task_context
+        from drive_storage.hierarchy import require_operator, dependencies_block
+        if mode not in {"preflight", "llm", "expert", "expert_llm"}:
+            raise ValueError("Chế độ Agent không hợp lệ")
+        pid = self._check_project(identity, project_id, True)
+        state = self.snapshot(identity)
+        _, task, _, _ = _task_context(state, pid, task_id, agent_id)
+        require_operator(identity, task)
+        if dependencies_block(task, state["tasks"]):
+            raise PermissionError("Chưa đủ điều kiện phụ thuộc để chạy Agent")
+        # A signed completed event of the same attempt must never be retried.
+        previous = self.events()
+        # Completion takes precedence even if the signed start sorts before
+        # completion; this must remain idempotent after a finished attempt.
+        for e in previous:
+            if e["id"] != attempt_id:
+                continue
+            if (e["action"] != "agent.completed" or e["project_id"] != pid
+                    or e["actor"] != identity["email"]
+                    or e["data"].get("task_id") != task_id
+                    or e["data"].get("agent_id") != agent_id
+                    or e["data"].get("mode") != mode):
+                raise PermissionError("Mã thực thi đã được dùng cho lượt khác")
+            return {"existing": True, "completed": True}
+        for e in previous:
+            if e["id"] == execution_event_id(attempt_id, "started"):
+                if (e["action"] != "agent.started" or e["project_id"] != pid
+                        or e["actor"] != identity["email"]
+                        or e["data"].get("task_id") != task_id
+                        or e["data"].get("agent_id") != agent_id
+                        or e["data"].get("mode") != mode):
+                    raise PermissionError("Mã thực thi đã được dùng cho lượt khác")
+                # No duplicate provider charge, even if an earlier attempt is
+                # now stale. The user must open a NEW action for a NEW attempt.
+                return {"existing": True, "completed": False}
+        return self._append(
+            identity=identity, project_id=pid, action="agent.started",
+            data={"task_id": task_id, "agent_id": agent_id, "mode": mode,
+                  "attempt_id": attempt_id},
+            event_id=execution_event_id(attempt_id, "started"),
+        )
+
+    def record_agent_failure(self, identity, *, project_id, task_id, agent_id,
+                             mode, attempt_id, code):
+        from drive_storage.live_agents import execution_event_id, ERROR_CODES
+        if code not in ERROR_CODES or mode not in {"preflight", "llm", "expert", "expert_llm"}:
+            raise ValueError("Mã lỗi Agent không hợp lệ")
+        pid = self._check_project(identity, project_id, True)
+        # Only the same user's earlier signed start may be closed as failed.
+        started = next((e for e in self.events()
+                        if e["id"] == execution_event_id(attempt_id, "started")), None)
+        if (not started or started["project_id"] != pid
+                or started["actor"] != identity["email"]
+                or started["action"] != "agent.started"
+                or any(started["data"].get(k) != v for k,v in {
+                    "task_id": task_id, "agent_id": agent_id, "mode": mode,
+                    "attempt_id": attempt_id}.items())):
+            raise PermissionError("Không có lượt Agent đã bắt đầu hợp lệ để ghi lỗi")
+        return self._append(
+            identity=identity, project_id=pid, action="agent.failed",
+            data={"task_id": task_id, "agent_id": agent_id, "mode": mode,
+                  "attempt_id": attempt_id, "code": code},
+            event_id=execution_event_id(attempt_id, "failed"),
+        )
 
     def _check_project(self, identity, project_id, write=False):
         pid = _require_id(project_id, "Mã dự án")

@@ -29,7 +29,7 @@ test('V6.7.5 header uses dedicated panorama and reduced overlay',()=>{
  assert.match(js,/setProperty\('--xd-visible-header'/);
  assert.equal(read('src/polish.css'),read('static/src/polish.css'));
  assert.equal(js,read('static/src/core/command_shell.js'));
- assert.match(read('static/index.html'),/class="command-version">V6\.[0-9]+(?:\.[0-9]+)?</);
+ assert.match(read('static/index.html'),/class="command-version">V[6-9]\.[0-9]+(?:\.[0-9]+)?</);
 });
 
 test('V6.7.5 preserves Google auth, Drive and Admin-only settings',()=>{

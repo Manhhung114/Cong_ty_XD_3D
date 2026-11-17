@@ -1,3 +1,17 @@
+# V7.0.0 — AI 3D Virtual Headquarters & Live Agent Control Center (17/11/2026)
+
+**Văn phòng 3D tương tác:** Giữ mô hình WebGL nhiều tầng, 16 phòng/18 Agent và camera xoay, zoom, xem tầng; người mới mở app vào 3D trực tiếp, người cũ vẫn giữ lựa chọn Phối cảnh chi tiết/3D đã lưu. Nhấp Agent trong từng phòng để xem nhiệm vụ thật, lần thực thi gần nhất, mode, thời điểm và trạng thái dựa trên nhật ký có chữ ký. Có bản SVG dự phòng khi WebGL không hỗ trợ. Không dùng trạng thái "công việc đang thực hiện" để giả mạo Agent đang chạy.
+
+**Bảng CEO Command Center:** Nằm trong sheet **Giám sát Agent**, dùng sơ đồ công việc từ cơ chế V6.9.0: Giám đốc → PM → Trưởng bộ môn → Chuyên gia → QA/QC; hiển thị người nhận, Agent, trạng thái, số nhiệm vụ đã duyệt, việc bị chặn và 18 thẻ Agent. Bộ lọc theo các dự án đã được cấp quyền; các chức năng phê duyệt và phân phối vẫn thực hiện qua nút ở sheet Công việc, không có ghi chép giả từ dashboard.
+
+**Nhật ký thực thi Agent:** Bổ sung sự kiện `agent.started` và `agent.failed`, liên kết `agent.completed` bằng `attempt_id`, tất cả ghi qua Google Drive signed event ledger HMAC. Lỗi chỉ lưu mã phân loại an toàn, không ghi API key/file bytes/prompt. Các thao tác ghi có xác thực Google, quyền dự án và guard phân cấp. Nhấn lại cùng một phiên thực thi không gọi nhà cung cấp AI lần nữa. Một lượt bắt đầu **không phải heartbeat**: trong 120 giây nó chỉ được nhãn *“Đã bắt đầu, chưa có heartbeat”*, sau đó đổi *“Chưa xác nhận tiến trình”*; chỉ có event kết thúc mới ghi hoàn thành hoặc thất bại. Không có giả lập Agent chạy nền.
+
+**Đồng bộ:** Trang 3D tự làm mới dữ liệu thông qua cầu nối Streamlit có nonce mỗi 15 giây khi đang mở/hiển thị; trang Giám sát tiếp tục dùng polling 15 giây. Không có WebSocket hoặc job queue tại V7.0.0. Luồng phân cấp V6.9.0 và các báo cáo kỹ thuật PDF/DXF/IFC dạng mẫu tiếp tục được giữ nguyên. Bản hiện hành là **văn phòng Agent 3D**, chưa phải trình dựng BIM 3D công trình từ DWG/RVT.
+
+**Kiểm thử:** `tests/test_v700_agent_lifecycle.py`, `tests/v700_virtual_hq.test.mjs`. Yêu cầu thêm nghiệm thu với hai tài khoản Google thật, DXF thật và các thiết bị sau khi deploy. Chi tiết [docs/V700_3D_HQ_AGENT_MONITORING.md](docs/V700_3D_HQ_AGENT_MONITORING.md).
+
+---
+
 # V6.9.0 — Hệ thống phân phối công việc AI theo cấp bậc (17/11/2026)
 
 Từ sheet **Công việc**, tạo việc cấp Giám đốc (`director + CEO`) → bấm **Giám đốc AI lập phương án** → Admin **Duyệt phân phối** → sinh tự động cây **PM → trưởng bộ môn → chuyên gia + QA/QC** (có mã CV-, quan hệ cha–con, danh bạ nhân sự và tiến độ). Người quản lý trực tiếp được duyệt đầu ra cấp dưới; QA độc lập và CEO cuối cùng do Admin duyệt. Toàn bộ phân công ghi trên nhật ký HMAC Google Drive, không xóa hồ sơ cũ.

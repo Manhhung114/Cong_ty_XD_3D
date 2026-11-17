@@ -14,6 +14,7 @@ from drive_storage.manager import from_streamlit_secrets
 from drive_storage.shared_workspace import SharedWorkspace, DEPARTMENTS
 
 COMMANDS = {
+    "overview": {"refresh"},
     "projects": {"refresh", "select", "project_create", "project_import"},
     "tasks": {"refresh", "select", "task_create", "task_assign", "task_withdraw", "task_start", "task_submit",
               "org_roles", "hierarchy_propose", "hierarchy_review", "hierarchy_stop"},

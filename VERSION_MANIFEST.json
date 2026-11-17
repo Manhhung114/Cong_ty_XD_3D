@@ -1,6 +1,6 @@
 {
   "project": "Công ty Xây dựng & MEP AI 3D",
-  "artifact_version": "0.6.9.0-hierarchical-ai-orchestration",
+  "artifact_version": "0.7.0.0-3d-hq-signed-agent-lifecycle",
   "release_date": "2026-11-17",
   "modules": [
     {
@@ -200,6 +200,12 @@
       "area": "Signed CEO->PM->discipline lead->expert->independent QA task delegation, scoped org roles and dependency gates",
       "entry": "drive_storage/hierarchy.py",
       "status": "implemented_ci_and_live_acceptance_pending"
+    },
+    {
+      "label": "V7.0.0",
+      "area": "Interactive 3D Virtual HQ, CEO hierarchical dashboard and signed Agent start/fail/finish evidence with 15-second authenticated polling",
+      "entry": "src/core/hq_dashboard.js",
+      "status": "implemented_ci_pending_live_streamlit_acceptance"
     }
   ],
   "data_categories": {
@@ -292,7 +298,7 @@
     "mep": "Cơ điện",
     "construction": "Xây dựng"
   },
-  "current_version": "V6.9.0 (Hierarchical AI Orchestration)",
+  "current_version": "V7.0.0 (3D Virtual HQ + Signed Agent Control)",
   "backend": {
     "framework": "FastAPI",
     "database": "PostgreSQL or SQLite local",
