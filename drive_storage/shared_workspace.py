@@ -217,6 +217,7 @@ class SharedWorkspace:
                 if action == "task.assigned":
                     task["assignee"] = data.get("assignee", "")
                     task["assignedAgentId"] = data.get("agent_id", "")
+                    task.update({"withdrawnAt": "", "withdrawnBy": "", "withdrawReason": ""})
                 elif action == "task.unassigned":
                     if task["status"] not in {"todo", "working"}:
                         raise ValueError("Không thể thu hồi nhiệm vụ đã trình duyệt/đóng")
