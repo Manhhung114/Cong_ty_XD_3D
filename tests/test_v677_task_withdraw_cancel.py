@@ -40,8 +40,8 @@ class TaskWithdrawCancelTests(CloudWorkflowTests):
 
     def test_admin_cancel_active_task_preserves_history_and_blocks_future_actions(self):
         tid = self.ws.create_task(
-            self.editor, project_id=PROJECT, title="Thi công hệ thống HVAC",
-            dept="hvac", assignee="Nhân sự HVAC",
+            self.editor, project_id=PROJECT, title="Thi công tủ điện",
+            dept="electrical", assignee="Nhân sự điện",
         )["id"]
         self.ws.start_task(self.editor, project_id=PROJECT, task_id=tid)
         result = self.ws.cancel_task(
@@ -58,7 +58,7 @@ class TaskWithdrawCancelTests(CloudWorkflowTests):
         self.assertIn("chủ đầu tư", task["cancelReason"])
         self.assertTrue(any(e["action"] == "task.cancelled" for e in self.ws.events()))
         with self.assertRaises(ValueError):
-            self.ws.assign_task(self.editor, project_id=PROJECT, task_id=tid, agent_id="HVAC")
+            self.ws.assign_task(self.editor, project_id=PROJECT, task_id=tid, agent_id="ELE")
         with self.assertRaises(ValueError):
             self.ws.start_task(self.editor, project_id=PROJECT, task_id=tid)
         with self.assertRaises(ValueError):
@@ -69,10 +69,10 @@ class TaskWithdrawCancelTests(CloudWorkflowTests):
                                 reason="Thử hủy một lần nữa")
         with self.assertRaises(PermissionError):
             run_agent(self.ws, self.editor, project_id=PROJECT, task_id=tid,
-                      agent_id="HVAC", mode="preflight")
+                      agent_id="ELE", mode="preflight")
         with self.assertRaises(PermissionError):
             create_handoff(self.ws, self.editor, project_id=PROJECT, task_id=tid,
-                           target_department="electrical",
+                           target_department="hvac",
                            reason="Yêu cầu phối hợp từ nhiệm vụ đã hủy")
 
     def test_admin_can_cancel_submitted_task_but_not_approved(self):
