@@ -185,8 +185,8 @@ function attachDriveToolbarEvents(){
    const kind=b.getAttribute('data-drive-kind');
    const section=b.getAttribute('data-drive-section');
    const permittedDrive=['upload','browse'].includes(kind)&&['documents','boq','bim','tasks','reviews','projects'].includes(section);
-   const permittedAccess=kind==='access'&&section==='settings'&&window.__xdAuthRole==='admin';
-   if(!permittedDrive&&!permittedAccess)return;
+   const permittedSettings=['access','ai_config'].includes(kind)&&section==='settings'&&window.__xdAuthRole==='admin';
+   if(!permittedDrive&&!permittedSettings)return;
    e.preventDefault();
    window.parent.postMessage({
      channel:'XD_MEP_DRIVE_V1',nonce:window.__xdDriveNonce,
