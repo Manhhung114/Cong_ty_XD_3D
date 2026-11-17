@@ -78,7 +78,7 @@ def mount_bridge(st) -> dict | None:
             if (!d || d.channel !== "XD_MEP_DRIVE_V1" || d.nonce !== data.nonce) return;
             const userGrant = d.kind === "access" && d.section === "settings";
             const driveAction = ["upload","browse"].includes(d.kind) && allowed.has(d.section);
-            const workSections = new Set(["projects","tasks","reviews","documents","activity","agents","company"]);
+            const workSections = new Set(["projects","tasks","reviews","documents","activity","agents","company","monitor"]);
             const workspaceAction = d.kind === "workspace" && workSections.has(d.section);
             if (!userGrant && !driveAction && !workspaceAction) return;
             if (event.source === window) return;
