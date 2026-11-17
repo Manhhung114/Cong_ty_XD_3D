@@ -77,7 +77,7 @@ def load_snapshot(st) -> dict:
     snapshot["companyMetrics"] = company_metrics(snapshot)
     snapshot["agentsCatalog"] = public_catalog(selected)
     from drive_storage.coordination import meetings_enabled
-    snapshot["meetingsAvailable"] = meetings_enabled()
+    snapshot["meetingsAvailable"] = meetings_enabled(selected)
     snapshot["aiStatus"] = ai_status(st)
     from agent_runtime.client import public_jobs
     runtime = public_jobs(st, actor, selected) if selected else {
@@ -187,7 +187,7 @@ def handle_workspace_action(st, action: dict):
         require_qc_role(actor, task, current)
     if op.startswith("meeting_"):
         from drive_storage.coordination import meetings_enabled
-        if not meetings_enabled():
+        if not meetings_enabled(pid):
             raise PermissionError("Họp phối hợp chưa được bật sau nghiệm thu")
         meeting_id = str(action.get("meetingId") or "")
         if op == "meeting_create":
