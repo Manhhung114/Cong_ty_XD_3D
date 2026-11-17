@@ -660,6 +660,11 @@ class SharedWorkspace:
         pid, task = self._current_task(identity, project_id, task_id)
         if task["status"] not in {"todo", "working"}:
             raise ValueError("Chỉ thu hồi phân công trước khi trình duyệt")
+        if task.get("hierarchyStage") and not can_admin(identity):
+            parent = next((t for t in self.snapshot(identity)["tasks"]
+                           if t["id"] == task.get("parentTaskId")), None)
+            if not parent or str(parent.get("assignee") or "").lower() != identity["email"].lower():
+                raise PermissionError("Chỉ cấp trên trực tiếp hoặc Admin được thu hồi phân công")
         if (not task.get("assignee") and not task.get("assignedAgentId")
                 and task["status"] != "working"):
             raise ValueError("Công việc đang Chờ xử lý và chưa giao; chỉ Admin được hủy công việc")
@@ -681,6 +686,9 @@ class SharedWorkspace:
         pid, task = self._current_task(identity, project_id, task_id)
         if task["status"] not in {"todo", "working", "review"}:
             raise ValueError("Không thể hủy nhiệm vụ đã hoàn thành hoặc đã hủy")
+        if any(t.get("parentTaskId") == task_id for t in self.snapshot(identity)["tasks"]):
+            raise PermissionError("Không hủy nút quản lý có công việc con; "
+                                  "cần hoàn tất hoặc xử lý cây phân phối trước")
         reason = _clean_text(reason, 600, True)
         if len(reason) < 5:
             raise ValueError("Lý do hủy phải có ít nhất 5 ký tự")
@@ -718,9 +726,11 @@ class SharedWorkspace:
                                   "findings": _clean_text(findings, 2000)}, event_id=event_id)
 
     def review_task(self, identity, *, project_id, task_id, decision, comment="", event_id=None):
-        if not can_admin(identity):
-            raise PermissionError("Chỉ Admin được phê duyệt hoặc trả lại")
         pid, task = self._current_task(identity, project_id, task_id)
+        from drive_storage.hierarchy import can_review_node
+        if not can_review_node(identity, task, self.snapshot(identity)["tasks"]):
+            raise PermissionError("Chỉ quản lý trực tiếp được duyệt việc cấp dưới; "
+                                  "QA độc lập và công việc Giám đốc cần Admin phê duyệt")
         if task["status"] != "review":
             raise ValueError("Nhiệm vụ không ở trạng thái chờ duyệt")
         if decision == "approve":
