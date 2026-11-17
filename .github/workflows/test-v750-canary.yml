@@ -55,3 +55,5 @@ jobs:
       - run: python -m pip install playwright
       - run: python -m playwright install --with-deps chromium
       - run: python -m scripts.tests.check_v750_browser
+      - name: V7.5.2 coordination meeting and fast workflow browser check
+        run: python -m scripts.tests.check_v752_browser
