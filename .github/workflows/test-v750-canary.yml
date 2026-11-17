@@ -31,8 +31,6 @@ jobs:
           --health-retries 10
         ports: ["6379"]
     env:
-      AGENT_RUNTIME_DATABASE_URL: "postgresql+psycopg://xdtest:fixture-only@127.0.0.1:${{ job.services.postgres.ports[5432] }}/xdtest"
-      CELERY_BROKER_URL: "redis://127.0.0.1:${{ job.services.redis.ports[6379] }}/1"
       AGENT_RUNTIME_SECRET: "synthetic-fixture-only-runtime-test-secret"
       XD_V750_DISPOSABLE_RUNTIME: "1"
     steps:
@@ -42,6 +40,9 @@ jobs:
           python-version: "3.11"
       - run: python -m pip install -r requirements.txt -r agent_runtime/requirements.txt httpx
       - name: Actual PostgreSQL, Redis and Celery with synthetic Drive
+        env:
+          AGENT_RUNTIME_DATABASE_URL: "postgresql+psycopg://xdtest:fixture-only@127.0.0.1:${{ job.services.postgres.ports[5432] }}/xdtest"
+          CELERY_BROKER_URL: "redis://127.0.0.1:${{ job.services.redis.ports[6379] }}/1"
         run: python -m agent_runtime.integration.v750_campaign
   browser:
     runs-on: ubuntu-latest
