@@ -19,9 +19,40 @@ st.set_page_config(
 )
 st.markdown("""<style>
 [data-testid="stHeader"],[data-testid="stToolbar"]{display:none}
-[data-testid="stAppViewContainer"]{background:#07131f}
-[data-testid="stMainBlockContainer"]{padding-top:.3rem;padding-bottom:0;max-width:none}
-[data-testid="stVerticalBlock"]{gap:.2rem}
+html,body,[data-testid="stApp"],[data-testid="stAppViewContainer"]{
+    width:100%!important;max-width:100%!important;margin:0!important;
+    overflow-x:clip!important;background:#041427!important;
+}
+[data-testid="stMain"],[data-testid="stAppViewContainer"]>section.main{
+    width:100%!important;max-width:100%!important;margin:0!important;
+    padding:0!important;min-width:0!important;
+}
+[data-testid="stMainBlockContainer"],.block-container{
+    box-sizing:border-box!important;width:100%!important;max-width:none!important;
+    padding:0!important;margin:0!important;min-width:0!important;
+}
+[data-testid="stMainBlockContainer"]>div,
+[data-testid="stMainBlockContainer"] [data-testid="stVerticalBlock"],
+[data-testid="stMainBlockContainer"] [data-testid="stElementContainer"]{
+    width:100%!important;max-width:none!important;min-width:0!important;
+}
+[data-testid="stVerticalBlock"]{gap:0!important}
+[data-testid="stHorizontalBlock"]{margin:0 8px!important;gap:.5rem!important}
+.st-key-xd_fullwidth_workspace,
+.st-key-xd_fullwidth_workspace>div{
+    width:100%!important;max-width:100%!important;min-width:0!important;
+    margin:0!important;padding:0!important;
+}
+.st-key-xd_fullwidth_workspace iframe{
+    display:block!important;width:100%!important;max-width:100vw!important;
+    height:calc(100dvh - 44px)!important;min-height:440px!important;
+    border:0!important;margin:0!important;padding:0!important;
+}
+@media(max-width:750px){
+ [data-testid="stHorizontalBlock"]{margin:0 4px!important}
+ .st-key-xd_fullwidth_workspace iframe{height:calc(100dvh - 48px)!important}
+}
+
 </style>""", unsafe_allow_html=True)
 
 # The login gate precedes the iframe, bridge and all Google Drive operations.
@@ -70,10 +101,13 @@ except Exception:
     st.error("Không thể khởi tạo Văn phòng 3D. Xem Manage app → Logs.")
     st.stop()
 
-if hasattr(st, "iframe"):
-    st.iframe(page, height=1100, width="stretch")
-else:
-    legacy_components.html(page, height=1100, scrolling=True)
+# Own the iframe's wrapper so its viewport size can follow each device, not
+# Streamlit's default centered block width / 6-rem horizontal padding.
+with st.container(key="xd_fullwidth_workspace"):
+    if hasattr(st, "iframe"):
+        st.iframe(page, height=1100, width="stretch")
+    else:
+        legacy_components.html(page, height=1100, scrolling=True)
 
 # Native file controls are shown as a dialog over the selected app sheet,
 # not a separate uploader page.
