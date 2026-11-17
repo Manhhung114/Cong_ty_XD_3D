@@ -101,3 +101,15 @@
 .portal-return-note small{color:#ffddb0}
 
 .portal-success-note{margin:12px 0 0;padding:10px 13px;color:#aff6d9;background:#153d33;border:1px solid #398d75;border-radius:9px;font-size:13px;overflow-wrap:anywhere}
+
+/* V6.9: hierarchy is an actual signed task tree, not a decorative flowchart. */
+.portal-task.portal-hierarchy-ceo{border-left:4px solid #72d4d0}
+.portal-task.portal-hierarchy-pm{margin-left:12px;border-left:4px solid #7aa9ec}
+.portal-task.portal-hierarchy-lead{margin-left:24px;border-left:4px solid #c4ad68}
+.portal-task.portal-hierarchy-expert{margin-left:36px;border-left:3px solid #6abac1}
+.portal-task.portal-hierarchy-qa{margin-left:36px;border-left:3px solid #b7a0e4}
+.portal-hierarchy-block{margin:10px 0;color:#ffe2aa;padding:9px 12px;background:#473522;border-radius:9px;overflow-wrap:anywhere}
+@media(max-width:650px){
+ .portal-task[class*="portal-hierarchy-"]{margin-left:0}
+ .portal-task{min-width:0;overflow-wrap:anywhere}
+}
