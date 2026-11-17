@@ -182,3 +182,26 @@
  .v70-node-rail{gap:11px}.v70-tree-node{flex-basis:195px}
  .v70-hq-summary{padding:12px}.v70-hq-summary button{width:100%}
 }
+
+/* V7.5.2 — simplified company workflow and interdisciplinary meeting actions. */
+.portal-quickstart,.company-workflow-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:12px 0 18px}
+.company-workflow-steps{grid-template-columns:repeat(5,minmax(0,1fr));margin:18px 0}
+.portal-quickstart span,.company-workflow-steps b{font-size:11px;color:#c0dfeb;background:#163b4b;border:1px solid #326075;border-radius:9px;padding:11px 12px;line-height:1.6}
+.portal-quickstart b{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-right:4px;background:#2d6f7a;color:#f0ffff;border-radius:50%}
+.company-meeting-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,390px),1fr));gap:12px;margin-top:17px}
+.company-meeting-card{min-width:0;background:#132c3d;color:#eaf6fa;border:1px solid #3b6375;border-radius:13px;padding:17px;overflow-wrap:anywhere}
+.company-meeting-card p{font-size:11px;line-height:1.7;color:#b7d4df;margin:10px 0}
+.company-meeting-card .company-handoff-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:9px;flex-wrap:wrap}
+.company-meeting-card details{font-size:12px;margin:12px 0}
+.company-meeting-card details summary{color:#86dce2;cursor:pointer}
+.company-meeting-actions{padding:12px;background:#0b2332;border:1px solid #355466;border-radius:9px;margin:12px 0}
+.company-meeting-actions strong{font-size:11px;color:#93e8da}
+.company-meeting-actions p{border-top:1px solid #284654;padding-top:7px}
+.company-meeting-card .portal-review-actions{margin-top:15px;gap:8px}
+@media(max-width:750px){
+ .portal-quickstart,.company-workflow-steps{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+ .portal-quickstart span,.company-workflow-steps b{font-size:10px;padding:9px}
+ .company-meeting-list{grid-template-columns:minmax(0,1fr)}
+ .company-meeting-card{padding:12px}
+ .company-meeting-card .portal-review-actions button{width:100%}
+}
