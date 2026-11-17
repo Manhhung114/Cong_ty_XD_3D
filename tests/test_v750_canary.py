@@ -17,9 +17,9 @@ class CatalogChecks(unittest.TestCase):
     def test_exact_catalog_and_rooms(self):
         catalog = v75_agents()
         self.assertEqual(set(catalog) - set(agents()), {"QCX", "LEG"})
-        self.assertEqual(len({p["office_room_id"] for p in catalog.values()}), 16)
-        self.assertEqual(catalog["QCX"]["office_room_id"], "xd_safety")
-        self.assertEqual(catalog["LEG"]["office_room_id"], "director")
+        self.assertEqual(len({p["office_room_id"] for p in catalog.values()}), 18)
+        self.assertEqual(catalog["QCX"]["office_room_id"], "xd_qc")
+        self.assertEqual(catalog["LEG"]["office_room_id"], "legal")
         with patch.dict(os.environ, {
             "XD_V75_CATALOG": "1", "XD_V75_CANARY_PROJECTS": fixtures.PROJECT,
         }, clear=True):

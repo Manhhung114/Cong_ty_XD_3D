@@ -1,4 +1,4 @@
-import {INITIAL_TASKS,CONSTRUCTION_SAMPLE_TASKS,AGENTS,DEPARTMENTS,TASK_STATES} from './config.js';
+import {INITIAL_TASKS,CONSTRUCTION_SAMPLE_TASKS,AGENTS,DEPARTMENTS,OFFICE_ROOMS,TASK_STATES} from './config.js';
 const KEY='mep-ai-company3d.v1';
 const deepCopy=v=>JSON.parse(JSON.stringify(v));
 const now=()=>new Date().toISOString();
@@ -24,7 +24,7 @@ export function loadState(){
    removeGeneratedTasks(data);
    if(!['all','mep','construction'].includes(data.officeView))data.officeView='all';
    if(!['illustrated','live'].includes(data.officeRenderMode))data.officeRenderMode='illustrated';
-   if(!DEPARTMENTS.some(d=>d.id===data.selectedDept))data.selectedDept='director';
+   if(!OFFICE_ROOMS.some(d=>d.id===data.selectedDept))data.selectedDept='director';
    try{localStorage.setItem(KEY,JSON.stringify(data));}catch{}
    return data;
   }

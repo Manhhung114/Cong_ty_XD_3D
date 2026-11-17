@@ -1425,7 +1425,7 @@
         "boq_xd"
       ],
       "evidence_policy": "Chỉ đối chiếu mẫu đọc; chưa kết luận đạt tiêu chuẩn.",
-      "office_room_id": "xd_safety",
+      "office_room_id": "xd_qc",
       "skill_version": "7.5.0",
       "capabilities": [
         "đối chiếu công tác và ITP",
@@ -1498,7 +1498,7 @@
         "contracts"
       ],
       "evidence_policy": "Khóa đọc và chạy cho đến khi nghiệm thu quyền theo hồ sơ hợp đồng.",
-      "office_room_id": "director",
+      "office_room_id": "legal",
       "skill_version": "7.5.0",
       "capabilities": [
         "kiểm kê điều khoản",

@@ -1,3 +1,4 @@
+import {OFFICE_ROOMS} from './config.js';
 /* V6.1-V6.3: project-scoped Company Operations Center and 18 real Agent contracts.
    All execution, mutations, quota and role checks occur in Streamlit Python.
    This module displays signed server data and never receives provider API keys. */
@@ -31,7 +32,7 @@ function agentCards(){
  const configured=s.aiStatus?.configured;
  const profiles=s.agentsCatalog||[];
  return '<section class="panel padded company-suite">'+
- '<div class="panel-heading"><div><h2>'+profiles.length+' Agent theo 16 phòng/khối nghiệp vụ</h2>'+
+ '<div class="panel-heading"><div><h2>'+profiles.length+' Agent theo '+OFFICE_ROOMS.length+' phòng</h2>'+
  '<p>Định rõ chuyên môn và kết quả. Chỉ hiện Đã chạy khi có sự kiện Agent hoàn thành và lưu báo cáo.</p></div>'+
  '<span class="mini-label">'+profiles.length+' AGENT</span></div>'+
  '<div class="company-notice">'+(configured?
