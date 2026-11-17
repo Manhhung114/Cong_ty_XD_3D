@@ -49,20 +49,25 @@ test('Admin Settings API button actually posts ai_config to native Streamlit dia
   assert.equal(h.messages[0].payload.channel, 'XD_MEP_DRIVE_V1');
   assert.equal(h.messages[0].target, '*');
 
+  assert.equal(h.click('ai_check', 'settings'), true, 'new one-click API probe must be handled');
+  assert.equal(h.messages[1].payload.kind, 'ai_check');
+  assert.equal(h.messages[1].payload.section, 'settings');
   assert.equal(h.click('access', 'settings'), true, 'existing access dialog still opens');
-  assert.equal(h.messages[1].payload.kind, 'access');
+  assert.equal(h.messages[2].payload.kind, 'access');
   assert.equal(h.click('browse', 'documents'), true, 'Drive actions still work');
-  assert.equal(h.messages[2].payload.kind, 'browse');
+  assert.equal(h.messages[3].payload.kind, 'browse');
 });
 
 test('Settings bridge rejects non-admin and unexpected action, and nonce is required', () => {
   const staff = clickHarness('update');
   assert.equal(staff.click('ai_config', 'settings'), false);
+  assert.equal(staff.click('ai_check', 'settings'), false);
   assert.equal(staff.click('access', 'settings'), false);
   assert.equal(staff.messages.length, 0);
   const admin = clickHarness();
   assert.equal(admin.click('unknown', 'settings'), false);
   assert.equal(admin.click('ai_config', 'documents'), false);
+  assert.equal(admin.click('ai_check', 'documents'), false);
   assert.equal(admin.messages.length, 0);
   const offline = clickHarness('admin', '');
   assert.equal(offline.handlers.length, 0, 'offline app must not request native dialogs');
