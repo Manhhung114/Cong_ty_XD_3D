@@ -92,7 +92,7 @@ class ConnectionProbeTests(unittest.TestCase):
             js = (ROOT / path).read_text(encoding="utf8")
             self.assertIn('data-drive-kind="ai_check"', js)
         self.assertIn('st.form_submit_button("🔎 Kiểm tra kết nối API"', ui)
-        self.assertIn('result = probe_ai_connection(provider, model, test_key)', ui)
+        self.assertIn('result = probe_ai_connection(provider, test_model, test_key)', ui)
         self.assertIn("def ai_connection_dialog(st):", ui)
         self.assertIn("can_admin(identity_for(st))", ui)
         self.assertIn("ai_connection_dialog(st)", st)
