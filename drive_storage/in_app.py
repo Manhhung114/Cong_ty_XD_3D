@@ -148,7 +148,8 @@ def drive_dialog(st) -> None:
     if not isinstance(action, dict) or action.get("section") not in SECTIONS:
         return
 
-    @st.dialog("Google Drive · " + LABELS[action["section"]], width="large")
+    @st.dialog("Google Drive · " + LABELS[action["section"]], width="large",
+               on_dismiss=lambda: st.session_state.pop("drive_in_app_action", None))
     def render() -> None:
         # A dialog invocation is not an authorization. Check again each rerun.
         identity = identity_for(st)
@@ -333,7 +334,8 @@ def access_management_dialog(st) -> None:
     if not isinstance(action, dict) or action.get("section") != "settings" or action.get("kind") != "access":
         return
 
-    @st.dialog("🔐 Cài đặt · Quản lý người dùng & phân quyền", width="large")
+    @st.dialog("🔐 Cài đặt · Quản lý người dùng & phân quyền", width="large",
+               on_dismiss=lambda: st.session_state.pop("drive_in_app_action", None))
     def render() -> None:
         actor = identity_for(st)
         if not can_admin(actor):
