@@ -99,3 +99,5 @@
 .portal-return-note{margin:10px 0;padding:12px 14px;border:1px solid #ba8546;background:#3d3022;border-radius:10px;color:#fce6be;overflow-wrap:anywhere}
 .portal-return-note p{margin:6px 0;color:#fff1d2}
 .portal-return-note small{color:#ffddb0}
+
+.portal-success-note{margin:12px 0 0;padding:10px 13px;color:#aff6d9;background:#153d33;border:1px solid #398d75;border-radius:9px;font-size:13px;overflow-wrap:anywhere}
