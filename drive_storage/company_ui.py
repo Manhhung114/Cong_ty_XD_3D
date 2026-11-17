@@ -17,6 +17,7 @@ from drive_storage.workspace_ui import service_for, DEPARTMENT_NAMES
 from drive_storage.expert_orchestrator import run_expert
 from drive_storage.expert_tools import MAX_BYTES, SUPPORTED, NOT_SUPPORTED
 from drive_storage.ai_vault import effective_config
+from drive_storage.live_agents import safe_failure_code
 
 OPS = {"agent_run", "handoff_create", "handoff_resolve", "ops_audit"}
 
@@ -162,12 +163,37 @@ def company_dialog(st, action):
                            "Admin vào Cài đặt → API dùng chung để lưu khóa trên Drive. "
                            "Checklist vẫn hoạt động độc lập.")
             if submit:
+                started = False
+                attempt_id = action["actionId"]
+                def note_failure(exc):
+                    if not started:
+                        return
+                    try:
+                        server.record_agent_failure(
+                            identity, project_id=pid, task_id=task_id,
+                            agent_id=agent_id, mode=mode, attempt_id=attempt_id,
+                            code=safe_failure_code(exc),
+                        )
+                    except Exception:
+                        # Never replace the original error with another error,
+                        # and never assert a signed failure was saved if not.
+                        st.warning("Không ghi được trạng thái lỗi vào nhật ký "
+                                   "giám sát. Kiểm tra lại kết nối Drive.")
                 try:
                     if mode in {"llm", "expert_llm"} and not consent:
                         raise PermissionError("Chưa xác nhận truyền dữ liệu đến nhà cung cấp AI")
+                    if mode in {"expert", "expert_llm"} and selected is None:
+                        raise ValueError("Cần chọn file đã ghi sổ để phân tích kỹ thuật")
+                    attempt = server.record_agent_start(
+                        identity, project_id=pid, task_id=task_id,
+                        agent_id=agent_id, mode=mode, attempt_id=attempt_id,
+                    )
+                    if attempt.get("completed"):
+                        done("Lượt Agent này đã được lưu trước đó; "
+                             "không chạy lại để tránh nhân đôi kết quả/chi phí.")
+                        return
+                    started = True
                     if mode in {"expert", "expert_llm"}:
-                        if selected is None:
-                            raise ValueError("Cần chọn file đã ghi sổ để phân tích kỹ thuật")
                         result = run_expert(
                             server, identity, project_id=pid, task_id=task_id,
                             agent_id=agent_id, file_id=selected["id"], mode=mode,
@@ -187,12 +213,14 @@ def company_dialog(st, action):
                          "Công việc chưa được duyệt. Kỹ sư cần kiểm chứng, "
                          "sau đó bấm Gửi báo cáo phê duyệt trên thẻ công việc.")
                 except (PermissionError, ValueError, RuntimeError) as exc:
+                    note_failure(exc)
                     st.error("Chưa lưu báo cáo Agent: " + str(exc))
                     st.info("Cửa sổ vẫn mở để bạn sửa lựa chọn rồi thử lại. "
                             "Nếu Gemini bị giới hạn lượt gọi, có thể chọn "
                             "'Chuyên gia phân tích file thật' để phân tích "
                             "không dùng API. Không tạo báo cáo giả.")
-                except Exception:
+                except Exception as exc:
+                    note_failure(exc)
                     st.error("Agent chưa hoàn thành, không lưu kết quả mới. "
                              "Kiểm tra tình trạng Google Drive, giới hạn máy chủ "
                              "và nhật ký ứng dụng trước khi thử lại.")
