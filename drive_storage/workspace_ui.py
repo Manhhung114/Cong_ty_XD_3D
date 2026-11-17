@@ -16,7 +16,7 @@ from drive_storage.shared_workspace import SharedWorkspace, DEPARTMENTS
 COMMANDS = {
     "projects": {"refresh", "select", "project_create", "project_import"},
     "tasks": {"refresh", "select", "task_create", "task_assign", "task_withdraw", "task_start", "task_submit",
-              "org_roles", "hierarchy_propose", "hierarchy_review"},
+              "org_roles", "hierarchy_propose", "hierarchy_review", "hierarchy_stop"},
     "reviews": {"refresh", "select", "task_review"},
     "documents": {"refresh", "select", "document_inventory", "document_manage"},
     "activity": {"refresh", "select"},
@@ -33,7 +33,7 @@ DEPARTMENT_NAMES = {
     "xd_safety": "An toàn XD", "xd_material": "Vật tư",
 }
 INTERACTIVE = {"project_create", "project_import", "task_create", "task_assign", "task_withdraw", "task_submit",
-               "org_roles", "hierarchy_propose", "hierarchy_review",
+               "org_roles", "hierarchy_propose", "hierarchy_review", "hierarchy_stop",
                "task_review", "document_manage", "agent_run", "handoff_create",
                "handoff_resolve", "ops_audit"}
 
@@ -145,7 +145,7 @@ def handle_workspace_action(st, action: dict):
         st.session_state.xd_selected_cloud_project = pid
         st.session_state.xd_last_workspace_request = request_id
         return
-    if op in {"project_create", "project_import", "org_roles", "hierarchy_review"} and not can_admin(actor):
+    if op in {"project_create", "project_import", "org_roles", "hierarchy_review", "hierarchy_stop"} and not can_admin(actor):
         raise PermissionError("Chỉ Admin được tạo dự án")
     if op in {"task_create", "task_assign", "task_withdraw", "task_start", "task_submit", "hierarchy_propose"} and not can_upload(actor):
         raise PermissionError("Tài khoản Chỉ đọc không được cập nhật công việc")
@@ -157,7 +157,7 @@ def handle_workspace_action(st, action: dict):
     if op not in {"project_create", "project_import", "ops_audit"} and pid not in {p["id"] for p in current["projects"]}:
         raise PermissionError("Dự án không thuộc phạm vi")
     task_id = str(action.get("taskId") or "")
-    if op in {"task_assign", "task_withdraw", "task_start", "task_submit", "task_review", "agent_run", "hierarchy_propose"}:
+    if op in {"task_assign", "task_withdraw", "task_start", "task_submit", "task_review", "agent_run", "hierarchy_propose", "hierarchy_stop"}:
         if not any(t["id"] == task_id and t["projectId"] == pid
                    for t in current["tasks"]):
             raise PermissionError("Nhiệm vụ không thuộc dự án")
@@ -211,7 +211,7 @@ def workspace_dialog(st):
     action = st.session_state.get("xd_workspace_dialog")
     if not isinstance(action, dict) or action.get("op") not in INTERACTIVE:
         return
-    if action.get("op") in {"org_roles", "hierarchy_propose", "hierarchy_review"}:
+    if action.get("op") in {"org_roles", "hierarchy_propose", "hierarchy_review", "hierarchy_stop"}:
         from drive_storage.hierarchy_ui import hierarchy_dialog
         hierarchy_dialog(st, action)
         return
