@@ -192,6 +192,12 @@ def company_dialog(st, action):
                         done("Lượt Agent này đã được lưu trước đó; "
                              "không chạy lại để tránh nhân đôi kết quả/chi phí.")
                         return
+                    if attempt.get("existing"):
+                        st.warning("Lượt Agent này đã được bắt đầu trước đó. "
+                                   "Không thực thi lại cùng mã để tránh phát sinh "
+                                   "phí AI hoặc báo cáo trùng. Đóng và mở lại "
+                                   "công việc để tạo yêu cầu mới.")
+                        return
                     started = True
                     if mode in {"expert", "expert_llm"}:
                         result = run_expert(
