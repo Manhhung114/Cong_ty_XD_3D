@@ -8,7 +8,7 @@ import {Office3D} from './3d/scene.js';
 import {IllustratedOffice} from './3d/illustrated.js';
 import {LocalProjectPortal} from './local_portal.js';
 import {renderCloudPage,bindCloudPage,requestDocumentInventory} from './core/cloud_workspace.js';
-import {renderCompanySuite,bindCompanySuite} from './core/company_suite.js';
+import {renderCompanySuite,renderCompanyReport,bindCompanySuite} from './core/company_suite.js';
 import {renderMonitorDashboard,bindMonitorDashboard,stopMonitorPolling,requestMonitorSnapshot} from './core/monitor_dashboard.js';
 import {updateCommandShell} from './core/command_shell.js';
 import {APISettings} from './core/api_settings.js';
@@ -156,7 +156,7 @@ const pageContent={
  agents:()=>window.__xdCloud?.enabled?renderCompanySuite('agents'):agentsPage(),
  monitor:()=>window.__xdCloud?.enabled?renderMonitorDashboard():
  '<section class="panel padded"><h2>Giám sát Agent V6.7</h2><p>Cần đăng nhập Google để truy xuất nhật ký sự kiện theo quyền dự án.</p></section>',
- reports:()=>window.__xdCloud?.enabled?renderCompanySuite('company'):'<section class="panel padded">Cần đăng nhập Google để xem báo cáo.</section>',
+ reports:()=>window.__xdCloud?.enabled?renderCompanyReport():'<section class="panel padded">Cần đăng nhập Google để xem báo cáo.</section>',
  company:()=>window.__xdCloud?.enabled?renderCompanySuite('company'):
  '<section class="panel padded"><h2>Điều hành công ty</h2><p>Cần đăng nhập Google và kết nối dữ liệu dùng chung trên máy chủ.</p></section>',
  boq:boqPage,bim:bimPage,roadmap:roadmapPage
