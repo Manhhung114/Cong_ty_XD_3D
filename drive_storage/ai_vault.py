@@ -107,6 +107,9 @@ def read_shared(storage, secret: str) -> tuple[str | None, dict | None]:
         if len(plain) > MAX_BYTES:
             raise ValueError("Cấu hình AI vượt giới hạn")
         info = json.loads(plain.decode("utf8"))
+        if info.get("provider") == "none" and info.get("disabled") is True:
+            return fid, {"provider": "none", "model": "", "api_key": "",
+                         "agent_models": {}, "disabled": True}
         checked = _validate(info.get("provider"), info.get("model"),
                             info.get("api_key"), info.get("agent_models"))
         return fid, checked
@@ -162,13 +165,36 @@ def save_shared(storage, secret: str, identity: dict, *,
     return result["id"]
 
 
-def revoke_shared(storage, identity: dict):
+def revoke_shared(storage, identity: dict, secret: str):
+    """Write encrypted tombstone so legacy [ai] Secrets cannot re-enable AI."""
     from drive_storage.access_control import can_admin
     if not can_admin(identity):
         raise PermissionError("Chỉ Admin được thu hồi khóa AI")
     records = _candidates(storage)
-    if records:
-        storage.service.files().delete(fileId=records[0]["id"]).execute()
+    if not records:
+        return
+    fid = records[0]["id"]
+    # Validate that the vault is readable; wrong key must NEVER overwrite it.
+    read_shared(storage, secret)
+    nonce = os.urandom(12)
+    body = json.dumps({"provider": "none", "disabled": True}).encode()
+    ciphertext = AESGCM(_key(secret, storage.root_id)).encrypt(
+        nonce, body, _aad(storage.root_id)
+    )
+    wrapper = {
+        "schema": SCHEMA, "algorithm": "AES-256-GCM",
+        "nonce": base64.b64encode(nonce).decode(),
+        "ciphertext": base64.b64encode(ciphertext).decode(),
+        "updatedAt": datetime.now(timezone.utc).isoformat(),
+    }
+    from googleapiclient.http import MediaIoBaseUpload
+    media = MediaIoBaseUpload(io.BytesIO(json.dumps(wrapper).encode()),
+                             mimetype="application/json", resumable=False)
+    confirmed = storage.service.files().update(
+        fileId=fid, media_body=media, fields="id,name,parents"
+    ).execute()
+    if storage.root_id not in confirmed.get("parents", []):
+        raise RuntimeError("Không xác nhận được trạng thái thu hồi trên Drive")
 
 
 def effective_config(st, agent_id: str = "") -> dict:
