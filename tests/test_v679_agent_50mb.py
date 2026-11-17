@@ -50,7 +50,7 @@ class MaxFileLimitTests(unittest.TestCase):
                 pass
             def infolist(self):
                 return [large]
-        with patch("zipfile.ZipFile", return_value=FakeArchive()):
+        with patch("drive_storage.expert_tools.ZipFile", return_value=FakeArchive()):
             with self.assertRaisesRegex(ValueError, "giải nén quá lớn"):
                 expert._spreadsheet(b"PKbad")
 
