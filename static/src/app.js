@@ -1,4 +1,4 @@
-import {DIVISIONS,DEPARTMENTS,AGENTS,CATEGORIES,TASK_STATE_LABELS,TASK_STATES,ROADMAP,visibleDepartments,visibleAgents} from './core/config.js';
+import {DIVISIONS,OFFICE_ROOMS,AGENTS,CATEGORIES,TASK_STATE_LABELS,TASK_STATES,ROADMAP,visibleDepartments,visibleAgents} from './core/config.js';
 import {loadState,persistState,createTask,changeTaskStatus,submitReviewMaterial,decideTaskReview,logEvent,getAgentState,metrics,getSnapshot} from './core/storage.js';
 import {listDocuments,addDocument,deleteDocument,downloadDocument,documentGroups,docDivision} from './core/documents.js';
 import {parseBOQCSV,formatVND,sumBOQ} from './core/boq.js';
@@ -63,7 +63,7 @@ const portal=new LocalProjectPortal({getLanguage:()=>language,getLegacyState:()=
 const apiSettings=new APISettings({getLanguage:()=>language,onChange:()=>{if(tab==='settings')render();},notify:(msg,err)=>notice(msg,err)});let legalBaseRecords=[],legalVerifiedRecords=[],legalMEPSeedRecords=[],legalRecords=[];let legalUpdatedAt='2026-11-15';let legalField='all',legalSearch='',legalType='all',legalCandidates=[],legalSourceSites=[],tvplCandidates=getTVPLCache()?.candidates||[],tvplCheckedAt=getTVPLCache()?.generatedAt||'';let docs=[],tab=(['overview','company','agents','monitor','reports','projects','documents','boq','bim','tasks','reviews','activity','settings'].includes(window.__xdInitialSheet)&&(window.__xdInitialSheet!=='settings'||window.__xdAuthRole==='admin')?window.__xdInitialSheet:'overview'),office=null,selectedAgent=null,boqRows=[],constructionBOQRows=[],boqDivision='mep',docFilter='all';
 const $=id=>document.getElementById(id);
 const h=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const department=id=>DEPARTMENTS.find(d=>d.id===(id==="xd_qc"?"xd_safety":id))||DEPARTMENTS[0];
+const department=id=>OFFICE_ROOMS.find(d=>d.id===id)||OFFICE_ROOMS[0];
 const currentBusinessTasks=()=>window.__xdCloud?.enabled?(window.__xdCloud.tasks||[]).filter(t=>t.projectId===window.__xdCloud.selectedProjectId):portal.tasks;
 const branchName=id=>id==='construction'?'Xây dựng':id==='mep'?'MEP':'Ban điều hành chung';
 const divisionToggle=(value,prop='data-office-view')=>`<div class="division-switch" aria-label="Chọn khối chuyên môn">${DIVISIONS.map(d=>`<button type="button" ${prop}="${d.id}" class="${d.id===value?'active':''}">${d.name}</button>`).join('')}</div>`;

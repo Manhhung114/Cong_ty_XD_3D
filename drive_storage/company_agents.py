@@ -62,13 +62,12 @@ def v75_agents():
     if (raw.get("schema") != "XD_MEP_AGENTS_V75" or raw.get("version") != "7.5.0"
             or len(profiles) != 20 or {p.get("id") for p in profiles} != ids):
         raise ValueError("Danh mục V7.5 phải gồm 20 ID cố định")
-    rooms = {p["department"] for p in legacy.values()}
+    specialist_rooms = {"QCX": "xd_qc", "LEG": "legal"}
     for profile in profiles:
         key = profile["id"]
-        room = {"QCX": "xd_safety", "LEG": "director"}.get(key, profile["department"])
-        department = {"QCX": "xd_qc", "LEG": "legal"}.get(key, room)
-        if (profile["department"] != department or profile["office_room_id"] != room
-                or room not in rooms or profile["agent_role_scope"] != department
+        department = legacy[key]["department"] if key in legacy else specialist_rooms[key]
+        if (profile["department"] != department or profile["office_room_id"] != department
+                or profile["agent_role_scope"] != department
                 or profile.get("skill_version") != "7.5.0"
                 or set(profile["partners"]) - ids
                 or (key in legacy and any(profile.get(k) != value for k, value in legacy[key].items()))

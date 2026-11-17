@@ -23,9 +23,6 @@ export const DEPARTMENTS = [
 ];
 export const FLOOR_HEIGHT=4.35;
 export const departmentDivision=dept=>dept?.division==='shared'?'shared':dept?.division||'mep';
-// Company leadership works across both disciplines. Filter by division without
-// duplicating their department or the two shared staff records.
-export const visibleDepartments=view=>DEPARTMENTS.filter(d=>!['mep','construction'].includes(view)||d.division===view||d.division==='shared');
 const LEGACY_AGENTS = [
   {id:'CEO',name:'Giám đốc công ty',role:'Giám đốc công ty AI',dept:'director',tag:'Điều phối liên ngành'},
   {id:'PM',name:'Trưởng ban quản lý dự án',role:'Quản lý dự án AI',dept:'director',tag:'Tiến độ tổng thể'},
@@ -46,10 +43,19 @@ const LEGACY_AGENTS = [
   {id:'HSE',name:'Kỹ sư chất lượng và an toàn xây dựng',role:'An toàn & QA/QC XD AI',dept:'xd_safety',tag:'Chất lượng/An toàn'},
   {id:'MAT',name:'Kỹ sư quản lý vật tư',role:'Kỹ sư Vật tư AI',dept:'xd_material',tag:'Vật liệu xây dựng'}
 ];
-// Only the authenticated server snapshot can add the two canary profiles.
-const canary=globalThis.__xdCloud;
-const additions=(canary?.enabled===true?canary.agentsCatalog||[]:[]).filter(a=>
-  ['QCX','LEG'].includes(a.id)&&DEPARTMENTS.some(d=>d.id===a.office_room_id));
+const SPECIALIST_ROOMS = [
+  {id:'legal',agentId:'LEG',name:'Pháp chế & Hợp đồng',short:'Pháp chế',division:'shared',color:'#baabf6',abbr:'LEG',position:[-15.75,-3.45],floor:0,illustration:[32,23]},
+  {id:'xd_qc',agentId:'QCX',name:'QA/QC Xây dựng',short:'QA/QC XD',division:'construction',color:'#62dfba',abbr:'QCX',position:[15.75,3.45],floor:1,illustration:[68,23]}
+];
+// Render an extension only when its specialist is in the authenticated catalog.
+const cloud=globalThis.__xdCloud;
+const profiles=cloud?.enabled===true?cloud.agentsCatalog||[]:[];
+const additions=SPECIALIST_ROOMS.flatMap(room=>profiles.filter(a=>
+  a.id===room.agentId&&a.department===room.id&&a.office_room_id===room.id).slice(0,1));
+export const OFFICE_ROOMS = [...DEPARTMENTS, ...SPECIALIST_ROOMS.filter(room=>
+  additions.some(a=>a.id===room.agentId))];
+export const visibleDepartments=view=>OFFICE_ROOMS.filter(d=>
+  !['mep','construction'].includes(view)||d.division===view||d.division==='shared');
 export const AGENTS = [...LEGACY_AGENTS, ...additions.map(a=>({
   id:a.id,name:a.title,role:a.title,dept:a.department,roomId:a.office_room_id,
   tag:a.mission,executionDisabled:a.execution_disabled

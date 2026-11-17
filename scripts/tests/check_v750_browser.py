@@ -26,6 +26,7 @@ def check():
         for width in (390, 820, 1440):
             for force_fallback in (False, True):
                 page = browser.new_page(viewport={"width": width, "height": 900})
+                page.set_default_timeout(9000)
                 errors = []
                 page.on("pageerror", lambda error: errors.append(str(error)))
                 if force_fallback:
@@ -52,12 +53,30 @@ def check():
                 else:
                     assert "Nhân viên AI (20 Agent)" in page.locator('[data-nav="agents"]').inner_text()
                 assert page.locator('[data-nav="settings"]').count() == 0
+                assert "18 phòng · 20 nhân viên AI" in page.locator(".office-panel .panel-sub").inner_text()
+                page.locator('[data-office-render="illustrated"]').click()
+                assert page.locator(".illustrated-pin").count() == 18
+                for room, heading, specialist in (("legal", "Pháp chế & Hợp đồng", "LEG"),
+                                                  ("xd_qc", "QA/QC Xây dựng", "QCX")):
+                    marker = page.locator(f'.illustrated-specialist[data-office-room="{room}"]')
+                    assert specialist + " · " in marker.inner_text()
+                    marker.click()
+                    assert page.locator("#inspector h3").inner_text() == heading
+                    assert page.locator(f'#inspector [data-agent="{specialist}"]').count() == 1
+                    assert page.locator("#inspector .agent-line").count() == 1
                 page.locator('[data-office-render="live"]').click()
                 if force_fallback:
-                    assert page.locator("[data-svg-dept]").count() == 16
+                    assert page.locator("[data-svg-dept]").count() == 18
                 else:
                     assert page.locator("#officeShell canvas").count() == 1
                     assert page.locator(".office-svg-fallback").count() == 0
+                for room, heading, specialist in (("legal", "Pháp chế & Hợp đồng", "LEG"),
+                                                  ("xd_qc", "QA/QC Xây dựng", "QCX")):
+                    control = (page.locator(f'[data-svg-room-label="{room}"] text') if force_fallback else
+                               page.locator(f'.world-label[data-office-room="{room}"]'))
+                    control.click()
+                    assert page.locator("#inspector h3").inner_text() == heading
+                    assert page.locator(f'#inspector [data-agent="{specialist}"]').count() == 1
                 assert page.evaluate("document.documentElement.scrollWidth <= innerWidth + 1")
                 assert not errors, errors
                 page.close()

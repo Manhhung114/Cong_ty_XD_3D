@@ -1,18 +1,18 @@
-import {DEPARTMENTS,visibleDepartments,roomAgents} from '../core/config.js';
+import {OFFICE_ROOMS,visibleDepartments,roomAgents} from '../core/config.js';
 import {agentEvidence} from '../core/agent_live.js';
 
 // V5.1: interactive, high-fidelity 3D-styled illustration. This is an image
 // with accessible department hotspots; the WebGL view stays separately available.
 export const OFFICE_ILLUSTRATION='./assets/office_xd_mep_isometric_v5_7.webp';
-// Coordinates correspond to the V5.7 1586x992 illustration.
-// 16 separate locations: 1 executive, 7 MEP, 8 construction.
+// Coordinates are percentages of the existing office illustration.
 export const OFFICE_POINTS={
  director:[50,19],
  electrical:[11,44], hvac:[22,43], plumbing:[31,43],
  fire:[11,63], bim:[23,62], qs:[31,62], qa:[17.5,82],
  architecture:[75,42], structure:[87,42], xd_bim:[76,54],
  xd_qs:[89,54], xd_planning:[75,64], xd_site:[88,65],
- xd_safety:[77,82], xd_material:[90,82]
+ xd_safety:[77,82], xd_material:[90,82],
+ ...Object.fromEntries(OFFICE_ROOMS.filter(room=>room.illustration).map(room=>[room.id,room.illustration]))
 };
 // Mini workstations are drawn *in the illustration overlay*, not in a separate
 // floating "missing department" menu. This makes every department reachable.
@@ -37,7 +37,9 @@ export class IllustratedOffice {
     image.decoding='async';
     image.draggable=false;
     this.stage.append(image);
+    const rooms=visibleDepartments(this.view);
     for(const [id,label] of Object.entries(OFFICE_EXTRA_WORKSTATIONS)){
+      if(!rooms.some(room=>room.id===id))continue;
       const pos=OFFICE_POINTS[id];
       const pod=document.createElement('div');pod.className='illustrated-workstation';
       pod.style.left=pos[0]+'%';pod.style.top=pos[1]+'%';
@@ -51,24 +53,29 @@ export class IllustratedOffice {
     this.badge=badge;
     this.stage.append(badge);
     this.pins=new Map();
-    for(const dept of visibleDepartments(this.view)){
+    for(const dept of rooms){
       const pos=OFFICE_POINTS[dept.id];
       if(!pos)continue;
       const button=document.createElement('button');
       button.type='button';
       button.className='illustrated-pin';
+      button.dataset.officeRoom=dept.id;
       button.style.setProperty('--pin-color',dept.color);
       button.style.left=pos[0]+'%';button.style.top=pos[1]+'%';
       button.setAttribute('aria-label','Chọn phòng '+dept.name);
       button.title=dept.name;
       button.innerHTML='<span class="illustrated-pin-dot" aria-hidden="true"></span><span class="illustrated-pin-label"></span>';
-      button.querySelector('.illustrated-pin-label').textContent=dept.short;
+      const label=button.querySelector('.illustrated-pin-label');
+      label.textContent=dept.short;
+      if(dept.agentId){
+        button.classList.add('illustrated-specialist');
+        label.textContent=dept.agentId+' · '+dept.short;
+      }
       button.onclick=()=>this.select(dept.id);
       this.pins.set(dept.id,button);
       this.stage.append(button);
     }
     this.viewport.append(this.stage);
-    // All 16 departments now have a distinct clickable workplace on the art.
     this.container.append(this.viewport);
     this.image=image;
     image.addEventListener('error',()=>{
@@ -90,14 +97,14 @@ export class IllustratedOffice {
         statuses.some(s=>s.state==='stale')?'stale':
         statuses.some(s=>s.state==='completed')?'completed':'idle';
       button.dataset.execution=status;
-      button.title=DEPARTMENTS.find(d=>d.id===id)?.name+
+      button.title=OFFICE_ROOMS.find(d=>d.id===id)?.name+
         ' · '+(status==='started'?'Đã bắt đầu, chưa xác nhận heartbeat':
         status==='failed'?'Có lượt Agent bị lỗi':
         status==='completed'?'Có báo cáo nháp đã lưu':
         status==='stale'?'Có lượt Agent chưa rõ kết quả':
         'Chưa có lượt Agent được xác minh');
     }
-    const selected=DEPARTMENTS.find(d=>d.id===this.selected);
+    const selected=OFFICE_ROOMS.find(d=>d.id===this.selected);
     this.badge.textContent=selected?'Đang chọn: '+selected.name:'Chọn phòng để xem nhân viên AI và nhiệm vụ';
   }
   select(id){

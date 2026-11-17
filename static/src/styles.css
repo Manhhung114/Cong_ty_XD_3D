@@ -140,3 +140,18 @@
 .btn.tvpl-update{border-color:rgba(85,208,215,.65);background:rgba(50,134,143,.2);color:#c5fbf8}
 .legal-tvpl-panel{border-left:3px solid #6ecdd4}
 @media(max-width:750px){.legal-tvpl-links{flex-direction:column;gap:8px}.legal-tvpl-source{padding:12px}}
+
+/* Named rooms for specialists on the illustrated office map. */
+.illustrated-pin.illustrated-specialist {
+  width:auto; height:auto; min-height:38px; gap:6px; padding:5px 8px;
+  border:1px solid var(--pin-color); border-radius:9px;
+  background:#092d49f5; box-shadow:0 3px 14px #012b42bb;
+}
+.illustrated-specialist:hover,.illustrated-specialist:focus-visible,.illustrated-specialist.selected {
+  transform:translate(-50%,-50%); background:#07536b;
+}
+.illustrated-specialist .illustrated-pin-label {
+  display:block!important; position:static; transform:none;
+  padding:0; border:0; background:transparent; opacity:1; font-size:11px;
+}
+.illustrated-specialist .illustrated-pin-dot {flex:none;}
