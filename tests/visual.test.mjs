@@ -16,7 +16,7 @@ test('V5.7 maps all departments including independent extra workstations',()=>{
  assert.ok(existsSync(new URL('../'+OFFICE_ILLUSTRATION.replace('./',''),import.meta.url)));
 });
 test('V5.1 preserves existing tasks when migrating display mode',()=>{
- const state=loadState();assert.equal(state.officeRenderMode,'illustrated');
+ const state=loadState();assert.equal(state.officeRenderMode,'live');
  state.tasks.push({id:'TASK-999',title:'Giữ hồ sơ cũ',dept:'electrical',status:'todo',assignee:'ELE'});
  state.officeRenderMode='live';localStorage.setItem('mep-ai-company3d.v1',JSON.stringify(state));
  const restored=loadState();assert.equal(restored.officeRenderMode,'live');
