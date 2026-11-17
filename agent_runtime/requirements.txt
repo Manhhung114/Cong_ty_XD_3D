@@ -1,0 +1,9 @@
+# Dedicated V7.1–V7.4 runtime; not needed for default V7.0 Streamlit Cloud
+fastapi>=0.115,<1
+uvicorn[standard]>=0.30,<1
+sqlalchemy>=2.0,<3
+psycopg[binary]>=3.1,<4
+celery[redis]>=5.4,<6
+redis>=5,<7
+langgraph>=0.4,<2
+pdfplumber>=0.11,<1
