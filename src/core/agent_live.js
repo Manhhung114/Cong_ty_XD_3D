@@ -4,7 +4,7 @@
 const safeDate=value=>{const n=Date.parse(value||'');return Number.isFinite(n)?n:0;};
 export const AGENT_LIVE_LABELS={
  started_unconfirmed:'Đã bắt đầu · chưa có heartbeat',
- stale:'Không xác nhận được tiến trình',
+ stale:'Chưa xác nhận tiến trình',
  completed:'Đã lưu báo cáo nháp',
  failed:'Thực thi thất bại',
  idle:'Chưa có lượt thực thi đã xác minh',
