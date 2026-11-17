@@ -29,7 +29,8 @@ DEPARTMENTS = {
 }
 ACTIONS = {
     "project.created", "task.created", "task.started",
-    "task.submitted", "task.approved", "task.returned", "task.assigned", "document.registered",
+    "task.submitted", "task.approved", "task.returned", "task.assigned",
+    "task.unassigned", "task.cancelled", "document.registered",
     "document.metadata_updated", "document.submitted", "document.approved",
     "document.returned", "document.archived",
     "agent.completed", "handoff.requested", "handoff.resolved",
@@ -204,6 +205,8 @@ class SharedWorkspace:
                     "dueDate": data.get("dueDate", ""), "status": "todo",
                     "priority": data.get("priority", "normal"),
                     "report": "", "findings": "", "reviewHistory": [],
+                    "withdrawnAt": "", "withdrawnBy": "", "withdrawReason": "",
+                    "cancelledAt": "", "cancelledBy": "", "cancelReason": "",
                     "createdBy": event["actor"], "createdAt": event["at"],
                     "legacy": data.get("legacy", {}),
                 }
@@ -214,6 +217,30 @@ class SharedWorkspace:
                 if action == "task.assigned":
                     task["assignee"] = data.get("assignee", "")
                     task["assignedAgentId"] = data.get("agent_id", "")
+                elif action == "task.unassigned":
+                    if task["status"] not in {"todo", "working"}:
+                        raise ValueError("Không thể thu hồi nhiệm vụ đã trình duyệt/đóng")
+                    task.update({
+                        "assignee": "", "assignedAgentId": "", "status": "todo",
+                        "withdrawnAt": event["at"], "withdrawnBy": event["actor"],
+                        "withdrawReason": data["reason"],
+                    })
+                    task["reviewHistory"].append({
+                        "at": event["at"], "actor": event["actor"],
+                        "decision": "withdraw", "note": data["reason"],
+                    })
+                elif action == "task.cancelled":
+                    if task["status"] not in {"todo", "working", "review"}:
+                        raise ValueError("Không thể hủy nhiệm vụ đã hoàn tất hoặc đã hủy")
+                    task.update({
+                        "assignee": "", "assignedAgentId": "", "status": "cancelled",
+                        "cancelledAt": event["at"], "cancelledBy": event["actor"],
+                        "cancelReason": data["reason"],
+                    })
+                    task["reviewHistory"].append({
+                        "at": event["at"], "actor": event["actor"],
+                        "decision": "cancel", "note": data["reason"],
+                    })
                 elif action == "task.started":
                     if task["status"] == "todo":
                         task["status"] = "working"
@@ -430,6 +457,36 @@ class SharedWorkspace:
             identity=identity, project_id=pid, action="task.assigned",
             data={"task_id": task_id, "assignee": assignee,
                   "agent_id": agent_id}, event_id=event_id,
+        )
+
+    def withdraw_task(self, identity, *, project_id, task_id, reason, event_id=None):
+        """Remove both assignments, return task to todo, keep signed history."""
+        pid, task = self._current_task(identity, project_id, task_id)
+        if task["status"] not in {"todo", "working"}:
+            raise ValueError("Chỉ thu hồi phân công trước khi trình duyệt")
+        if not task.get("assignee") and not task.get("assignedAgentId"):
+            raise ValueError("Công việc chưa giao cho người hoặc Agent; hãy dùng Hủy công việc")
+        reason = _clean_text(reason, 600, True)
+        if len(reason) < 5:
+            raise ValueError("Lý do thu hồi phải có ít nhất 5 ký tự")
+        return self._append(
+            identity=identity, project_id=pid, action="task.unassigned",
+            data={"task_id": task_id, "reason": reason}, event_id=event_id,
+        )
+
+    def cancel_task(self, identity, *, project_id, task_id, reason, event_id=None):
+        """Admin-only cancellation, preserves old files, reports and signed events."""
+        if not can_admin(identity):
+            raise PermissionError("Chỉ Admin được hủy công việc")
+        pid, task = self._current_task(identity, project_id, task_id)
+        if task["status"] not in {"todo", "working", "review"}:
+            raise ValueError("Không thể hủy nhiệm vụ đã hoàn thành hoặc đã hủy")
+        reason = _clean_text(reason, 600, True)
+        if len(reason) < 5:
+            raise ValueError("Lý do hủy phải có ít nhất 5 ký tự")
+        return self._append(
+            identity=identity, project_id=pid, action="task.cancelled",
+            data={"task_id": task_id, "reason": reason}, event_id=event_id,
         )
 
     def _current_task(self, identity, project_id, task_id):
