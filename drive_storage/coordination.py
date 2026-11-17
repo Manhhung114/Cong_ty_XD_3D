@@ -7,11 +7,16 @@ from __future__ import annotations
 
 from datetime import datetime
 import re
+import os
 
 from drive_storage.access_control import can_admin, can_upload, clean_email
 from drive_storage.shared_workspace import (
     DEPARTMENTS, CANARY_LEDGER_LIMIT, _clean_text, _require_id,
 )
+
+def meetings_enabled():
+    return os.environ.get("XD_V752_MEETINGS", "0") == "1"
+
 
 MAX_MEETING_TEAMS = 8
 MAX_MEETING_TASKS = 5
@@ -30,6 +35,8 @@ def _meeting(workspace, identity, project_id, meeting_id):
 
 
 def _capacity(workspace):
+    if not meetings_enabled():
+        raise PermissionError("Họp phối hợp V7.5.2 đang tắt; chờ kiểm thử dữ liệu cũ")
     # The ledger currently has a hard 2500-event limit.
     if len(workspace._records()) >= CANARY_LEDGER_LIMIT:
         raise PermissionError("Nhật ký gần đầy; tạm ngừng tạo luồng mới để bảo toàn dữ liệu")
