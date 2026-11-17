@@ -408,18 +408,33 @@ def workspace_dialog(st):
             cancellable = task["status"] in {"todo", "working", "review"}
             assigned = bool(task.get("assignee") or task.get("assignedAgentId"))
             choices = []
-            if eligible and assigned:
+            if eligible and (assigned or task["status"] == "working"):
                 choices.append("withdraw")
             if can_admin(actor) and cancellable:
                 choices.append("cancel")
+            if not can_admin(actor):
+                st.info("Tài khoản hiện tại: Cập nhật. Bạn có thể thu hồi phân công "
+                        "hoặc đưa công việc Đang thực hiện về Chờ xử lý. "
+                        "Chỉ Admin mới được Hủy công việc hoàn toàn.")
             if not choices:
-                st.warning("Không có thao tác thu hồi/hủy được phép cho nhiệm vụ này.")
+                if task["status"] == "todo" and not assigned:
+                    st.warning("Công việc đang Chờ xử lý và chưa giao cho ai. "
+                               "Không có phân công để thu hồi; hãy yêu cầu Admin hủy nếu không cần nữa.")
+                elif task["status"] in {"review", "done", "cancelled"}:
+                    st.warning("Công việc đã trình duyệt hoặc đóng. "
+                               "Chỉ Admin có thể hủy công việc đang Chờ duyệt; "
+                               "công việc đã hoàn thành/đã hủy không thể hủy lại.")
+                else:
+                    st.warning("Không có thao tác phù hợp với trạng thái nhiệm vụ này.")
                 return
+            reset_only = task["status"] == "working" and not assigned
             with st.form("v677_task_withdraw"):
                 choice = st.radio(
                     "Hình thức xử lý", choices, horizontal=False,
                     format_func=lambda value: (
-                        "Thu hồi phân công — bỏ người phụ trách và Agent, đưa về Chờ xử lý"
+                        ("Đặt lại Chờ xử lý — công việc chưa giao người/Agent"
+                         if reset_only else
+                         "Thu hồi phân công — bỏ người phụ trách và Agent, đưa về Chờ xử lý")
                         if value == "withdraw" else
                         "Hủy công việc — chuyển sang Đã hủy, không thể giao/chạy lại"),
                 )
@@ -442,7 +457,9 @@ def workspace_dialog(st):
                             actor, project_id=pid, task_id=task["id"],
                             reason=reason, event_id=action["actionId"],
                         )
-                        feedback = "Đã thu hồi phân công. Công việc trở lại Chờ xử lý."
+                        feedback = ("Đã đưa công việc về Chờ xử lý; không có phân công nào bị xóa."
+                                    if reset_only else
+                                    "Đã thu hồi phân công. Công việc trở lại Chờ xử lý.")
                     elif choice == "cancel":
                         server.cancel_task(
                             actor, project_id=pid, task_id=task["id"],
