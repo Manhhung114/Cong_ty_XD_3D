@@ -137,6 +137,8 @@ def _task_context(state: dict, project_id: str, task_id: str, agent_id: str):
                  if t.get("id") == task_id and t.get("projectId") == project_id), None)
     if task is None:
         raise ValueError("Công việc không có trong dự án")
+    if task.get("status") == "cancelled":
+        raise PermissionError("Không chạy Agent cho công việc đã hủy")
     dept = task.get("dept")
     # Specialists may only analyze their discipline, except PM/CEO company coordination
     # and dedicated QA + document controller cross-department reviewers.
@@ -403,6 +405,8 @@ def create_handoff(workspace, identity, *, project_id, task_id, target_departmen
                  if t["id"] == task_id and t["projectId"] == pid), None)
     if not task:
         raise PermissionError("Nhiệm vụ không thuộc dự án")
+    if task.get("status") == "cancelled":
+        raise PermissionError("Không tạo phối hợp mới cho công việc đã hủy")
     departments = {p["department"] for p in agents().values()}
     if target_department not in departments or target_department == task["dept"]:
         raise ValueError("Phòng nhận không hợp lệ hoặc trùng phòng chủ trì")
