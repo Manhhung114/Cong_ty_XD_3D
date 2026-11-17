@@ -113,3 +113,72 @@
  .portal-task[class*="portal-hierarchy-"]{margin-left:0}
  .portal-task{min-width:0;overflow-wrap:anywhere}
 }
+
+/* V7.0 — interactive 3D HQ + signed CEO task and Agent execution status. */
+.v70-hq-summary{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin:10px 0 16px;padding:14px 18px;border:1px solid #33818a;border-radius:14px;color:#d4f7fa;background:linear-gradient(110deg,#102c3d,#16404b)}
+.v70-hq-summary strong{letter-spacing:.08em;color:#87f0dc;font-size:12px}
+.v70-hq-summary span{flex:1;font-size:13px;line-height:1.5}
+.v70-hq-summary button{border:1px solid #5dcbbb;background:#154951;color:#e5fcf9;padding:8px 12px;border-radius:8px;font-weight:700;cursor:pointer}
+.v70-hint{font-size:12px;color:#a9c6d4;line-height:1.55;overflow-wrap:anywhere}
+.v70-agent-detail{margin:12px 0;padding:12px;border:1px solid #2a8390;border-radius:10px;background:#122c3d;overflow-wrap:anywhere}
+.v70-agent-detail h4{margin:0 0 8px;color:#d5fff9}
+.v70-agent-detail p{margin:6px 0;font-size:12px;line-height:1.5}
+.agent-status.v70-status-started_unconfirmed{background:#164e52;color:#81f9e5;border-color:#338f86}
+.agent-status.v70-status-completed{background:#153a35;color:#76e3bf;border-color:#2f8c73}
+.agent-status.v70-status-failed{background:#4f2634;color:#ffb1ad;border-color:#995064}
+.agent-status.v70-status-stale{background:#4c3b26;color:#f6c687;border-color:#9e7b47}
+.agent-status.v70-status-idle{background:#1d3442;color:#b0bac6;border-color:#3d5261}
+.illustrated-pin[data-execution="started"] .illustrated-pin-dot{box-shadow:0 0 0 6px #4cf2ce55,0 0 16px #56ffd9;background:#4cf2ce}
+.illustrated-pin[data-execution="completed"] .illustrated-pin-dot{background:#62e8af;box-shadow:0 0 9px #62e8af}
+.illustrated-pin[data-execution="failed"] .illustrated-pin-dot{background:#ff6c7a;box-shadow:0 0 10px #ff6c7a}
+.illustrated-pin[data-execution="stale"] .illustrated-pin-dot{background:#f4b454}
+.v70-ceo-control{padding:18px;margin:4px 0 20px;border:1px solid #356678;border-radius:16px;background:linear-gradient(140deg,#0d293a,#102d3f 55%,#0e2332);color:#e8f7fc}
+.v70-ceo-head{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:20px}
+.v70-ceo-head h3{font-size:22px;line-height:1.25;margin:6px 0}
+.v70-ceo-head p{font-size:12px;color:#abcfde}
+.v70-kicker{color:#64dfce;letter-spacing:.12em;font-size:11px;font-weight:800}
+.v70-ceo-counts{display:flex;gap:7px;flex-wrap:wrap}
+.v70-ceo-counts>span{min-width:95px;border-radius:10px;background:#173e51;padding:9px 10px;text-align:center;font-size:11px;display:grid;gap:3px;color:#bbd8e8}
+.v70-ceo-counts strong{font-size:23px;color:#f6fcff}
+.v70-ceo-control h4{font-size:14px;color:#c8f5eb;margin:20px 0 10px}
+.v70-warning{border-left:3px solid #d8a65d;background:#403424;color:#fbe1ae;padding:9px 12px;border-radius:8px;font-size:12px;line-height:1.6}
+.v70-empty{padding:14px;border:1px dashed #478297;border-radius:10px;color:#bcd2dd;font-size:13px}
+.v70-hierarchy{border:1px solid #3c6776;border-radius:12px;background:#112d3d;margin:10px 0;overflow:hidden}
+.v70-hierarchy>summary{cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px}
+.v70-hierarchy>summary span:first-child{display:grid;gap:5px}
+.v70-hierarchy>summary b{font-size:14px;line-height:1.5}
+.v70-hierarchy>summary small{font-size:12px;color:#a3c5d1}
+.v70-hierarchy-toggle{font-size:11px;color:#66d5c3}
+.v70-node-rail{display:flex;flex-wrap:nowrap;gap:16px;overflow-x:auto;padding:14px 12px 20px;scroll-snap-type:x proximity}
+.v70-tree-node{flex:0 0 210px;min-height:164px;padding:12px;display:flex;flex-direction:column;gap:6px;border-radius:11px;background:#173a49;border:1px solid #50839a;position:relative;scroll-snap-align:center}
+.v70-tree-node+.v70-tree-node:before{content:"→";position:absolute;left:-15px;top:50%;color:#77e6d7;font-size:16px;font-weight:700}
+.v70-tree-node>strong{font-size:12px;color:#effbff}
+.v70-tree-node>span{font-size:12px;line-height:1.45;overflow-wrap:anywhere}
+.v70-tree-node>small{font-size:11px;color:#b8d5e0;overflow-wrap:anywhere}
+.v70-tree-stage{color:#72e8d4;font-size:10px;letter-spacing:.07em;text-transform:uppercase;font-weight:800}
+.v70-stage-ceo{border-top:3px solid #66e7c9}
+.v70-stage-pm{border-top:3px solid #77b6fc}
+.v70-stage-lead{border-top:3px solid #e7bd77}
+.v70-stage-expert{border-top:3px solid #70cbd4}
+.v70-stage-qa{border-top:3px solid #bc9ff4}
+.v70-task-state{font-weight:700;color:#e1f6fc}
+.v70-evidence{color:#9ee9cb!important}
+.v70-hierarchy .v70-hint{padding:0 14px 14px;margin:0}
+.v70-agent-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.v70-agent-card{background:#17394c;border-radius:10px;border:1px solid #3d5c73;min-width:0}
+.v70-agent-card>summary{cursor:pointer;display:flex;gap:9px;align-items:center;padding:11px;min-height:66px}
+.v70-agent-card>summary>span{flex:1;min-width:0;font-size:12px;font-weight:700;overflow-wrap:anywhere}
+.v70-agent-card>summary>small{font-size:10px;color:#b8d5db;max-width:105px;text-align:right}
+.v70-agent-card p{font-size:12px;line-height:1.5;margin:7px 11px;overflow-wrap:anywhere}
+.v70-agent-id{min-width:37px;font-size:12px;text-align:center;color:#d6fcf3;border:1px solid #3b8090;border-radius:6px;padding:6px 3px}
+.v70-state-started_unconfirmed{border-left:3px solid #44e4c9}
+.v70-state-completed{border-left:3px solid #67e3aa}
+.v70-state-failed{border-left:3px solid #ff818a}
+.v70-state-stale{border-left:3px solid #e5b26b}
+@media(max-width:1000px){.v70-agent-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.v70-ceo-head h3{font-size:20px}}
+@media(max-width:650px){
+ .v70-ceo-control{padding:12px}.v70-agent-grid{grid-template-columns:1fr}
+ .v70-ceo-counts{width:100%}.v70-ceo-counts>span{flex:1 1 80px}
+ .v70-node-rail{gap:11px}.v70-tree-node{flex-basis:195px}
+ .v70-hq-summary{padding:12px}.v70-hq-summary button{width:100%}
+}
