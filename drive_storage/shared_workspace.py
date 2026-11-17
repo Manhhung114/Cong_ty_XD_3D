@@ -592,6 +592,9 @@ class SharedWorkspace:
                             event_id=dispatch_id)
 
     def _hierarchy_guard(self, identity, task, *, submit=False):
+        # Legacy tasks keep the existing lightweight path and business rules.
+        if not task.get("hierarchyStage"):
+            return
         from drive_storage.hierarchy import (
             require_operator, dependencies_block, unfinished_children,
         )
