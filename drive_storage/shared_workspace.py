@@ -38,6 +38,8 @@ ACTIONS = {
     "document.returned", "document.archived",
     "agent.started", "agent.failed", "agent.completed", "handoff.requested", "handoff.resolved",
     "org.role_set", "hierarchy.proposed", "hierarchy.approved", "hierarchy.rejected", "hierarchy.stopped",
+    "meeting.created", "meeting.minutes", "meeting.approved",
+    "meeting.revision_requested", "meeting.closed",
 }
 ID = re.compile(r"^[A-Za-z0-9_-]{12,160}$")
 EVENT_ID = re.compile(r"^[0-9a-f]{32}$")
@@ -187,7 +189,7 @@ class SharedWorkspace:
         projects = self._projects(identity)
         allowed = {p["id"] for p in projects}
         task_map, documents, audit, handoff_map, agent_runs = {}, {}, [], {}, []
-        org_roles, hierarchy_plans = {}, {}
+        org_roles, hierarchy_plans, meeting_map = {}, {}, {}
         signed_events = self.events()
         for event in signed_events:
             pid = event["project_id"]
@@ -406,6 +408,86 @@ class SharedWorkspace:
                     task["reviewHistory"].append({"at": event["at"], "actor": event["actor"],
                                                   "decision": "approve" if action == "task.approved" else "reject",
                                                   "note": data.get("comment", "")})
+            elif action == "meeting.created":
+                task_ids = list(data.get("tasks") or [])
+                participants = list(data.get("departments") or [])
+                if (not 1 <= len(task_ids) <= 5 or
+                        any(t not in task_map or task_map[t]["projectId"] != pid
+                            for t in task_ids) or
+                        not 2 <= len(participants) <= 8 or
+                        any(d not in DEPARTMENTS for d in participants)):
+                    raise ValueError("Cuộc họp không có các bộ môn và công việc hợp lệ")
+                meeting_map[event["id"]] = {
+                    "id": event["id"], "projectId": pid,
+                    "title": data["title"], "agenda": data["agenda"],
+                    "taskIds": task_ids, "departments": participants,
+                    "scheduledAt": data["scheduled_at"],
+                    "status": "scheduled",
+                    "minutes": "", "decisions": "", "actions": [],
+                    "actionTaskIds": [], "createdAt": event["at"],
+                    "createdBy": event["actor"], "approvedBy": "",
+                    "approvedAt": "", "revisionReason": "",
+                }
+            elif action == "meeting.minutes":
+                meeting = meeting_map.get(data.get("meeting_id"))
+                if not meeting or meeting["projectId"] != pid or meeting["status"] not in {
+                        "scheduled", "revision_requested"}:
+                    raise ValueError("Biên bản cuộc họp không ở trạng thái cần gửi")
+                meeting.update({
+                    "minutes": data["minutes"], "decisions": data["decisions"],
+                    "actions": data["actions"], "status": "pending_approval",
+                    "submittedBy": event["actor"], "submittedAt": event["at"],
+                    "revisionReason": "",
+                })
+            elif action == "meeting.revision_requested":
+                meeting = meeting_map.get(data.get("meeting_id"))
+                if not meeting or meeting["projectId"] != pid or meeting["status"] != "pending_approval":
+                    raise ValueError("Chỉ có thể trả lại biên bản đang chờ duyệt")
+                meeting.update({"status": "revision_requested", "revisionReason": data["reason"],
+                                "revisedBy": event["actor"], "revisedAt": event["at"]})
+            elif action == "meeting.approved":
+                meeting = meeting_map.get(data.get("meeting_id"))
+                if not meeting or meeting["projectId"] != pid or meeting["status"] != "pending_approval":
+                    raise ValueError("Biên bản không đủ điều kiện phê duyệt")
+                ids = []
+                for index, item in enumerate(meeting["actions"]):
+                    if item["dept"] not in meeting["departments"] or item["dept"] not in DEPARTMENTS:
+                        raise ValueError("Bộ môn được giao không dự họp")
+                    tid = hashlib.sha256(
+                        ("V752:MEETING:" + event["id"] + ":" + str(index)).encode()
+                    ).hexdigest()[:32]
+                    if tid in task_map:
+                        raise ValueError("Mã công việc sau họp bị trùng")
+                    task_map[tid] = {
+                        "id": tid, "projectId": pid, "code": "CV-" + tid[:8].upper(),
+                        "title": item["title"], "dept": item["dept"],
+                        "assignee": item["assignee"], "assignedAgentId": item["agent_id"],
+                        "docCode": "", "dueDate": item["due_date"],
+                        "status": "todo", "priority": item["priority"],
+                        "report": "", "findings": "", "reviewHistory": [],
+                        "lastReviewDecision": "", "lastReviewNote": "",
+                        "lastReviewer": "", "lastReviewedAt": "",
+                        "lastSubmittedAt": "", "lastSubmittedBy": "",
+                        "withdrawnAt": "", "withdrawnBy": "", "withdrawReason": "",
+                        "cancelledAt": "", "cancelledBy": "", "cancelReason": "",
+                        "createdBy": event["actor"], "createdAt": event["at"],
+                        "legacy": {}, "parentTaskId": "", "rootTaskId": tid,
+                        "hierarchyStage": "", "delegationPlanId": "", "dependsOn": [],
+                        "assignedBy": event["actor"], "meetingId": meeting["id"],
+                        "meetingActionIndex": index,
+                    }
+                    ids.append(tid)
+                meeting.update({"status": "in_progress", "actionTaskIds": ids,
+                                "approvedBy": event["actor"], "approvedAt": event["at"]})
+            elif action == "meeting.closed":
+                meeting = meeting_map.get(data.get("meeting_id"))
+                if not meeting or meeting["projectId"] != pid or meeting["status"] != "in_progress":
+                    raise ValueError("Cuộc họp chưa thể đóng")
+                if any(task_map.get(tid, {}).get("status") != "done"
+                       for tid in meeting["actionTaskIds"]):
+                    raise ValueError("Còn đầu việc sau họp chưa được duyệt hoàn tất")
+                meeting.update({"status": "closed", "closedBy": event["actor"],
+                                "closedAt": event["at"]})
             elif action == "handoff.requested":
                 task_id = data.get("task_id")
                 task = task_map.get(task_id)
@@ -542,6 +624,14 @@ class SharedWorkspace:
                     "action": action, "note": data.get("comment", data.get("description", "")),
                 })
             audit.append({**entry, "detail": _clean_text(data.get("title", data.get("code", "")), 160)})
+        for meeting in meeting_map.values():
+            ids = meeting.get("actionTaskIds", [])
+            meeting["totalActions"] = len(ids)
+            meeting["completedActions"] = sum(
+                task_map.get(tid, {}).get("status") == "done" for tid in ids)
+            meeting["readyToClose"] = (
+                meeting["status"] == "in_progress" and
+                meeting["completedActions"] == len(ids))
         tasks = sorted(task_map.values(), key=lambda x: x["createdAt"], reverse=True)
         from drive_storage.hierarchy import describe_progress
         for task in tasks:
@@ -552,6 +642,8 @@ class SharedWorkspace:
         result = {"version": 70, "projects": projects, "tasks": tasks,
                   "documents": list(documents.values()), "events": audit[-200:],
                   "handoffs": sorted(handoff_map.values(), key=lambda h: h["createdAt"], reverse=True),
+                  "meetings": sorted(meeting_map.values(),
+                                     key=lambda m: m["createdAt"], reverse=True),
                   "orgRoles": [row for (p, _), row in org_roles.items() if p in allowed],
                   "hierarchyPlans": [row for row in hierarchy_plans.values()
                                      if row["projectId"] in allowed],
@@ -763,7 +855,11 @@ class SharedWorkspace:
                             event_id=event_id)
 
     def _hierarchy_guard(self, identity, task, *, submit=False):
-        # Legacy tasks keep the existing lightweight path and business rules.
+        # New meeting actions are restricted to the exact assignee/Admin,
+        # while all old non-hierarchical tasks retain their historic behavior.
+        if task.get("meetingId"):
+            from drive_storage.hierarchy import require_operator
+            require_operator(identity, task)
         if not task.get("hierarchyStage"):
             return
         from drive_storage.hierarchy import (
@@ -817,6 +913,8 @@ class SharedWorkspace:
         pid, task = self._current_task(identity, project_id, task_id)
         if task["status"] not in {"todo", "working"}:
             raise ValueError("Chỉ điều chỉnh phân công khi nhiệm vụ chưa trình duyệt")
+        if task.get("meetingId") and not can_admin(identity):
+            raise PermissionError("Chỉ Admin được thay đổi phân công sau họp đã duyệt")
         if task.get("hierarchyStage") and not can_admin(identity):
             parent = next((t for t in self.snapshot(identity)["tasks"]
                            if t["id"] == task.get("parentTaskId")), None)
@@ -838,6 +936,8 @@ class SharedWorkspace:
         pid, task = self._current_task(identity, project_id, task_id)
         if task["status"] not in {"todo", "working"}:
             raise ValueError("Chỉ thu hồi phân công trước khi trình duyệt")
+        if task.get("meetingId") and not can_admin(identity):
+            raise PermissionError("Chỉ Admin được thu hồi đầu việc sau họp đã duyệt")
         if task.get("hierarchyStage") and not can_admin(identity):
             parent = next((t for t in self.snapshot(identity)["tasks"]
                            if t["id"] == task.get("parentTaskId")), None)

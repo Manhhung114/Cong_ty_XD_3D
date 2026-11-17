@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import re
+import unicodedata
 from drive_storage.access_control import clean_email
 from drive_storage.v75_rollout import LEGACY_POLICY, QA_POLICY
 
@@ -61,11 +62,48 @@ def normalize_departments(departments) -> list[str]:
     return unique
 
 
+# Common site vocabulary and shorthand in Vietnamese. The CEO routing preview is
+# deliberately deterministic; these words are NOT a model inference or approval.
+ROUTING_ALIASES = {
+    "electrical": ("dien", "cap dien", "tu dien", "chong set", "tiep dia", "elv",
+                   "cctv", "camera", "lan", "ups", "may phat dien"),
+    "hvac": ("ong gio", "quat gio", "hut khoi", "tang ap", "dieu hoa", "dieu hoà"),
+    "plumbing": ("cap nuoc", "thoat nuoc", "ong nuoc", "may bom", "be nuoc"),
+    "fire": ("bao chay", "chua chay", "phong chay", "sprinkler", "pccc"),
+    "bim": ("bim mep", "model mep", "shopdrawing mep"),
+    "qs": ("boq mep", "du toan mep", "khoi luong mep"),
+    "architecture": ("kien truc", "ban ve kien truc", "hoan thien"),
+    "structure": ("ket cau", "cot thep", "mong", "dam", "san"),
+    "xd_bim": ("bim xay dung", "model ket cau", "bim xd"),
+    "xd_qs": ("du toan xd", "du toan xay dung", "boq xd"),
+    "xd_planning": ("tien do", "ke hoach thi cong", "duong gang"),
+    "xd_site": ("hien truong", "nhat ky thi cong", "rfi", "nghiem thu"),
+    "xd_safety": ("an toan", "hse", "ptw", "jsa", "loto"),
+    "xd_material": ("vat tu", "co cq", "submittal", "cung ung"),
+}
+
+
+def _routing_text(value: str) -> str:
+    """Accent- and whitespace-insensitive matching, without LLM guesswork."""
+    decomposed = unicodedata.normalize("NFKD", str(value or "").casefold())
+    ascii_letters = "".join("d" if ch == "đ" else ch for ch in decomposed
+                            if not unicodedata.combining(ch))
+    return " ".join(re.sub(r"[^a-z0-9]+", " ", ascii_letters).split())
+
+
 def suggest_departments(title: str, doc_code: str = "") -> list[str]:
-    """Deterministic hints only. Empty means no evidence to route automatically."""
-    content = (str(title) + " " + str(doc_code)).casefold()
-    return [name for name, keywords in KEYWORDS.items()
-            if any(word in content for word in keywords)][:MAX_DEPARTMENTS]
+    """Suggest up to four supported specialties; ambiguity requires human choice.
+
+    LEG and QCX are review roles, not independent execution departments here.
+    If more than four specialties match, do not silently omit the remainder.
+    """
+    content = " " + _routing_text(str(title) + " " + str(doc_code)) + " "
+    hits = []
+    for department, keywords in KEYWORDS.items():
+        words = (*keywords, *ROUTING_ALIASES.get(department, ()))
+        if any(" " + _routing_text(word) + " " in content for word in words):
+            hits.append(department)
+    return hits if len(hits) <= MAX_DEPARTMENTS else []
 
 
 def deterministic_id(dispatch_id: str, node_key: str) -> str:
@@ -160,6 +198,12 @@ def unfinished_children(task: dict, tasks: list[dict]) -> list[dict]:
 
 
 def require_operator(identity: dict, task: dict, operation: str = "run"):
+    # Tasks created by signed meeting approval belong to the named assignee,
+    # unlike old flat tasks. This does not retroactively change old projects.
+    if task.get("meetingId") and identity.get("role") != "admin":
+        expected = str(task.get("assignee") or "").strip().casefold()
+        if not expected or clean_email(identity.get("email", "")) != expected:
+            raise PermissionError("Đầu việc sau họp chỉ người được giao hoặc Admin được thực hiện")
     if task.get("dept") == "xd_qc":
         from drive_storage.v75_rollout import qcx_enabled
         if not qcx_enabled(task["projectId"]):

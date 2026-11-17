@@ -18,7 +18,12 @@ const actionLabels={
  'document.submitted':'Trình hồ sơ',
  'document.approved':'Duyệt hồ sơ',
  'document.returned':'Trả hồ sơ yêu cầu sửa',
- 'document.archived':'Chuyển hồ sơ lưu trữ'
+ 'document.archived':'Chuyển hồ sơ lưu trữ',
+ 'meeting.created':'Lên lịch họp liên phòng',
+ 'meeting.minutes':'Gửi biên bản họp chờ duyệt',
+ 'meeting.approved':'Duyệt biên bản và giao đầu việc',
+ 'meeting.revision_requested':'Trả biên bản yêu cầu sửa',
+ 'meeting.closed':'Đóng cuộc họp đã giải quyết'
 };
 const view=()=>window.__xdCloud||{enabled:false,projects:[],tasks:[],documents:[],events:[]};
 const current=()=>{
@@ -39,6 +44,7 @@ const canReviewTask=t=>{
 };
 const taskWithdrawControl=t=>{
  if(!canWrite())return '';
+ if(t.meetingId&&!canReview())return '';
  if(t.hierarchyStage&&!canReview()){
   const parent=(view().tasks||[]).find(x=>x.id===t.parentTaskId);
   const isManager=parent&&String(parent.assignee||'').toLowerCase()===
@@ -98,11 +104,34 @@ const tasksHtml=filter=>{
  const tasks=order.filter(t=>!filter||t.status===filter);
  const pendingPlans=(view().hierarchyPlans||[]).filter(p=>
   p.projectId===current()?.id&&p.status==='pending');
+ const self=(view().actor||'').toLowerCase();
+ const cross=new Set([
+  ...(view().handoffs||[]).filter(x=>x.projectId===current()?.id&&x.status==='open').map(x=>x.taskId),
+  ...(view().meetings||[]).filter(x=>x.projectId===current()?.id&&x.status!=='closed')
+    .flatMap(x=>[...(x.taskIds||[]),...(x.actionTaskIds||[])])
+ ]);
+ const currentDate=new Date();
+ const today=[currentDate.getFullYear(),String(currentDate.getMonth()+1).padStart(2,'0'),
+   String(currentDate.getDate()).padStart(2,'0')].join('-');
  return '<section class="panel padded"><div class="panel-heading"><h3>'+(filter?'Hồ sơ chờ phê duyệt':'Công việc dự án')+'</h3><span class="mini-label">'+tasks.length+' CÔNG VIỆC</span></div>'+
  (canWrite()&&!filter?'<div class="portal-review-actions">'+btn('＋ Tạo công việc','task_create','','primary')+
+  (view().meetingsAvailable?btn('📅 Họp phối hợp các bộ môn','meeting_create'):'')+
   (canReview()?btn('⚙ Cơ cấu tổ chức','org_roles'):'')+
   (canReview()&&pendingPlans.length?btn('✓ Duyệt phương án CEO ('+pendingPlans.length+')','hierarchy_review','','primary'):'')+
   '</div>':'')+
+ (!filter?'<div class="portal-focus-tabs" aria-label="Lọc việc cần xử lý">'+
+  '<button type="button" data-task-focus="all" aria-pressed="true">Tất cả · '+tasks.length+'</button>'+
+  '<button type="button" data-task-focus="mine" aria-pressed="false">Của tôi · '+
+    tasks.filter(t=>(t.assignee||'').toLowerCase()===self&&!['done','cancelled'].includes(t.status)).length+'</button>'+
+  '<button type="button" data-task-focus="review" aria-pressed="false">Chờ tôi duyệt · '+
+    tasks.filter(t=>t.status==='review'&&canReviewTask(t)).length+'</button>'+
+  '<button type="button" data-task-focus="cross" aria-pressed="false">Cần phối hợp · '+
+    tasks.filter(t=>cross.has(t.id)).length+'</button>'+
+  '<button type="button" data-task-focus="overdue" aria-pressed="false">Quá hạn · '+
+    tasks.filter(t=>t.dueDate&&t.dueDate<today&&!['done','cancelled'].includes(t.status)).length+
+  '</button></div>':'')+
+ '<div class="portal-quickstart"><span><b>1</b> Giao việc</span><span><b>2</b> PM/Bộ môn nhận</span>'+
+ '<span><b>3</b> Họp phối hợp khi vướng</span><span><b>4</b> Kiểm tra & duyệt</span></div>'+
  '<div class="portal-tasks">'+tasks.map(t=>{
  const history=t.reviewHistory||[];
  const reports=(view().agentRuns||[]).filter(r=>r.taskId===t.id&&r.projectId===t.projectId);
@@ -121,12 +150,13 @@ const tasksHtml=filter=>{
  const progress=t.hierarchyProgress||{total:0,done:0,blockedBy:[]};
  const blocked=(progress.blockedBy||[]).length>0;
  const actor=(view().actor||'').toLowerCase();
- const canOperate=canWrite()&&(!t.hierarchyStage||canReview()||
-  (t.assignee||'').toLowerCase()===actor);
+ const canOperate=canWrite()&&
+  (t.meetingId?(canReview()||(t.assignee||'').toLowerCase()===actor):
+   (!t.hierarchyStage||canReview()||(t.assignee||'').toLowerCase()===actor));
  const supervisor=p&&((p.assignee||'').toLowerCase()===actor);
  const canDelegate=canReview()||!!supervisor;
  const statusLabel=returned?'Yêu cầu sửa':(labels[t.status]||t.status);
- return '<article class="portal-task portal-hierarchy-'+h(t.hierarchyStage||'none')+'" data-parent-task="'+h(t.parentTaskId||'')+'"><div class="portal-task-head"><div><strong>'+h(t.title)+'</strong><small>'+h(t.code)+' · '+h(t.dept)+' · '+h(t.assignee||'Chưa giao')+
+ return '<article class="portal-task portal-hierarchy-'+h(t.hierarchyStage||'none')+'" data-parent-task="'+h(t.parentTaskId||'')+'" data-task-id="'+h(t.id)+'"><div class="portal-task-head"><div><strong>'+h(t.title)+'</strong><small>'+h(t.code)+' · '+h(t.dept)+' · '+h(t.assignee||'Chưa giao')+
  '</small></div><span class="portal-pill '+(t.status==='review'?'review':t.status==='done'?'done':t.status==='cancelled'?'cancelled':returned?'returned':'')+'">'+h(statusLabel)+'</span></div>'+
  (t.hierarchyStage?'<p class="company-secondary"><b>Tuyến phân cấp:</b> '+
   h(hierarchyStages[t.hierarchyStage]||t.hierarchyStage)+
@@ -153,6 +183,8 @@ const tasksHtml=filter=>{
   ' · '+h(t.lastSubmittedAt||'')+'</p>':'')+
  (t.dueDate?'<p>Hạn: '+h(t.dueDate)+'</p>':'')+
  (t.docCode?'<p>Hồ sơ: '+h(t.docCode)+'</p>':'')+
+ (t.meetingId?'<p class="company-secondary"><b>Đầu việc phát sinh từ cuộc họp:</b> '+
+  h(t.meetingId.slice(0,8).toUpperCase())+'</p>':'')+
  (t.report?'<div class="portal-report"><b>Báo cáo</b><p>'+h(t.report)+'</p><p>'+h(t.findings)+'</p></div>':'')+
  (reports.length?'<details><summary>🤖 Báo cáo nháp Agent ('+reports.length+')</summary>'+
  reports.map(run=>'<div class="company-run"><strong>'+h(run.agentTitle||run.agentId)+
@@ -165,7 +197,8 @@ const tasksHtml=filter=>{
  )+'</b></p>':'')+
   '<div class="portal-review-actions">'+
  (canWrite()&&['todo','working'].includes(t.status)&&
-   (!t.hierarchyStage||canDelegate)?btn('Gán / Sửa phân công','task_assign',t.id):'')+
+   (!t.meetingId||canReview())&&(!t.hierarchyStage||canDelegate)?
+    btn('Gán / Sửa phân công','task_assign',t.id):'')+
  (canWrite()&&t.assignedAgentId==='CEO'&&t.dept==='director'&&
   !t.parentTaskId&&!existingPlan&&['todo','working'].includes(t.status)&&
   (canReview()||(t.assignee||'').toLowerCase()===actor)?
@@ -174,6 +207,8 @@ const tasksHtml=filter=>{
  (canReview()&&activePlan&&t.hierarchyStage==='ceo'&&
   !['done','cancelled'].includes(t.status)?
   btn('⛔ Dừng toàn bộ cây phân phối','hierarchy_stop',t.id):'')+
+ (canWrite()&&view().meetingsAvailable&&!['cancelled','done'].includes(t.status)?
+   btn('📅 Mở họp liên bộ môn','meeting_create',t.id):'')+
  taskWithdrawControl(t)+
  (canOperate&&!blocked&&specialist&&['todo','working'].includes(t.status)?
   '<button type="button" class="btn primary small" data-agent-run-task="'+h(t.id)+'" data-agent-run-id="'+h(specialist.id)+'" data-agent-run-project="'+h(t.projectId)+'">🤖 Chạy Agent '+h(specialist.id)+'</button>':'')+
@@ -186,6 +221,7 @@ const tasksHtml=filter=>{
  (history.length?'<details><summary>Lịch sử xử lý ('+history.length+')</summary>'+history.map(x=>'<p>'+h(x.at)+' · '+h(x.actor)+' · '+h(({withdraw:'Thu hồi phân công',cancel:'Hủy công việc',submitted:'Trình duyệt',approve:'Phê duyệt',reject:'Trả lại'})[x.decision]||x.decision)+' · '+h(x.note)+'</p>').join('')+'</details>':'')+
  '</article>';
  }).join('')+'</div>'+
+ (!filter?'<p class="empty-state" data-task-focus-empty hidden>Không có công việc trong bộ lọc này.</p>':'')+
  (!tasks.length?'<div class="empty-state">Chưa có công việc trong mục này.</div>':'')+
  '<p class="footnote">Mọi quyết định được ghi theo tài khoản Google đăng nhập; chưa thay thế chữ ký số hoặc phê duyệt pháp lý.</p></section>';
 };
@@ -354,6 +390,39 @@ const send=(section,op,taskId='',projectId='',fileId='',agentId='')=>{
 let backupHandlerAttached=false;
 export function bindCloudPage(root,section){
  if(section==='documents')bindDocumentInventory(root);
+ if(section==='tasks'){
+  const controls=[...root.querySelectorAll('[data-task-focus]')];
+  const cards=[...root.querySelectorAll('.portal-task[data-task-id]')];
+  const all=selectedTasks(),byId=new Map(all.map(t=>[t.id,t]));
+  const self=(view().actor||'').toLowerCase();
+  const involved=new Set([
+   ...(view().handoffs||[]).filter(x=>x.projectId===current()?.id&&x.status==='open')
+     .map(x=>x.taskId),
+   ...(view().meetings||[]).filter(x=>x.projectId===current()?.id&&x.status!=='closed')
+     .flatMap(x=>[...(x.taskIds||[]),...(x.actionTaskIds||[])])
+  ]);
+  const dt=new Date();
+  const today=[dt.getFullYear(),String(dt.getMonth()+1).padStart(2,'0'),
+    String(dt.getDate()).padStart(2,'0')].join('-');
+  const empty=root.querySelector('[data-task-focus-empty]');
+  for(const control of controls)control.addEventListener('click',()=>{
+   const mode=control.dataset.taskFocus;
+   controls.forEach(c=>c.setAttribute('aria-pressed',String(c===control)));
+   let shown=0;
+   for(const card of cards){
+    const t=byId.get(card.dataset.taskId);
+    const active=t&&!['done','cancelled'].includes(t.status);
+    const matches=mode==='all'||(mode==='mine'&&active&&
+      (t?.assignee||'').toLowerCase()===self)||
+      (mode==='review'&&t?.status==='review'&&canReviewTask(t))||
+      (mode==='cross'&&t&&involved.has(t.id))||
+      (mode==='overdue'&&active&&t?.dueDate&&t.dueDate<today);
+    card.hidden=!matches;
+    if(matches)shown++;
+   }
+   if(empty)empty.hidden=shown>0;
+  });
+ }
  root.querySelector('#cloudProjectSelect')?.addEventListener('change',e=>send(section,'select','',''+e.target.value));
  root.querySelectorAll('[data-workspace-op]').forEach(b=>b.addEventListener('click',()=>{
   const op=b.dataset.workspaceOp;
@@ -368,7 +437,7 @@ export function bindCloudPage(root,section){
    return;
   }
   if(op==='project_create'&&role()!=='admin')return;
-  if(['task_create','task_assign','task_withdraw','task_start','task_submit','hierarchy_propose'].includes(op)&&!canWrite())return;
+  if(['task_create','task_assign','task_withdraw','task_start','task_submit','hierarchy_propose','meeting_create'].includes(op)&&!canWrite())return;
   if(['org_roles','hierarchy_review','hierarchy_stop'].includes(op)&&!canReview())return;
   if(op==='task_review'){
    const selected=(view().tasks||[]).find(t=>t.id===b.dataset.workspaceTask);

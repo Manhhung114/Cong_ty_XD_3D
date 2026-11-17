@@ -17,12 +17,13 @@ COMMANDS = {
     "overview": {"refresh"},
     "projects": {"refresh", "select", "project_create", "project_import"},
     "tasks": {"refresh", "select", "task_create", "task_assign", "task_withdraw", "task_start", "task_submit",
-              "org_roles", "hierarchy_propose", "hierarchy_review", "hierarchy_stop"},
+              "org_roles", "hierarchy_propose", "hierarchy_review", "hierarchy_stop", "meeting_create"},
     "reviews": {"refresh", "select", "task_review"},
     "documents": {"refresh", "select", "document_inventory", "document_manage"},
     "activity": {"refresh", "select"},
     "agents": {"refresh", "select", "agent_run"},
-    "company": {"refresh", "select", "handoff_create", "handoff_resolve", "ops_audit"},
+    "company": {"refresh", "select", "handoff_create", "handoff_resolve", "ops_audit",
+                "meeting_create", "meeting_minutes", "meeting_approve", "meeting_close"},
     "monitor": {"refresh", "select"},
 }
 DEPARTMENT_NAMES = {
@@ -37,7 +38,8 @@ DEPARTMENT_NAMES = {
 INTERACTIVE = {"project_create", "project_import", "task_create", "task_assign", "task_withdraw", "task_submit",
                "org_roles", "hierarchy_propose", "hierarchy_review", "hierarchy_stop",
                "task_review", "document_manage", "agent_run", "handoff_create",
-               "handoff_resolve", "ops_audit"}
+               "handoff_resolve", "ops_audit", "meeting_create", "meeting_minutes",
+               "meeting_approve", "meeting_close"}
 
 
 def service_for(st):
@@ -74,6 +76,8 @@ def load_snapshot(st) -> dict:
     from drive_storage.company_ui import ai_status
     snapshot["companyMetrics"] = company_metrics(snapshot)
     snapshot["agentsCatalog"] = public_catalog(selected)
+    from drive_storage.coordination import meetings_enabled
+    snapshot["meetingsAvailable"] = meetings_enabled(selected)
     snapshot["aiStatus"] = ai_status(st)
     from agent_runtime.client import public_jobs
     runtime = public_jobs(st, actor, selected) if selected else {
@@ -153,11 +157,11 @@ def handle_workspace_action(st, action: dict):
         st.session_state.xd_selected_cloud_project = pid
         st.session_state.xd_last_workspace_request = request_id
         return
-    if op in {"project_create", "project_import", "org_roles", "hierarchy_review", "hierarchy_stop"} and not can_admin(actor):
+    if op in {"project_create", "project_import", "org_roles", "hierarchy_review", "hierarchy_stop", "meeting_approve", "meeting_close"} and not can_admin(actor):
         raise PermissionError("Chỉ Admin được tạo dự án")
     if op in {"task_create", "task_assign", "task_withdraw", "task_start", "task_submit", "hierarchy_propose"} and not can_upload(actor):
         raise PermissionError("Tài khoản Chỉ đọc không được cập nhật công việc")
-    if op in {"agent_run", "handoff_create", "handoff_resolve"} and not can_upload(actor):
+    if op in {"agent_run", "handoff_create", "handoff_resolve", "meeting_create", "meeting_minutes"} and not can_upload(actor):
         raise PermissionError("Chỉ đọc không được chạy Agent hoặc gửi phối hợp")
     if op == "ops_audit" and not can_admin(actor):
         raise PermissionError("Chỉ Admin được kiểm soát và sao lưu hệ thống")
@@ -181,6 +185,19 @@ def handle_workspace_action(st, action: dict):
         _, task, _, _ = _task_context(current, pid, task_id, str(action.get("agentId") or ""))
         require_operator(actor, task)
         require_qc_role(actor, task, current)
+    if op.startswith("meeting_"):
+        from drive_storage.coordination import meetings_enabled
+        if not meetings_enabled(pid):
+            raise PermissionError("Họp phối hợp chưa được bật sau nghiệm thu")
+        meeting_id = str(action.get("meetingId") or "")
+        if op == "meeting_create":
+            if task_id and not any(t["id"] == task_id and t["projectId"] == pid
+                                   and t["status"] != "cancelled"
+                                   for t in current["tasks"]):
+                raise PermissionError("Không thể họp từ công việc đã hủy hoặc ngoài dự án")
+        elif not any(m["id"] == meeting_id and m["projectId"] == pid
+                     for m in current.get("meetings", [])):
+            raise PermissionError("Cuộc họp không thuộc dự án được cấp quyền")
     if op == "handoff_resolve":
         handoff_id = str(action.get("handoffId") or "")
         if not any(h["id"] == handoff_id and h["projectId"] == pid
@@ -209,6 +226,7 @@ def handle_workspace_action(st, action: dict):
         "fileId": str(action.get("fileId") or "")[:160],
         "agentId": str(action.get("agentId") or "")[:20],
         "handoffId": str(action.get("handoffId") or "")[:160],
+        "meetingId": str(action.get("meetingId") or "")[:160],
     }
     st.session_state.xd_last_workspace_request = request_id
 
@@ -220,6 +238,10 @@ def workspace_dialog(st):
     if action.get("op") in {"org_roles", "hierarchy_propose", "hierarchy_review", "hierarchy_stop"}:
         from drive_storage.hierarchy_ui import hierarchy_dialog
         hierarchy_dialog(st, action)
+        return
+    if action.get("op") in {"meeting_create", "meeting_minutes", "meeting_approve", "meeting_close"}:
+        from drive_storage.coordination_ui import meeting_dialog
+        meeting_dialog(st, action)
         return
     if action.get("op") in {"agent_run", "handoff_create", "handoff_resolve", "ops_audit"}:
         from drive_storage.company_ui import company_dialog
@@ -348,43 +370,101 @@ def workspace_dialog(st):
 
         elif op == "task_create":
             from drive_storage.company_agents import agents
+            from drive_storage.hierarchy import DEPT_LABELS, MAX_DEPARTMENTS
+            from drive_storage.ceo_quickstart import create_with_optional_ceo_plan
+
             catalog = agents()
+            workflow = st.radio(
+                "Cách giao việc",
+                ["ceo", "direct"],
+                format_func=lambda v: (
+                    "🏢 Giao Giám đốc AI tự lập phương án" if v == "ceo" else
+                    "🛠 Giao trực tiếp bộ môn / chuyên gia"),
+                horizontal=True, key="v752_task_mode_" + pid)
+            if workflow == "ceo":
+                st.info("Chỉ nhập nội dung công việc và bấm Giao. Giám đốc lập "
+                        "đề xuất phân bộ môn dựa trên quy tắc từ khóa, chờ Admin "
+                        "duyệt để giao PM → trưởng bộ môn → chuyên gia → QA/QC. "
+                        "Chưa gọi API AI hoặc chạy worker tự động.")
+            else:
+                st.caption("Giao trực tiếp cho bộ môn và Agent. Thao tác này "
+                           "không tự chạy AI hoặc phê duyệt kết quả.")
+
+            directors = [r["email"] for r in current.get("orgRoles", [])
+                         if r.get("projectId") == pid
+                         and r.get("role") == "director"
+                         and r.get("department") == "director"
+                         and r.get("email")]
+            initial_director = directors[0] if directors else actor["email"]
             with st.form("cloud_task_create"):
                 st.caption("Dự án: " + project["code"] + " · " + project["name"])
-                st.info("Muốn Giám đốc AI phân phối xuống các cấp: chọn Bộ môn "
-                        "Ban giám đốc và Agent CEO, giao cho Giám đốc. "
-                        "Sau khi lưu, dùng nút CEO lập phương án ngay trên thẻ.")
-                title = st.text_input("Tên công việc", max_chars=240)
-                dept = st.selectbox("Bộ môn", sorted(DEPARTMENTS),
-                                    format_func=lambda x: DEPARTMENT_NAMES.get(x, x))
-                assignee = st.text_input("Người phụ trách (tên hoặc email)", max_chars=160)
-                agent_id = st.selectbox(
-                    "Agent được giao (tùy chọn; phải đúng bộ môn)",
-                    ["", *catalog], format_func=lambda aid: "— Chưa giao Agent —"
-                    if not aid else catalog[aid]["title"] + " · " + aid,
-                )
+                title = st.text_input(
+                    "Công việc cần thực hiện *", max_chars=240,
+                    placeholder="Ví dụ: Kiểm tra xung đột tủ điện, ống gió và PCCC tầng 5")
+                if workflow == "ceo":
+                    dept, agent_id = "director", "CEO"
+                    assignee = st.text_input(
+                        "Giám đốc phụ trách (email tài khoản có quyền dự án)",
+                        value=initial_director, max_chars=160)
+                    auto_plan = st.checkbox(
+                        "Tự lập và gửi phương án cho Admin duyệt", value=True)
+                    with st.expander("Nâng cao · Chọn bộ môn nếu cần"):
+                        manual_depts = st.multiselect(
+                            "Chỉ định 1–4 bộ môn; bỏ trống để tự gợi ý",
+                            list(DEPT_LABELS), max_selections=MAX_DEPARTMENTS,
+                            format_func=lambda d: DEPT_LABELS[d])
+                else:
+                    dept = st.selectbox(
+                        "Bộ môn", sorted(DEPARTMENTS),
+                        format_func=lambda d: DEPARTMENT_NAMES.get(d, d))
+                    assignee = st.text_input(
+                        "Kỹ sư/người phụ trách", max_chars=160)
+                    agent_id = st.selectbox(
+                        "Agent được giao (tùy chọn; phải đúng bộ môn)",
+                        ["", *catalog], format_func=lambda aid:
+                        "— Chưa giao Agent —" if not aid
+                        else catalog[aid]["title"] + " · " + aid)
+                    auto_plan, manual_depts = False, []
                 doc_code = st.text_input("Mã hồ sơ liên quan", max_chars=80)
-                priority = st.selectbox("Mức độ ưu tiên", ["normal", "low", "high", "critical"],
-                                        format_func=lambda p: {"normal": "Bình thường", "low": "Thấp",
-                                                               "high": "Cao", "critical": "Khẩn cấp"}[p])
-                deadline = st.date_input("Hạn hoàn thành", value=None, format="DD/MM/YYYY")
-                submitted = st.form_submit_button("Giao công việc", type="primary")
+                priority = st.selectbox(
+                    "Mức độ ưu tiên", ["normal", "low", "high", "critical"],
+                    format_func=lambda p: {
+                        "normal": "Bình thường", "low": "Thấp",
+                        "high": "Cao", "critical": "Khẩn cấp"}[p])
+                deadline = st.date_input(
+                    "Hạn hoàn thành", value=None, format="DD/MM/YYYY")
+                submitted = st.form_submit_button(
+                    "⚡ Giao Giám đốc và lập phương án" if workflow == "ceo"
+                    else "Giao công việc", type="primary")
             if submitted:
                 try:
-                    server.create_task(
-                        actor, project_id=pid, title=title, dept=dept,
+                    result = create_with_optional_ceo_plan(
+                        server, actor, project_id=pid, title=title, dept=dept,
                         assignee=assignee, agent_id=agent_id, doc_code=doc_code,
-                        priority=priority,
-                        due_date=deadline.isoformat() if deadline else "",
-                        event_id=action["actionId"],
-                    )
+                        priority=priority, due_date=deadline.isoformat() if deadline else "",
+                        event_id=action["actionId"], auto_plan=auto_plan,
+                        selected_departments=manual_depts)
                     st.session_state.xd_workspace_dialog = None
-                    st.session_state.xd_workspace_feedback = "Đã tạo nhiệm vụ và lưu phân công. Agent chưa chạy cho đến khi bấm Chạy Agent."
+                    status = result["status"]
+                    feedback = {
+                        "pending_approval": "Đã giao Giám đốc và tạo phương án tự động. "
+                                            "Vào mục Chờ duyệt phương án để xác nhận phân phối.",
+                        "choose_departments": "Đã giao việc cho Giám đốc. Nội dung chưa rõ "
+                                              "bộ môn; mở thẻ để chọn bộ môn trước khi phân việc.",
+                        "already_proposed": "Công việc đã có phương án, không tạo trùng.",
+                        "proposal_requires_review": "Đã tạo công việc CEO, nhưng phương án "
+                                                    "cần Giám đốc được giao hoặc Admin tiếp tục.",
+                        "proposal_unconfirmed": "Đã lưu công việc lên Drive; chưa xác minh "
+                                                "được phương án, hãy làm mới trước khi thử lại.",
+                        "created": "Đã giao công việc và lưu phân công; Agent chưa chạy.",
+                    }
+                    st.session_state.xd_workspace_feedback = feedback[status]
                     st.rerun()
                 except (PermissionError, ValueError) as error:
                     st.error(str(error))
                 except Exception:
-                    st.error("Không tạo được công việc. Kiểm tra kết nối Drive.")
+                    st.error("Không xác nhận được trạng thái lưu. Hãy làm mới dữ liệu "
+                             "Drive trước khi thử lại để tránh giao việc trùng.")
 
         elif op == "task_assign":
             from drive_storage.company_agents import agents
