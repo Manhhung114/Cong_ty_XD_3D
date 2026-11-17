@@ -54,6 +54,18 @@ def load_snapshot(st) -> dict:
     selected = requested if requested in valid else (snapshot["projects"][0]["id"] if snapshot["projects"] else "")
     st.session_state.xd_selected_cloud_project = selected
     snapshot.update({"enabled": True, "selectedProjectId": selected})
+    if st.session_state.get("xd_current_sheet") == "monitor":
+        from drive_storage.monitoring import ALL_DEPARTMENTS
+        prefs = dict(st.session_state.get("xd_monitor_preferences") or {})
+        snapshot["monitorPreferences"] = {
+            "project": prefs.get("project") if prefs.get("project") in valid else "all",
+            "system": prefs.get("system") if prefs.get("system") in
+                {"all", "mep", "xd", "cross"} else "all",
+            "period": prefs.get("period") if prefs.get("period") in
+                {"hour", "today", "week"} else "today",
+            "department": prefs.get("department") if prefs.get("department") in
+                ALL_DEPARTMENTS else "all",
+        }
     from drive_storage.company_agents import company_metrics, public_catalog
     from drive_storage.company_ui import ai_status
     snapshot["companyMetrics"] = company_metrics(snapshot)
@@ -105,6 +117,20 @@ def handle_workspace_action(st, action: dict):
         raise PermissionError("Phiên đăng nhập không hợp lệ")
     st.session_state.xd_current_sheet = section
     if op in {"refresh", "document_inventory"}:
+        if section == "monitor":
+            from drive_storage.monitoring import ALL_DEPARTMENTS
+            project = str(action.get("monitorProject") or "all")
+            system = str(action.get("monitorSystem") or "all")
+            period = str(action.get("monitorPeriod") or "today")
+            department = str(action.get("monitorDepartment") or "all")
+            # Never treat browser filter arguments as authorization. The
+            # server snapshot and packet already filter by verified projects.
+            st.session_state.xd_monitor_preferences = {
+                "project": project if len(project) <= 160 else "all",
+                "system": system if system in {"all", "mep", "xd", "cross"} else "all",
+                "period": period if period in {"hour", "today", "week"} else "today",
+                "department": department if department in ALL_DEPARTMENTS else "all",
+            }
         if section == "documents":
             st.session_state.xd_doc_inventory_requested = True
         st.session_state.xd_last_workspace_request = request_id
