@@ -1,3 +1,13 @@
+# V7.4.0 — Nâng cấp một đợt V7.1 → V7.4 (17/11/2026)
+
+**Trạng thái mã nguồn:** đã bổ sung dịch vụ runtime riêng (PostgreSQL + Redis/Celery + worker có heartbeat thật), cổng review LangGraph, tùy chọn Admin đẩy đồng loạt checklist sau khi duyệt cây CEO, tra cứu tài liệu được phép sử dụng có nguồn, xuất DXF copy sau khi kỹ sư xác nhận, adapter Anthropic/Ollama tùy chọn, Docker Compose và test. Giữ nguyên Google OIDC, Google Drive, vault AI dùng chung và giao diện 3D V7.0.
+
+**Trong app:** Công việc → Chạy Agent → **Đưa vào hàng đợi V7.4** khi worker đã cấu hình (hoặc **Chạy ngay trong Streamlit** để tương thích cũ). Giám sát Agent hiển thị queue, phần trăm và heartbeat thật khi có worker. Không có backend => không tạo job giả. Giao CEO cho phép Admin duyệt và chọn **tự khởi chạy checklist không dùng API trả phí** cho PM/Lead/Engineer; QA cần chờ chuyên gia được duyệt.
+
+**Điều chưa được xác minh:** runtime server / Redis / PostgreSQL chưa được triển khai qua tài khoản thật, 18 worker đồng thời chưa load-test, IFC clash & shopdrawing tự động chưa đạt. Mọi bản vẽ/tiêu chuẩn vẫn cần kỹ sư duyệt. Chi phí API hiện là **ước tính**, không phải hóa đơn. Xem [Hướng dẫn V7.4](docs/V740_INTEGRATED_AGENT_RUNTIME.md) và `docker-compose.v74.yml`.
+
+---
+
 # V7.0.0 — AI 3D Virtual Headquarters & Live Agent Control Center (17/11/2026)
 
 **Văn phòng 3D tương tác:** Giữ mô hình WebGL nhiều tầng, 16 phòng/18 Agent và camera xoay, zoom, xem tầng; người mới mở app vào 3D trực tiếp, người cũ vẫn giữ lựa chọn Phối cảnh chi tiết/3D đã lưu. Nhấp Agent trong từng phòng để xem nhiệm vụ thật, lần thực thi gần nhất, mode, thời điểm và trạng thái dựa trên nhật ký có chữ ký. Có bản SVG dự phòng khi WebGL không hỗ trợ. Không dùng trạng thái "công việc đang thực hiện" để giả mạo Agent đang chạy.

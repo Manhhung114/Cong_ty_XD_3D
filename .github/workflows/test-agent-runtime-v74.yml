@@ -1,0 +1,40 @@
+name: Verify V7.1-V7.4 Agent Runtime
+on:
+  pull_request:
+    paths:
+      - "agent_runtime/**"
+      - "Dockerfile.agent-runtime"
+      - "docker-compose.v74.yml"
+      - "drive_storage/**"
+      - ".github/workflows/test-agent-runtime-v74.yml"
+  push:
+    branches: [main]
+    paths:
+      - "agent_runtime/**"
+      - "drive_storage/**"
+      - "Dockerfile.agent-runtime"
+      - "docker-compose.v74.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install application and runtime packages
+        run: python -m pip install --disable-pip-version-check -r requirements.txt -r agent_runtime/requirements.txt httpx pytest
+      - name: Unit/API/graph/engineering tests with isolated SQLite and fake Redis dispatcher
+        run: python -m unittest discover -s agent_runtime/tests -p 'test_*.py' -v
+        env:
+          AGENT_RUNTIME_ALLOW_SQLITE: "1"
+          AGENT_RUNTIME_SECRET: "test-secret-longer-than-thirty-two-characters-v74"
+      - name: Source compilation
+        run: python -m compileall -q agent_runtime drive_storage streamlit_app.py
+      - name: Existing Streamlit/Agent regression suite
+        run: python -m unittest discover -s tests -p 'test_*.py'
+      - name: Node regression suite
+        run: npm test

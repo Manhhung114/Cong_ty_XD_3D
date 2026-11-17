@@ -3,6 +3,11 @@
    no worker heartbeat, so a recent start is labelled unconfirmed. */
 const safeDate=value=>{const n=Date.parse(value||'');return Number.isFinite(n)?n:0;};
 export const AGENT_LIVE_LABELS={
+ queued:'Trong hàng đợi Redis/Celery',
+ running:'Đang xử lý · worker có heartbeat',
+ unconfirmed:'Không xác nhận được worker',
+ cancelled:'Đã hủy lượt xử lý',
+ dispatch_failed:'Không kết nối được hàng đợi',
  started_unconfirmed:'Đã bắt đầu · chưa có heartbeat',
  stale:'Chưa xác nhận tiến trình',
  completed:'Đã lưu báo cáo nháp',
@@ -20,6 +25,23 @@ export function agentEvidence(cloud,agentId,projectId='',clock=Date.now()){
  const items=(cloud?.agentActivity||[]).filter(a=>
    a.agentId===agentId&&(!selected||a.projectId===selected));
  const record=items.sort((a,b)=>safeDate(b.at)-safeDate(a.at))[0];
+ const queued=(cloud?.runtimeJobs||[]).filter(job=>job.agentId===agentId&&
+   (!selected||job.projectId===selected)).sort((a,b)=>
+   safeDate(b.endedAt||b.heartbeatAt||b.createdAt)-
+   safeDate(a.endedAt||a.heartbeatAt||a.createdAt))[0];
+ const runtimeAt=queued?safeDate(queued.endedAt||queued.heartbeatAt||queued.createdAt):0;
+ if(queued&&(!record||runtimeAt>=safeDate(record.at))){
+  const state=AGENT_LIVE_LABELS[queued.state]?queued.state:'unconfirmed';
+  return {...queued,at:queued.endedAt||queued.heartbeatAt||queued.createdAt,
+   state,label:AGENT_LIVE_LABELS[state],verified:true,
+   hasHeartbeat:queued.state==='running'&&queued.hasHeartbeat===true,
+   detail:(state==='running'?('Tiến độ '+queued.progress+'% · '+queued.phase):
+     state==='failed'?(FAILURE_LABELS[queued.failureCode]||FAILURE_LABELS.internal):
+     queued.phase||''),
+   workerProgress:queued.progress,
+   billingVerified:queued.billingVerified===true,
+  };
+ }
  if(!record)return {state:'idle',label:AGENT_LIVE_LABELS.idle,verified:false,
                       hasHeartbeat:false,taskId:'',at:''};
  const age=Math.max(0,(clock-safeDate(record.at))/1000);
@@ -34,10 +56,15 @@ export function agentEvidence(cloud,agentId,projectId='',clock=Date.now()){
 }
 export function agentEvidenceSummary(cloud,projectId=''){
  const selected=projectId==='all'?'':(projectId||cloud?.selectedProjectId||'');
- const rows=(cloud?.agentActivity||[]).filter(a=>!selected||a.projectId===selected);
- const counts={started_unconfirmed:0,stale:0,completed:0,failed:0};
- for(const r of rows){
-  const e=agentEvidence(cloud,r.agentId,projectId==='all'?'all':selected);
+ const rows=[
+  ...(cloud?.agentActivity||[]),
+  ...(cloud?.runtimeJobs||[]),
+ ].filter(a=>!selected||a.projectId===selected);
+ const counts={queued:0,running:0,unconfirmed:0,started_unconfirmed:0,
+   stale:0,completed:0,failed:0,cancelled:0,dispatch_failed:0};
+ const ids=new Set(rows.map(r=>r.agentId));
+ for(const id of ids){
+  const e=agentEvidence(cloud,id,projectId==='all'?'all':selected);
   if(Object.prototype.hasOwnProperty.call(counts,e.state))counts[e.state]++;
  }
  return counts;

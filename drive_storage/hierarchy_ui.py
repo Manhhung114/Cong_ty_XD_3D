@@ -209,6 +209,11 @@ def hierarchy_dialog(st, action):
                 reason = st.text_area("Lý do trả lại (bắt buộc nếu từ chối)", max_chars=600)
                 confirmed = st.checkbox(
                     "Tôi xác nhận đúng dự án, nhiệm vụ và các cấp được phân phối")
+                from agent_runtime.client import configured_client
+                auto_checklist=st.checkbox(
+                    "V7.4: Sau khi duyệt, đưa checklist của PM/Trưởng bộ môn/Chuyên gia "
+                    "vào hàng đợi worker (không dùng API AI trả phí, QA vẫn phải đợi duyệt)",
+                    value=False,disabled=configured_client(st) is None)
                 submitted = st.form_submit_button(
                     "Xác nhận quyết định phân phối", type="primary")
             if submitted:
@@ -221,9 +226,23 @@ def hierarchy_dialog(st, action):
                         event_id=action["actionId"],
                     )
                     if decision == "approve":
-                        success("Đã duyệt kế hoạch CEO. Hệ thống tạo và giao "
-                                "các nhiệm vụ PM → trưởng bộ môn → chuyên gia "
-                                "→ QA/QC; phải chạy từng Agent có xác nhận.")
+                        message=("Đã duyệt kế hoạch CEO và tạo các nhiệm vụ "
+                                 "PM → Trưởng bộ môn → Chuyên gia → QA/QC.")
+                        if auto_checklist:
+                            try:
+                                from agent_runtime.batch import batch_preflight
+                                result=batch_preflight(
+                                    configured_client(st),service,identity,
+                                    project_id=pid,proposal_id=plan["id"])
+                                message+=(" Đã vào hàng đợi "+str(len(result["queued"]))+
+                                          " checklist; thất bại "+str(len(result["failed"]))+
+                                          "; chờ điều kiện "+str(len(result["blockedByDependency"]))+
+                                          ". Theo dõi từng job tại Giám sát Agent.")
+                            except Exception:
+                                message+=(" Đã lưu phân phối lên Drive nhưng KHÔNG xác minh "
+                                          "được hàng đợi worker; kiểm tra Redis và thử "
+                                          "từng công việc, không có kết quả giả.")
+                        success(message)
                     else:
                         success("Đã trả phương án về Giám đốc với lý do được lưu.")
                 except (PermissionError, ValueError) as exc:

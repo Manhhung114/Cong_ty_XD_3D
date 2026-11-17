@@ -97,7 +97,7 @@ export class Office3D{
  avatar(a,x,z,t,y=0){
   // A task marked "working" does not establish that the AI itself is running.
   const status=agentEvidence(this.options.getCloud?.(),a.id);
-  const doing=status.state==='started_unconfirmed';
+  const doing=['started_unconfirmed','running'].includes(status.state);
   const review=status.state==='failed';
   const complete=status.state==='completed';
   const bob=doing?.03*Math.sin(t*3.1+a.id.length):.01*Math.sin(t*1.1);

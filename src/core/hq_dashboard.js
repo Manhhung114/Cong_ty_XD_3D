@@ -38,6 +38,10 @@ export function renderCEOCommandCenter(cloud,project='all'){
  const open=tasks.filter(t=>t.status!=='done'&&t.status!=='cancelled').length;
  const waiting=plans.filter(p=>p.status==='pending').length;
  const failures=activity.filter(a=>agentEvidence(cloud,a.agentId,project).state==='failed').length;
+ const workerJobs=(cloud?.runtimeJobs||[]).filter(j=>codes.has(j.projectId)&&
+   (project==='all'||j.projectId===project));
+ const activeWorkers=workerJobs.filter(j=>j.state==='running'&&j.hasHeartbeat).length;
+ const queuedWorkers=workerJobs.filter(j=>j.state==='queued').length;
  const groups=plans.slice().sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))).slice(0,8);
  const lines=groups.map(plan=>{
   const root=titles.get(plan.rootTaskId);
@@ -77,7 +81,10 @@ export function renderCEOCommandCenter(cloud,project='all'){
    '<p><b>Nhiệm vụ:</b> '+h(e.taskCode||'—')+' · '+h(e.taskTitle||'Chưa có lượt chạy đã ký')+'</p>'+
    '<p><b>Thời điểm:</b> '+h(when(e.at))+'</p>'+
    (e.detail?'<p><b>Chi tiết:</b> '+h(e.detail)+'</p>':'')+
-   '<p class="v70-hint">Không có heartbeat máy chủ; không suy diễn Agent đang chạy từ trạng thái công việc.</p>'+
+   '<p class="v70-hint">'+(e.hasHeartbeat?
+    'Heartbeat worker đã xác nhận · chỉ là tiến độ xử lý, chưa nghiệm thu.':
+    'Không có heartbeat thực cho phiên này; không suy diễn Agent đang chạy từ trạng thái công việc.')+
+   '</p>'+
    '</details>';
  }).join('');
  return '<section class="v70-ceo-control" aria-label="Trung tâm điều phối CEO V7.0">'+
@@ -86,10 +93,13 @@ export function renderCEOCommandCenter(cloud,project='all'){
   '<div class="v70-ceo-counts"><span><strong>'+plans.length+'</strong> phương án</span>'+
   '<span><strong>'+waiting+'</strong> chờ duyệt</span>'+
   '<span><strong>'+open+'</strong> việc mở</span>'+
-  '<span><strong>'+live.started_unconfirmed+'</strong> đã bắt đầu*</span>'+
+  '<span><strong>'+activeWorkers+'</strong> worker có heartbeat</span>'+
+  '<span><strong>'+queuedWorkers+'</strong> đang xếp hàng</span>'+
+  '<span><strong>'+live.started_unconfirmed+'</strong> chưa xác nhận*</span>'+
   '<span><strong>'+failures+'</strong> lỗi gần nhất</span></div></div>'+
-  '<p class="v70-warning">* “Đã bắt đầu” chỉ có sự kiện ký số, không có heartbeat hay worker chạy nền. '+
-  'Sau 120 giây chưa có kết thúc, chuyển sang “Chưa xác nhận tiến trình”.</p>'+
+  '<p class="v70-warning">V7.4: chỉ gọi “Đang chạy” khi worker nền gửi heartbeat còn hiệu lực. '+
+  'Không có runtime hoặc heartbeat quá hạn sẽ hiển thị “Chưa xác nhận”. '+
+  'Các kết quả đã lưu là báo cáo nháp chờ người kiểm chứng.</p>'+
   '<h4>Luồng phân phối CEO → PM → Trưởng bộ môn → Chuyên gia & QA</h4>'+
   (lines||'<div class="v70-empty">Chưa có phương án phân phối CEO trong phạm vi đã chọn. '+
    'Vào Công việc → giao nhiệm vụ CEO → Giám đốc lập phương án → Admin duyệt để tạo cây thật.</div>')+

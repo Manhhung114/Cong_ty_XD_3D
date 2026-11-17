@@ -155,13 +155,104 @@ def company_dialog(st, action):
                     "từ file kỹ thuật đến nhà cung cấp AI. Không gửi tệp nhị phân.",
                     value=False,
                 )
+                from agent_runtime.client import configured_client
+                runtime_enabled = configured_client(st) is not None
                 submit = st.form_submit_button(
-                    "Chạy chuyên gia và lưu báo cáo nháp", type="primary"
+                    "Chạy ngay trong Streamlit", type="secondary"
                 )
+                queued = st.form_submit_button(
+                    "🚀 Đưa Agent vào hàng đợi V7.4", type="primary",
+                    disabled=not runtime_enabled
+                )
+            if runtime_enabled:
+                st.caption("V7.4: hàng đợi Redis/Celery thực, worker cập nhật heartbeat "
+                           "và báo cáo vẫn cần người kiểm duyệt. Không tự ký/duyệt.")
+            else:
+                st.info("Hệ thống worker V7.4 chưa được kết nối. Có thể chạy trực tiếp "
+                        "với V7.0, hoặc Admin cấu hình runtime API/worker để chạy nền.")
+            if runtime_enabled:
+                from agent_runtime.client import public_jobs, configured_client
+                jobs=public_jobs(st,identity,pid)["jobs"]
+                related=[j for j in jobs if j["taskId"]==task_id and j["agentId"]==agent_id]
+                if related:
+                    with st.expander("📡 Phiên Agent nền · Tiến độ thực",expanded=True):
+                        for job in related[:5]:
+                            st.caption("Job "+job["id"][:8]+" · "+job["state"]+
+                                       " · "+str(job["progress"])+"% · "+job["phase"])
+                            if job["state"]=="running" and job.get("hasHeartbeat"):
+                                st.progress(min(100,int(job["progress"])),text="Heartbeat worker đã xác nhận")
+                            if job.get("canCancel") and job["state"] in {"queued","running","unconfirmed"}:
+                                if st.button("Thu hồi lượt "+job["id"][:8],key="stop_"+job["id"]):
+                                    try:
+                                        configured_client(st).send("/api/runtime/jobs/cancel",{
+                                            "jobId":job["id"],"projectId":pid,"identity":identity})
+                                        st.success("Đã yêu cầu thu hồi. Job đang chạy chỉ dừng tại điểm kiểm tra an toàn.")
+                                        st.rerun()
+                                    except (RuntimeError,PermissionError) as exc:
+                                        st.error(str(exc))
+            if runtime_enabled and can_admin(identity):
+                with st.expander("📚 V7.3 · Nạp nguồn tiêu chuẩn/catalogue có bản quyền", expanded=False):
+                    st.caption("Chỉ Admin được nhập tài liệu đã có quyền sử dụng. "
+                               "Không tự tải toàn văn TCVN/QCVN, và tra cứu không phải "
+                               "chứng nhận bản vẽ đạt chuẩn.")
+                    with st.form("v743_licensed_reference_ingest"):
+                        source_id=st.text_input("Mã tài liệu tham chiếu",max_chars=160)
+                        version=st.text_input("Phiên bản / lần ban hành",max_chars=100)
+                        title=st.text_input("Tên tài liệu",max_chars=260)
+                        citation=st.text_input("Điều khoản / trang trích dẫn",max_chars=300)
+                        effective=st.text_input("Ngày hiệu lực (nếu có)",max_chars=30)
+                        excerpt=st.text_area("Đoạn được phép sử dụng",max_chars=20000,height=110)
+                        allowed=st.checkbox("Tôi xác nhận được phép lưu và phân tích tài liệu này")
+                        ingest=st.form_submit_button("Ghi nguồn tham chiếu vào PostgreSQL")
+                    if ingest:
+                        try:
+                            if not allowed:
+                                raise PermissionError("Cần quyền sử dụng văn bản")
+                            client=configured_client(st)
+                            ref=client.send("/api/runtime/standards/ingest",{
+                                "projectId":pid,"identity":identity,
+                                "sourceId":source_id,"version":version,
+                                "title":title,"citation":citation,"effectiveDate":effective,
+                                "text":excerpt,"copyrightPermitted":allowed})
+                            st.success("Đã nhập nguồn tham chiếu "+str(ref["sourceId"])+
+                                       " · SHA-256 "+str(ref["sha256"])[:12]+
+                                       ". Chưa xác nhận tuân thủ kỹ thuật.")
+                        except (PermissionError,ValueError,RuntimeError) as exc:
+                            st.error(str(exc))
+                        except Exception:
+                            st.error("Không thể lưu nguồn tham chiếu lên máy chủ")
             if not configured["configured"]:
                 st.caption("Chưa kích hoạt nhà cung cấp AI trên máy chủ. "
                            "Admin vào Cài đặt → API dùng chung để lưu khóa trên Drive. "
                            "Checklist vẫn hoạt động độc lập.")
+            if queued:
+                from agent_runtime.client import configured_client
+                try:
+                    if mode in {"llm", "expert_llm"} and not consent:
+                        raise PermissionError("Cần xác nhận truyền metadata/trích xuất cho AI")
+                    if mode in {"expert", "expert_llm"} and selected is None:
+                        raise ValueError("Cần chọn file đã ghi sổ để xử lý nền")
+                    from drive_storage.hierarchy import require_operator, dependencies_block
+                    require_operator(identity, task)
+                    if dependencies_block(task, state["tasks"]):
+                        raise PermissionError("Nhiệm vụ trước chưa được duyệt")
+                    client = configured_client(st)
+                    if not client:
+                        raise RuntimeError("Runtime chưa được kết nối")
+                    job = client.send("/api/runtime/jobs", {
+                        "jobId": action["actionId"], "projectId": pid,
+                        "taskId": task_id, "agentId": agent_id,
+                        "mode": mode, "fileId": selected["id"] if selected else "",
+                        "note": note, "consent": consent,
+                        "identity": identity,
+                    })
+                    done("Đã ghi hàng đợi Agent: " + str(job["id"])[:8] +
+                         ". Theo dõi heartbeat tại Giám sát Agent. "
+                         "Không đồng nghĩa đã hoàn thành/phê duyệt.")
+                except (PermissionError, ValueError, RuntimeError) as exc:
+                    st.error("Chưa đưa được vào hàng đợi: " + str(exc))
+                except Exception:
+                    st.error("Không thể liên hệ worker; chưa ghi nhận hoàn thành.")
             if submit:
                 started = False
                 attempt_id = action["actionId"]

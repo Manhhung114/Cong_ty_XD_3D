@@ -395,7 +395,7 @@ export function renderMonitorDashboard(){
  '<div class="v67-toolbar-actions"><button class="v67-refresh" id="v67-refresh">↻ Làm mới ngay</button>'+
  '<label class="v67-auto"><input id="v67-auto" type="checkbox" checked> Tự cập nhật</label></div></div>'+
  '<p class="v67-last-sync">Nguồn: nhật ký Google Drive có chữ ký HMAC · Lần kiểm tra gần nhất: '+
- esc(fmtTime(packet.asOf))+' · Agent có sự kiện bắt đầu/kết thúc/thất bại có chữ ký; chưa có worker heartbeat.</p>'+
+ esc(fmtTime(packet.asOf))+(st().runtimeEnabled?' · V7.4 worker có heartbeat, xem trạng thái thật trong CEO Command Center.':' · Chưa cấu hình runtime V7.4; chỉ có nhật ký Drive ký số, chưa có heartbeat.')+'</p>'+ 
  '<div id="v67-dynamic">'+filteredDashboard(f)+'</div>'+
  '<footer class="v67-footer">Dữ liệu chỉ gồm các dự án được tài khoản Google cho phép xem. '+
  'Mỗi 15 giây hệ thống tải lại snapshot máy chủ; không phải WebSocket. '+
