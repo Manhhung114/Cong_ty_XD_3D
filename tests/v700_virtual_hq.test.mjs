@@ -76,7 +76,7 @@ test('CEO command center shows real hierarchy, all agents, data source caveat',(
  assert.match(html,/Chuyên gia/);
  assert.match(html,/QA\/QC độc lập/); // headline of workflow
  assert.match(html,/18 Agent/);
- assert.match(html,/chưa có heartbeat/i);
+ assert.match(html,/không có heartbeat/i);
  assert.match(html,/CV-/);
  assert.match(html,/Đã lưu báo cáo nháp/);
  assert.match(html,/không tự sinh kết quả/i);
