@@ -103,9 +103,10 @@ def ai_settings_dialog(st):
                     test_key = str(current.get("api_key") or "")
                 if not test_key:
                     raise ValueError("Chưa có API key cho nhà cung cấp đang chọn. Hãy nhập khóa để kiểm tra.")
-                result = probe_ai_connection(provider, model, test_key)
+                test_model = (agent_model.strip() or overrides.get(agent_id) or model) if agent_id else model
+                result = probe_ai_connection(provider, test_model, test_key)
                 if result["ok"]:
-                    st.success(result["message"] + " · " + provider + " / " + model)
+                    st.success(result["message"] + " · " + provider + " / " + test_model)
                 else:
                     st.error(result["message"])
                 st.caption("Đã kiểm tra trực tuyến từ máy chủ, không lưu khóa vừa nhập, không gọi AI sinh nội dung.")
