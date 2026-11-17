@@ -192,3 +192,53 @@ export function bindCompanySuite(root,section){
   });
  });
 }
+
+/* Read-only reporting sheet; the dashboard is not a duplicate write screen. */
+export function renderCompanyReport(){
+ const s=state(),m=s.companyMetrics||{},tasks=s.tasks||[],handoffs=s.handoffs||[];
+ const projectCount=(s.projects||[]).length;
+ const statusKeys=['todo','working','review','done'];
+ const statusLabels={todo:'Chưa bắt đầu',working:'Đang làm',review:'Chờ duyệt',done:'Hoàn thành'};
+ const counts=Object.fromEntries(statusKeys.map(k=>[k,tasks.filter(t=>t.status===k).length]));
+ const total=tasks.length;
+ const complete=total?((counts.done/total)*100).toFixed(1)+'%':'—';
+ const grouped=new Map();
+ for(const task of tasks){
+  const dept=task.dept||'director';
+  grouped.set(dept,(grouped.get(dept)||0)+1);
+ }
+ const top=[...grouped].sort((a,b)=>b[1]-a[1]).slice(0,12);
+ const max=top.length?Math.max(...top.map(x=>x[1]),1):1;
+ const crossCount=handoffs.filter(x=>{
+  const a=division(x.sourceDept),b=division(x.targetDept);
+  return (a==='MEP'&&b==='Xây dựng')||(a==='Xây dựng'&&b==='MEP');
+ }).length;
+ const projects=(s.projects||[]).map(p=>{
+  const ts=tasks.filter(t=>t.projectId===p.id),done=ts.filter(t=>t.status==='done').length;
+  const open=handoffs.filter(x=>x.projectId===p.id&&x.status==='open').length;
+  return '<tr><td><b>'+h(p.code)+'</b> · '+h(p.name)+'</td><td>'+ts.length+
+    '</td><td>'+done+'</td><td>'+open+'</td></tr>';
+ }).join('');
+ return '<section class="panel padded company-suite command-report">'+
+ '<div class="panel-heading"><div><h2>▥ Báo cáo & Thống kê toàn công ty</h2>'+
+ '<p>Thống kê dựa trên Google Drive đã xác thực; chỉ tổng hợp dự án được cấp quyền.</p></div>'+
+ '<span class="mini-label">'+(s.role==='admin'?'ADMIN':'THEO QUYỀN')+'</span></div>'+
+ '<div class="company-kpi-grid">'+
+ kpi('DỰ ÁN',projectCount)+kpi('CÔNG VIỆC',total)+kpi('HOÀN THÀNH',counts.done)+
+ kpi('TỶ LỆ HOÀN THÀNH',complete)+kpi('PHỐI HỢP LIÊN HỆ',crossCount)+
+ kpi('PHIẾU CHỜ XỬ LÝ',handoffs.filter(x=>x.status==='open').length)+
+ kpi('QUÁ HẠN',m.overdue||0)+kpi('CHỜ DUYỆT',counts.review)+'</div>'+
+ '<div class="command-report-grid"><section class="panel padded"><h3>Trạng thái công việc</h3>'+
+ (total?statusKeys.map(k=>'<div class="command-report-row"><span>'+statusLabels[k]+'</span>'+
+ '<div class="command-report-track"><b style="width:'+(100*counts[k]/total).toFixed(1)+'%"></b></div>'+
+ '<strong>'+counts[k]+'</strong></div>').join(''):'<p>Chưa có công việc được ghi nhận.</p>')+
+ '</section><section class="panel padded"><h3>Khối lượng theo bộ môn</h3>'+
+ (top.length?top.map(([dept,n])=>'<div class="command-report-row"><span>'+h(deptLabel[dept]||dept)+'</span>'+
+ '<div class="command-report-track"><b style="width:'+(100*n/max).toFixed(1)+'%"></b></div>'+
+ '<strong>'+n+'</strong></div>').join(''):'<p>Chưa có số liệu bộ môn.</p>')+
+ '</section></div>'+
+ '<section class="panel padded"><h3>Tổng hợp dự án</h3><div class="company-table-wrap">'+
+ '<table class="company-table"><thead><tr><th>Dự án</th><th>Công việc</th><th>Hoàn thành</th><th>Phối hợp đang mở</th></tr></thead>'+
+ '<tbody>'+projects+'</tbody></table></div></section>'+
+ '<p class="company-secondary">Đây là báo cáo trạng thái hiện tại. Giám sát Agent hiển thị sự kiện theo thời gian và luồng hai chiều MEP ↔ XD; không có số giả hoặc quyền duyệt mới.</p></section>';
+}

@@ -191,8 +191,9 @@ function activityChart(s,f){
   const points=data.map((v,i)=>[left+(right-left)*i/(buckets.length-1),bottom-(bottom-top)*v/max]);
   const path=points.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
   return '<path d="'+path+'" fill="none" stroke="'+palette[k]+'" stroke-width="2.8" stroke-linecap="round"/>'+
-  points.filter((_,i)=>i%(f.period==='today'?3:1)===0).map(p=>
-    '<circle cx="'+p[0]+'" cy="'+p[1]+'" r="3.1" fill="'+palette[k]+'"/>').join('');
+  points.map((p,i)=>i%(f.period==='today'?3:1)===0?
+    '<circle class="v67-chart-point" cx="'+p[0]+'" cy="'+p[1]+'" r="4" fill="'+palette[k]+'">'+
+    '<title>'+esc(buckets[i].label)+' · '+esc(labels[k])+': '+data[i]+' lượt</title></circle>':'').join('');
  }).join('');
  return '<div class="v67-plot">'+svg(grid+paths+timeLabels,'0 0 700 245','Hoạt động theo thời gian')+'</div>'+
  '<div class="v67-legend">'+keys.map(k=>'<span><i style="background:'+palette[k]+'"></i>'+labels[k]+'</span>').join('')+'</div>';

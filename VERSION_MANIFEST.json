@@ -158,6 +158,12 @@
       "area": "Near-real-time 15s polling dashboard; MEP/XD separated with cross-system flows, live signed activity feed and alarms",
       "entry": "src/core/monitor_dashboard.js",
       "status": "implemented_pending_live_browser_multiaccount_acceptance"
+    },
+    {
+      "label": "V6.7.1 visual",
+      "area": "Full-width dashboard masthead, sidebar architecture image, functional user/alert/help controls, compact graphic proportions, report summary",
+      "entry": "static/index.html",
+      "status": "implemented_built_in_ci_pending_actual_browser_qa"
     }
   ],
   "data_categories": {
@@ -237,7 +243,8 @@
     "Streamlit parser deployment and real two-account engineering file acceptance are not yet verified.",
     "V6.7 is 15-second polling over Google Drive signed event journal, not a WebSocket or true Agent RUNNING heartbeat.",
     "V6.7 inline monitoring limits include 900 recent 7-day events; truncated event windows are flagged.",
-    "V6.7 runtime Google OAuth, two-account, graph responsiveness and Google Drive load must be verified on the deployed Streamlit site."
+    "V6.7 runtime Google OAuth, two-account, graph responsiveness and Google Drive load must be verified on the deployed Streamlit site.",
+    "V6.7.1 UI reference uses original owned app building artwork rather than reusing red-annotated screenshot; visual QA on target 1648px browser not yet completed."
   ],
   "divisions": {
     "shared": "Ban giám đốc",
