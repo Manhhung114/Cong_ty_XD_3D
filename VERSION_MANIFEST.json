@@ -1,6 +1,6 @@
 {
   "project": "Công ty Xây dựng & MEP AI 3D",
-  "artifact_version": "0.6.8.0-workflow-feedback-review",
+  "artifact_version": "0.6.9.0-hierarchical-ai-orchestration",
   "release_date": "2026-11-17",
   "modules": [
     {
@@ -194,6 +194,12 @@
       "area": "Durable task review status, approve/return with reasons, modal dismissal and success feedback, clearer provider failures",
       "entry": "drive_storage/workspace_ui.py",
       "status": "implemented_regression_tested_live_admin_acceptance_pending"
+    },
+    {
+      "label": "V6.9.0",
+      "area": "Signed CEO->PM->discipline lead->expert->independent QA task delegation, scoped org roles and dependency gates",
+      "entry": "drive_storage/hierarchy.py",
+      "status": "implemented_ci_and_live_acceptance_pending"
     }
   ],
   "data_categories": {
@@ -286,7 +292,7 @@
     "mep": "Cơ điện",
     "construction": "Xây dựng"
   },
-  "current_version": "V6.8.0 (Task Review Feedback)",
+  "current_version": "V6.9.0 (Hierarchical AI Orchestration)",
   "backend": {
     "framework": "FastAPI",
     "database": "PostgreSQL or SQLite local",
