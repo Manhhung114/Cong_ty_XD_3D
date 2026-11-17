@@ -20,6 +20,7 @@ def hierarchy_dialog(st, action):
         "org_roles": "V6.9 · Cơ cấu nhân sự và cấp bậc",
         "hierarchy_propose": "V6.9 · Giám đốc AI lập phương án phân phối",
         "hierarchy_review": "V6.9 · Duyệt phân phối và giao xuống các cấp",
+        "hierarchy_stop": "V6.9 · Dừng toàn bộ cây phân phối",
     }
     if op not in titles:
         return
@@ -230,5 +231,47 @@ def hierarchy_dialog(st, action):
                 except Exception:
                     st.error("Không lưu được quyết định phân phối; "
                              "không có nhiệm vụ giả được ghi nhận.")
+
+        elif op == "hierarchy_stop":
+            if not can_admin(identity):
+                st.error("Chỉ Admin được dừng cây phân phối")
+                return
+            root = next((t for t in state["tasks"]
+                         if t["id"] == action.get("taskId") and t["projectId"] == pid),
+                        None)
+            active = next((p for p in state.get("hierarchyPlans", [])
+                           if root and p["rootTaskId"] == root["id"]
+                           and p["status"] == "dispatched"), None)
+            if not root or not active or root["status"] in {"done", "cancelled"}:
+                st.error("Không có cây phân phối còn hoạt động để dừng")
+                return
+            members = [t for t in state["tasks"] if t.get("rootTaskId") == root["id"]]
+            open_tasks = [t for t in members if t["status"] != "done"]
+            st.warning("Dừng toàn bộ cây sẽ chuyển " + str(len(open_tasks)) +
+                       " công việc chưa duyệt sang Đã hủy, thu hồi người và Agent. "
+                       "Báo cáo, hồ sơ và những nhiệm vụ đã được phê duyệt "
+                       "VẪN ĐƯỢC GIỮ NGUYÊN, không thể chạy lại các việc đã hủy.")
+            st.markdown("**Công việc gốc:** " + root["title"])
+            with st.form("v690_stop_hierarchy"):
+                reason = st.text_area("Lý do dừng toàn bộ phân phối",
+                                      max_chars=600)
+                confirmed = st.checkbox(
+                    "Tôi hiểu thao tác sẽ hủy tất cả nhiệm vụ chưa hoàn thành "
+                    "trong cây, không xóa báo cáo và nhật ký.")
+                submit = st.form_submit_button(
+                    "Dừng và thu hồi toàn bộ phân phối", type="primary")
+            if submit:
+                try:
+                    if not confirmed:
+                        raise PermissionError("Cần xác nhận dừng toàn bộ cây")
+                    service.stop_hierarchy(
+                        identity, project_id=pid, task_id=root["id"],
+                        reason=reason, event_id=action["actionId"])
+                    success("Đã dừng cây phân phối, thu hồi các nhiệm vụ chưa duyệt "
+                            "và lưu lý do vào nhật ký Google Drive.")
+                except (ValueError, PermissionError) as exc:
+                    st.error(str(exc))
+                except Exception:
+                    st.error("Không dừng được cây; dữ liệu hiện tại được giữ nguyên.")
 
     render()
