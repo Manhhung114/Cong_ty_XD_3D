@@ -32,6 +32,7 @@ DEPARTMENT_NAMES = {
     "structure": "Kết cấu", "xd_bim": "BIM Xây dựng", "xd_qs": "BOQ Xây dựng",
     "xd_planning": "Kế hoạch", "xd_site": "Hiện trường",
     "xd_safety": "An toàn XD", "xd_material": "Vật tư",
+    "xd_qc": "QA/QC Xây dựng", "legal": "Pháp chế & hợp đồng",
 }
 INTERACTIVE = {"project_create", "project_import", "task_create", "task_assign", "task_withdraw", "task_submit",
                "org_roles", "hierarchy_propose", "hierarchy_review", "hierarchy_stop",
@@ -67,12 +68,12 @@ def load_snapshot(st) -> dict:
             "period": prefs.get("period") if prefs.get("period") in
                 {"hour", "today", "week"} else "today",
             "department": prefs.get("department") if prefs.get("department") in
-                ALL_DEPARTMENTS else "all",
+                ALL_DEPARTMENTS | {"xd_qc"} else "all",
         }
     from drive_storage.company_agents import company_metrics, public_catalog
     from drive_storage.company_ui import ai_status
     snapshot["companyMetrics"] = company_metrics(snapshot)
-    snapshot["agentsCatalog"] = public_catalog()
+    snapshot["agentsCatalog"] = public_catalog(selected)
     snapshot["aiStatus"] = ai_status(st)
     from agent_runtime.client import public_jobs
     runtime = public_jobs(st, actor, selected) if selected else {
@@ -175,13 +176,11 @@ def handle_workspace_action(st, action: dict):
         if not task or not can_review_node(actor, task, current["tasks"]):
             raise PermissionError("Chỉ cấp quản lý trực tiếp hoặc Admin được xét duyệt")
     if op == "agent_run":
-        from drive_storage.company_agents import agents
-        profile = agents().get(str(action.get("agentId") or ""))
-        task = next((t for t in current["tasks"]
-                     if t["id"] == task_id and t["projectId"] == pid), None)
-        if not profile or not task or (profile["department"] != task["dept"]
-              and profile["id"] not in {"PM", "CEO", "DOC", "QAC"}):
-            raise PermissionError("Agent không phù hợp với công việc hoặc bộ môn")
+        from drive_storage.company_agents import _task_context
+        from drive_storage.hierarchy import require_operator, require_qc_role
+        _, task, _, _ = _task_context(current, pid, task_id, str(action.get("agentId") or ""))
+        require_operator(actor, task)
+        require_qc_role(actor, task, current)
     if op == "handoff_resolve":
         handoff_id = str(action.get("handoffId") or "")
         if not any(h["id"] == handoff_id and h["projectId"] == pid

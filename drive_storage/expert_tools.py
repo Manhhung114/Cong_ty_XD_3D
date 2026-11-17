@@ -168,9 +168,13 @@ def _csv(data: bytes):
         decoded = data.decode("cp1258", errors="replace")
     reader = csv.reader(StringIO(decoded[:1_000_000]))
     records, tables = [], []
+    complete = len(decoded) <= 1_000_000
     for row_id, row in enumerate(reader, 1):
         if row_id > MAX_XLSX_ROWS or len(records) >= MAX_RECORDS:
+            complete = False
             break
+        if len(row) > 32:
+            complete = False
         tbl = {}
         for col_id, val in enumerate(row[:32], 1):
             if not str(val).strip():
@@ -179,12 +183,15 @@ def _csv(data: bytes):
             records.append(_row(source, "cell", val, {"row": row_id, "col": col_id}))
             tbl[str(col_id)] = _text(val, 120)
             if len(records) >= MAX_RECORDS:
+                complete = False
                 break
         if len(tables) < 100:
             tables.append({"sheet": "CSV", "row": row_id, "cells": tbl})
+        else:
+            complete = False
     return {"type": "csv", "records": records, "warnings": [
         "Chỉ đọc tối đa 350 dòng / 300 ô"
-    ], "stats": {"table_rows": tables}}
+    ], "stats": {"table_rows": tables, "table_complete": complete}}
 
 
 def _dxf(data: bytes):

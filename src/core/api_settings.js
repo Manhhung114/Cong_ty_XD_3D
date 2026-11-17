@@ -71,7 +71,7 @@ export class APISettings {
  const source=status.source==='drive_encrypted'?'Google Drive (mã hóa AES-256-GCM)':
   status.source==='streamlit_secrets'?'Streamlit Secrets (máy chủ)':'Chưa có';
  return '<section class="panel padded settings-panel">'+roleCard+
-  '<section class="panel padded drive-settings-card"><div class="panel-heading"><h2>🔐 API & 18 Agent – cấu hình dùng chung toàn công ty</h2><span class="mini-label">V6.7.6 · SERVER-ONLY</span></div>'+
+  '<section class="panel padded drive-settings-card"><div class="panel-heading"><h2>🔐 API & '+AGENTS.length+' Agent – cấu hình dùng chung toàn công ty</h2><span class="mini-label">V6.7.6 · SERVER-ONLY</span></div>'+
   '<p>Chỉ Admin được nhập hoặc thay khóa. Cấu hình lưu mã hóa trên Google Drive; nhân viên được cấp quyền chỉ sử dụng API thông qua máy chủ, không nhìn thấy hay nhập lại khóa.</p>'+
   '<div class="info-strip"><strong>Trạng thái:</strong> '+(configured?'✓ Đã cấu hình':'⚠ Chưa cấu hình')+
   ' · <strong>Nhà cung cấp:</strong> '+esc(provider)+

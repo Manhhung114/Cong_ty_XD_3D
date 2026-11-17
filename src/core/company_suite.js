@@ -6,13 +6,13 @@ const state=()=>window.__xdCloud||{};
 const writable=()=>['admin','update'].includes(state().role);
 const ownProject=()=>state().projects?.find(p=>p.id===state().selectedProjectId)||state().projects?.[0]||null;
 const lookupAgent=id=>(state().agentsCatalog||[]).find(a=>a.id===id);
-const division=(dept)=>dept.startsWith('xd_')||['architecture','structure'].includes(dept)?'Xây dựng':'MEP';
+const division=(dept)=>dept==='legal'?'Dùng chung':dept.startsWith('xd_')||['architecture','structure'].includes(dept)?'Xây dựng':'MEP';
 const deptLabel={
  director:'Ban giám đốc',electrical:'Điện',hvac:'HVAC',plumbing:'Cấp thoát nước',
  fire:'PCCC',bim:'BIM MEP',qs:'QS MEP',qa:'QA/QC MEP',architecture:'Kiến trúc',
  structure:'Kết cấu',xd_bim:'BIM Xây dựng',xd_qs:'QS Xây dựng',
  xd_planning:'Kế hoạch thi công',xd_site:'Hiện trường',
- xd_safety:'An toàn – Chất lượng',xd_material:'Vật tư'
+ xd_safety:'An toàn – Chất lượng',xd_material:'Vật tư',xd_qc:'QA/QC Xây dựng',legal:'Pháp chế & hợp đồng'
 };
 function projectPicker(section){
  const s=state(),p=ownProject();
@@ -31,7 +31,7 @@ function agentCards(){
  const configured=s.aiStatus?.configured;
  const profiles=s.agentsCatalog||[];
  return '<section class="panel padded company-suite">'+
- '<div class="panel-heading"><div><h2>18 Agent theo 16 phòng/khối nghiệp vụ</h2>'+
+ '<div class="panel-heading"><div><h2>'+profiles.length+' Agent theo 16 phòng/khối nghiệp vụ</h2>'+
  '<p>Định rõ chuyên môn và kết quả. Chỉ hiện Đã chạy khi có sự kiện Agent hoàn thành và lưu báo cáo.</p></div>'+
  '<span class="mini-label">'+profiles.length+' AGENT</span></div>'+
  '<div class="company-notice">'+(configured?
@@ -40,7 +40,7 @@ function agentCards(){
  '<br>V6.4–6.6: đã có bộ đọc mẫu PDF/XLSX/CSV/DXF/IFC và kiểm tra BOQ/công thức có nguồn; <strong>DWG/RVT, IFC clash hình học và file trên 50 MB vẫn cần worker</strong>. Mọi báo cáo cần kỹ sư thẩm tra.</div>'+
  '<div class="company-agent-grid">'+profiles.map(a=>{
  const isCoordinator=['CEO','PM','DOC','QAC'].includes(a.id);
- const compatible=tasks.filter(t=>t.dept===a.department||isCoordinator);
+ const compatible=tasks.filter(t=>t.dept===a.department||(isCoordinator&&t.dept!=='xd_qc'));
  const histories=runs.filter(r=>r.agentId===a.id);
  const l=histories[0];
  return '<article class="company-agent-card"><div class="company-agent-head"><span class="company-avatar">'+h(a.id)+'</span><div>'+
@@ -54,7 +54,7 @@ function agentCards(){
  '<p class="company-secondary"><b>Phối hợp:</b> '+a.partners.map(h).join(' • ')+'</p>'+
  '<details><summary>Giới hạn chuyên môn & kiểm tra chất lượng</summary>'+
  '<p>'+h(a.prohibition)+'</p><ul>'+a.quality_gate.map(x=>'<li>'+h(x)+'</li>').join('')+'</ul></details>'+
- (writable()?'<div class="company-agent-operate">'+
+ (a.execution_disabled?'<p class="company-secondary">Chưa bật thực thi cho dự án này.</p>':writable()?'<div class="company-agent-operate">'+
  (compatible.length?'<label>Chọn công việc phù hợp<select data-agent-task="'+h(a.id)+'">'+compatible.map(t=>
  '<option value="'+h(t.id)+'">'+h(t.code+' · '+t.title.slice(0,60))+'</option>').join('')+'</select></label>'+
  '<button class="btn primary small" data-agent-execute="'+h(a.id)+'">Chạy Agent</button>':

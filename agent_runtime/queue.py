@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import os
 from datetime import datetime, timezone, timedelta
-from sqlalchemy import select, update, func, create_engine
+from sqlalchemy import select, update, func, create_engine, text
 from sqlalchemy.orm import sessionmaker
 from .models import Base, AgentJob, JobEvent, utcnow
 
@@ -55,6 +55,10 @@ def event(s, job_id, state, code=""):
 
 def enqueue(session, request, *, max_queue=MAX_PENDING, monthly_budget=10.0):
     # Callers must have signed server-to-server transport and Streamlit OAuth.
+    # Queue capacity, budget and duplicate checks must see the previous
+    # admission even when independent API processes receive simultaneous jobs.
+    if session.get_bind().dialect.name == "postgresql":
+        session.execute(text("SELECT pg_advisory_xact_lock(750690)"))
     existing = session.get(AgentJob, request["job_id"])
     if existing:
         # A reused key must not submit a DIFFERENT project, actor or task.
@@ -65,6 +69,8 @@ def enqueue(session, request, *, max_queue=MAX_PENDING, monthly_budget=10.0):
             existing.agent_id == request["agent_id"],
             existing.mode == request["mode"],
             existing.file_id == request["file_id"],
+            existing.note == request["note"],
+            existing.consent == request["consent"],
         ])
         if not same:
             raise PermissionError("Mã lượt thực thi đã được dùng cho công việc khác")

@@ -15,7 +15,7 @@ from drive_storage.company_agents import (
     agents, _task_context, preflight, call_provider, _quota_check,
 )
 from drive_storage.expert_tools import extract_registered, concise_evidence
-from drive_storage.expert_rules import analyze, EXPERT_DOMAINS
+from drive_storage.expert_rules import analyze
 from drive_storage.shared_workspace import _require_id, _clean_text
 
 MAX_RENDERED_RESULT = 4200
@@ -102,8 +102,11 @@ def run_expert(workspace, identity, *, project_id, task_id, agent_id,
                     "reviewRequired": True}
     state = workspace.snapshot(identity)
     profile, task, project, docs = _task_context(state, pid, task_id, agent_id)
-    from drive_storage.hierarchy import require_operator, dependencies_block
+    from drive_storage.hierarchy import require_operator, require_qc_role, dependencies_block
     require_operator(identity, task)
+    require_qc_role(identity, task, state)
+    if agent_id == "QCX" and (mode != "expert" or fid not in {doc["id"] for doc in docs}):
+        raise PermissionError("QCX chỉ đọc hồ sơ đã duyệt gắn với nhiệm vụ, không gửi ra AI ngoài")
     if dependencies_block(task, state["tasks"]):
         raise PermissionError("Chưa thể chạy Agent: nhiệm vụ trước trong luồng phân cấp chưa được duyệt")
     registered = next((d for d in state["documents"]
@@ -115,7 +118,7 @@ def run_expert(workspace, identity, *, project_id, task_id, agent_id,
             raise PermissionError("File không đúng loại bằng chứng chuyên môn của Agent")
     note = _clean_text(note, 700)
     parsed = extract_registered(workspace, identity, project_id=pid, file_id=fid)
-    findings = analyze(agent_id, parsed, registered)
+    findings = analyze(agent_id, parsed, registered, v75=bool(profile.get("skill_version")))
     stages = _check_steps(parsed, findings, task, registered, profile)
     body = _pretty(profile, task, parsed, findings, stages)
     vendor = "none"

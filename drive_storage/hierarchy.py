@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import re
 from drive_storage.access_control import clean_email
+from drive_storage.v75_rollout import LEGACY_POLICY, QA_POLICY
 
 MAX_DEPARTMENTS = 4
 ORG_ROLES = {"director", "pm", "lead", "engineer", "qa", "none"}
@@ -82,12 +83,14 @@ def role_owner(roles: list[dict], role: str, department: str) -> str:
 
 
 def plan_tasks(*, root: dict, departments: list[str], dispatch_id: str,
-               proposal_id: str, roles: list[dict]) -> list[dict]:
+               proposal_id: str, roles: list[dict], policy_version=LEGACY_POLICY) -> list[dict]:
     """Build a complete, forward-referenced DAG: PM -> Lead -> Expert -> QA.
 
     The human role directory is signed and scoped by project. An unfilled role
     leaves assignee blank; it never grants permissions by itself.
     """
+    if policy_version not in {LEGACY_POLICY, QA_POLICY}:
+        raise ValueError("Phiên bản phân phối không hợp lệ")
     normalized = normalize_departments(departments)
     agents = specialist_agents()
     project_id = root["projectId"]
@@ -109,6 +112,16 @@ def plan_tasks(*, root: dict, departments: list[str], dispatch_id: str,
         lead_id = deterministic_id(dispatch_id, "lead_" + dept)
         expert_id = deterministic_id(dispatch_id, "expert_" + dept)
         qa_id = deterministic_id(dispatch_id, "qa_" + dept)
+        construction = policy_version == QA_POLICY and (dept.startswith("xd_")
+                                                        or dept in {"architecture", "structure"})
+        qa_dept, qa_agent = ("xd_qc", "QCX") if construction else ("qa", "QAC")
+        qc_owner = role_owner(roles, "qa", qa_dept)
+        if construction and (not qc_owner or qc_owner in {
+                role_owner(roles, "engineer", dept), role_owner(roles, "lead", dept),
+                role_owner(roles, "engineer", "xd_safety"),
+                role_owner(roles, "lead", "xd_safety"),
+                str(root.get("assignee") or "").casefold()}):
+            raise PermissionError("Cần phân công nhân sự QA/QC xây dựng độc lập")
         nodes.extend([
             {
                 **template, "id": lead_id, "parent_id": pm_id, "stage": "lead",
@@ -124,10 +137,10 @@ def plan_tasks(*, root: dict, departments: list[str], dispatch_id: str,
             },
             {
                 **template, "id": qa_id, "parent_id": lead_id, "stage": "qa",
-                "department": "qa", "agent_id": "QAC",
+                "department": qa_dept, "agent_id": qa_agent,
                 "depends_on": [expert_id],
                 "title": "QA/QC · Kiểm tra độc lập hồ sơ " + label,
-                "assignee": role_owner(roles, "qa", "qa"),
+                "assignee": qc_owner,
             },
         ])
     return nodes
@@ -147,12 +160,26 @@ def unfinished_children(task: dict, tasks: list[dict]) -> list[dict]:
 
 
 def require_operator(identity: dict, task: dict, operation: str = "run"):
-    if not task.get("hierarchyStage") or identity.get("role") == "admin":
+    if task.get("dept") == "xd_qc":
+        from drive_storage.v75_rollout import qcx_enabled
+        if not qcx_enabled(task["projectId"]):
+            raise PermissionError("QCX hiện tạm dừng cho dự án này")
+    if not task.get("hierarchyStage") or (identity.get("role") == "admin" and task.get("dept") != "xd_qc"):
         return
     expected = str(task.get("assignee") or "").strip().casefold()
     if not expected or clean_email(identity.get("email", "")) != expected:
         raise PermissionError("Nhiệm vụ phân cấp chỉ người được giao hoặc Admin thực hiện; "
                               "cần Admin cấu hình cơ cấu nhân sự/điều chỉnh phân công")
+
+
+def require_qc_role(identity, task, state):
+    if task.get("dept") != "xd_qc":
+        return
+    actor = clean_email(identity.get("email", ""))
+    if not any(row.get("email") == actor and row.get("projectId") == task["projectId"]
+               and row.get("department") == "xd_qc" and row.get("role") == "qa"
+               and row.get("active") for row in state.get("orgRoles", [])):
+        raise PermissionError("Quyền QA/QC xây dựng của người phụ trách không còn hiệu lực")
 
 
 def describe_progress(task: dict, tasks: list[dict]) -> dict:
@@ -172,6 +199,11 @@ def can_review_node(identity: dict, task: dict, tasks: list[dict]) -> bool:
     Root and independent QA still require Admin. An operator cannot approve
     their own assigned work, even if they also hold a manager position.
     """
+    if task.get("hierarchyPolicyVersion") == QA_POLICY:
+        actor = clean_email(identity.get("email", ""))
+        if actor in {str(task.get(field) or "").casefold()
+                     for field in ("assignee", "lastSubmittedBy")}:
+            return False
     if identity.get("role") == "admin":
         return True
     if identity.get("role") != "update":

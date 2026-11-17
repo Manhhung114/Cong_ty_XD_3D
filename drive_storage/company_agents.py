@@ -20,6 +20,7 @@ from drive_storage.access_control import can_admin, can_upload
 from drive_storage.shared_workspace import _clean_text, _require_id
 
 MANIFEST = Path(__file__).resolve().parents[1] / "data" / "agents_v61.json"
+V75_MANIFEST = MANIFEST.with_name("agents_v75.json")
 MAX_CONTEXT = 14000
 MAX_RESULT = 6500
 MAX_NOTE = 1200
@@ -52,12 +53,55 @@ def agents():
     return {a["id"]: a for a in profiles}
 
 
-def public_catalog():
-    from drive_storage.expert_rules import EXPERT_DOMAINS, EXPERT_REQUIREMENTS
+@lru_cache(maxsize=1)
+def v75_agents():
+    raw = json.loads(V75_MANIFEST.read_text(encoding="utf8"))
+    profiles = raw.get("agents", [])
+    legacy = agents()
+    ids = set(legacy) | {"QCX", "LEG"}
+    if (raw.get("schema") != "XD_MEP_AGENTS_V75" or raw.get("version") != "7.5.0"
+            or len(profiles) != 20 or {p.get("id") for p in profiles} != ids):
+        raise ValueError("Danh mục V7.5 phải gồm 20 ID cố định")
+    rooms = {p["department"] for p in legacy.values()}
+    for profile in profiles:
+        key = profile["id"]
+        room = {"QCX": "xd_safety", "LEG": "director"}.get(key, profile["department"])
+        department = {"QCX": "xd_qc", "LEG": "legal"}.get(key, room)
+        if (profile["department"] != department or profile["office_room_id"] != room
+                or room not in rooms or profile["agent_role_scope"] != department
+                or profile.get("skill_version") != "7.5.0"
+                or set(profile["partners"]) - ids
+                or (key in legacy and any(profile.get(k) != value for k, value in legacy[key].items()))
+                or any(not profile.get(k) for k in ("title", "mission", "output", "prohibition",
+                    "capabilities", "standards_pack", "input_template", "output_template",
+                    "eval_cases", "feature_flags"))
+                or not isinstance(profile.get("calculators"), list)
+                or profile["output_template"].get("review_required") is not True):
+            raise ValueError(f"Hồ sơ chuyên gia không hợp lệ: {key}")
+    return {p["id"]: p for p in profiles}
+
+
+def known_agent(agent_id):
+    """Resolve signed history independently of current canary switches."""
+    if agent_id in {"QCX", "LEG"}:
+        return v75_agents().get(agent_id)
+    return agents().get(agent_id)
+
+
+def active_agent_profiles(project_id):
+    from drive_storage.v75_rollout import catalog_enabled
+    return v75_agents() if catalog_enabled(project_id) else agents()
+
+
+def public_catalog(project_id=""):
+    from drive_storage.expert_rules import V75_EXPERT_DOMAINS, EXPERT_REQUIREMENTS
+    from drive_storage.v75_rollout import qcx_enabled
     return [
-        {**profile, "expert_tools": list(EXPERT_DOMAINS[profile["id"]]),
-         "proof_requirements": list(EXPERT_REQUIREMENTS[profile["id"]])}
-        for profile in agents().values()
+        {**profile, "expert_tools": list(dict.fromkeys((*V75_EXPERT_DOMAINS[profile["id"]], *profile.get("calculators", [])))),
+         "proof_requirements": list(EXPERT_REQUIREMENTS[profile["id"]]),
+         "execution_disabled": profile["id"] == "LEG" or (
+             profile["id"] == "QCX" and not qcx_enabled(project_id))}
+        for profile in active_agent_profiles(project_id).values()
     ]
 
 
@@ -129,7 +173,12 @@ def company_metrics(state: dict, today: str | None = None) -> dict:
 
 
 def _task_context(state: dict, project_id: str, task_id: str, agent_id: str):
-    profiles = agents()
+    from drive_storage.v75_rollout import QA_POLICY, qcx_enabled
+    if agent_id == "LEG":
+        raise PermissionError("LEG đang khóa chờ nghiệm thu quyền truy cập từng hợp đồng")
+    if agent_id == "QCX" and not qcx_enabled(project_id):
+        raise PermissionError("QCX chưa được bật cho dự án này")
+    profiles = active_agent_profiles(project_id)
     if agent_id not in profiles:
         raise ValueError("Agent không tồn tại")
     a = profiles[agent_id]
@@ -140,6 +189,12 @@ def _task_context(state: dict, project_id: str, task_id: str, agent_id: str):
     if task.get("status") == "cancelled":
         raise PermissionError("Không chạy Agent cho công việc đã hủy")
     dept = task.get("dept")
+    if dept == "xd_qc" and (agent_id != "QCX" or task.get("assignedAgentId") != "QCX"
+                             or task.get("hierarchyStage") != "qa"
+                             or task.get("hierarchyPolicyVersion") != QA_POLICY):
+        raise PermissionError("Bước QC xây dựng chỉ dành cho QCX trong luồng V7.5")
+    if agent_id == "QCX" and dept != "xd_qc":
+        raise PermissionError("QCX chỉ chạy trên nhiệm vụ QC xây dựng được giao")
     # Specialists may only analyze their discipline, except PM/CEO company coordination
     # and dedicated QA + document controller cross-department reviewers.
     if a["department"] != dept and agent_id not in {"PM", "CEO", "DOC", "QAC"}:
@@ -151,6 +206,11 @@ def _task_context(state: dict, project_id: str, task_id: str, agent_id: str):
          (task.get("docCode") and
           str(d.get("code", "")).casefold() == str(task["docCode"]).casefold()))
     ]
+    if agent_id == "QCX":
+        records = [doc for doc in state.get("documents", [])
+                   if doc.get("projectId") == project_id and doc.get("status") == "approved"
+                   and doc.get("category") in a["expected_categories"]
+                   and doc.get("taskId") in {task_id, *task.get("dependsOn", [])}]
     project = next((p for p in state["projects"] if p["id"] == project_id), None)
     if not project:
         raise PermissionError("Dự án không được cấp quyền")
@@ -201,6 +261,11 @@ def preflight(state: dict, project_id: str, task_id: str, agent_id: str) -> dict
 
 
 def _system_prompt(agent, max_output=MAX_RESULT, *, real_file=False):
+    specialist = ""
+    if agent.get("skill_version"):
+        specialist = ("Chỉ thực hiện các năng lực đã đăng ký: " + ", ".join(agent["capabilities"]) +
+                      ". Chỉ ghi phép tính có đầu vào đơn vị và chứng cứ công cụ đã chạy. "
+                      "Ghi nhãn dự thảo, vị trí nguồn, dữ liệu thiếu và người duyệt độc lập. ")
     return (
         "Bạn là một trợ lý AI hỗ trợ kỹ sư của công ty Xây dựng & MEP. "
         "Chỉ đưa ra bản dự thảo, tuyệt đối KHÔNG phê duyệt hồ sơ, xác nhận tuân thủ pháp lý, "
@@ -217,7 +282,7 @@ def _system_prompt(agent, max_output=MAX_RESULT, *, real_file=False):
         "Mỗi đề xuất phải chỉ rõ bộ môn hoặc người phụ trách kiểm chứng. "
         f"Vai trò: {agent['title']}. Nhiệm vụ: {agent['mission']}. "
         f"Đầu ra: {agent['output']}. Ranh giới: {agent['prohibition']}. "
-        f"Không xuất Markdown HTML/script hoặc liên kết tự tạo. Dưới {max_output} ký tự."
+        + specialist + f"Không xuất Markdown HTML/script hoặc liên kết tự tạo. Dưới {max_output} ký tự."
     )
 
 
@@ -347,8 +412,11 @@ def run_agent(workspace, identity, *, project_id: str, task_id: str,
     _require_id(task_id, "Mã công việc")
     state = workspace.snapshot(identity)
     agent, task, project, docs = _task_context(state, pid, task_id, agent_id)
-    from drive_storage.hierarchy import require_operator, dependencies_block
+    if agent_id == "QCX" and mode != "preflight":
+        raise PermissionError("QCX chỉ chạy kiểm tra nội bộ, chưa bật mô hình ngoài")
+    from drive_storage.hierarchy import require_operator, require_qc_role, dependencies_block
     require_operator(identity, task)
+    require_qc_role(identity, task, state)
     blocked = dependencies_block(task, state["tasks"])
     if blocked:
         raise PermissionError("Agent cần đợi các nhiệm vụ phụ thuộc được phê duyệt")

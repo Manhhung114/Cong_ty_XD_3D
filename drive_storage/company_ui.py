@@ -84,16 +84,14 @@ def company_dialog(st, action):
         if op == "agent_run":
             task_id = str(action.get("taskId") or "")
             agent_id = str(action.get("agentId") or "")
-            profile = agents().get(agent_id)
-            task = next((x for x in tasks if x["id"] == task_id), None)
-            if not profile or not task:
-                st.error("Agent hoặc công việc không tồn tại trong dự án")
-                return
-            if task.get("status") == "cancelled":
-                st.error("Công việc đã hủy; không thể chạy Agent.")
-                return
-            if profile["department"] != task["dept"] and agent_id not in {"CEO", "PM", "DOC", "QAC"}:
-                st.error("Agent chuyên ngành không khớp bộ môn công việc")
+            from drive_storage.company_agents import _task_context
+            from drive_storage.hierarchy import require_operator
+            try:
+                profile, task, _, related = _task_context(state, pid, task_id, agent_id)
+                require_operator(identity, task)
+                require_qc_role(identity, task, state)
+            except (PermissionError, ValueError) as exc:
+                st.error(str(exc))
                 return
             st.markdown("**" + profile["title"] + "**")
             st.caption("Nhiệm vụ: " + task["title"] + " · Bộ môn: " +
@@ -115,6 +113,7 @@ def company_dialog(st, action):
                 if d["projectId"] == pid
                 and (d["category"] in allowed_categories
                      or agent_id in {"CEO", "PM", "DOC", "QAC"})
+                and (agent_id != "QCX" or d in related)
                 and PurePath(d["filename"]).suffix.lower() in SUPPORTED
                 and (not d.get("sizeBytes") or int(d["sizeBytes"]) <= MAX_BYTES)
                 and d.get("status") not in {"archived"}
@@ -131,7 +130,7 @@ def company_dialog(st, action):
                            "theo giới hạn an toàn, không xác nhận đã đọc toàn bộ file.")
             with st.form("v61_agent_run_form"):
                 choices = ["preflight", "expert"]
-                if configured["configured"]:
+                if configured["configured"] and agent_id != "QCX":
                     choices += ["llm", "expert_llm"]
                 mode = st.radio(
                     "Cách thực hiện", choices, horizontal=True,
@@ -173,10 +172,10 @@ def company_dialog(st, action):
             if runtime_enabled:
                 from agent_runtime.client import public_jobs, configured_client
                 jobs=public_jobs(st,identity,pid)["jobs"]
-                related=[j for j in jobs if j["taskId"]==task_id and j["agentId"]==agent_id]
-                if related:
+                related_jobs=[j for j in jobs if j["taskId"]==task_id and j["agentId"]==agent_id]
+                if related_jobs:
                     with st.expander("📡 Phiên Agent nền · Tiến độ thực",expanded=True):
-                        for job in related[:5]:
+                        for job in related_jobs[:5]:
                             st.caption("Job "+job["id"][:8]+" · "+job["state"]+
                                        " · "+str(job["progress"])+"% · "+job["phase"])
                             if job["state"]=="running" and job.get("hasHeartbeat"):
@@ -232,8 +231,9 @@ def company_dialog(st, action):
                         raise PermissionError("Cần xác nhận truyền metadata/trích xuất cho AI")
                     if mode in {"expert", "expert_llm"} and selected is None:
                         raise ValueError("Cần chọn file đã ghi sổ để xử lý nền")
-                    from drive_storage.hierarchy import require_operator, dependencies_block
+                    from drive_storage.hierarchy import require_operator, require_qc_role, dependencies_block
                     require_operator(identity, task)
+                    require_qc_role(identity, task, state)
                     if dependencies_block(task, state["tasks"]):
                         raise PermissionError("Nhiệm vụ trước chưa được duyệt")
                     client = configured_client(st)

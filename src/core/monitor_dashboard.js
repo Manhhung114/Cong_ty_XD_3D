@@ -8,6 +8,7 @@ const mon=()=>st().monitorData||null;
 const systemFor=d=>['electrical','hvac','plumbing','fire','bim','qs','qa'].includes(d)?'mep':
  ['architecture','structure','xd_bim','xd_qs','xd_planning','xd_site','xd_safety','xd_material'].includes(d)?'xd':'shared';
 const departments={
+ xd_qc:"QA/QC Xây dựng",
  director:'Ban giám đốc',electrical:'Điện',hvac:'HVAC',plumbing:'Cấp thoát nước',fire:'PCCC',
  bim:'BIM MEP',qs:'QS MEP',qa:'QA/QC MEP',architecture:'Kiến trúc',structure:'Kết cấu',
  xd_bim:'BIM XD',xd_qs:'QS XD',xd_planning:'Kế hoạch XD',xd_site:'Thi công',
@@ -379,7 +380,9 @@ export function renderMonitorDashboard(){
  '<h2>Giám sát Agent V7.0</h2><p>Đang yêu cầu dữ liệu giám sát có chữ ký từ máy chủ…</p></section>';
  const f=filters();
  const projectList=(st().projects||[]).filter(p=>p.id!==undefined);
- const deptOptions=Object.keys(departments).filter(d=>d!=='director');
+ const qcVisible=(st().agentsCatalog||[]).some(a=>a.id==='QCX')||
+   (packet.tasks||[]).some(t=>t.dept==='xd_qc');
+ const deptOptions=Object.keys(departments).filter(d=>d!=='director'&&(d!=='xd_qc'||qcVisible));
  const control=(id,label,options,current)=>'<label>'+label+'<select id="'+id+'">'+options.map(([v,t])=>
  '<option value="'+esc(v)+'"'+(current===v?' selected':'')+'>'+esc(t)+'</option>').join('')+'</select></label>';
  return '<div class="v67-shell"><div class="v67-hero">'+

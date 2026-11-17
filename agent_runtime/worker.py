@@ -112,11 +112,12 @@ def execute(self, job_id):
         task=next((t for t in snapshot["tasks"] if t["id"]==job.task_id
                    and t["projectId"]==job.project_id),None)
         from drive_storage.company_agents import _task_context
-        from drive_storage.hierarchy import require_operator, dependencies_block
+        from drive_storage.hierarchy import require_operator, require_qc_role, dependencies_block
         if task is None or task["status"] in {"review","done","cancelled"}:
             raise PermissionError("runtime_task_closed_or_missing")
         _task_context(snapshot,job.project_id,job.task_id,job.agent_id)
         require_operator(identity,task)
+        require_qc_role(identity, task, snapshot)
         if dependencies_block(task,snapshot["tasks"]):
             raise PermissionError("runtime_predecessors_not_approved")
         _stage(maker,job_id,"input_verified",25)

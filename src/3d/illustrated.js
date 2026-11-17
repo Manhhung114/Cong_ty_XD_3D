@@ -1,4 +1,4 @@
-import {DEPARTMENTS,visibleDepartments,AGENTS} from '../core/config.js';
+import {DEPARTMENTS,visibleDepartments,roomAgents} from '../core/config.js';
 import {agentEvidence} from '../core/agent_live.js';
 
 // V5.1: interactive, high-fidelity 3D-styled illustration. This is an image
@@ -83,7 +83,7 @@ export class IllustratedOffice {
   refreshSelection(){
     for(const [id,button] of this.pins){
       button.classList.toggle('selected',this.selected===id);
-      const statuses=AGENTS.filter(a=>a.dept===id)
+      const statuses=roomAgents(id)
         .map(a=>agentEvidence(this.options.getCloud?.(),a.id));
       const status=statuses.some(s=>['started_unconfirmed','running'].includes(s.state))?'started':
         statuses.some(s=>s.state==='failed')?'failed':
