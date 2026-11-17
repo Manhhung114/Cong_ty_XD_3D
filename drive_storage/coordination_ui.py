@@ -76,16 +76,42 @@ def meeting_dialog(st, action):
                 return
             selected_task = action.get("taskId")
             suggested = [selected_task] if selected_task in tasks else []
-            teams = [tasks[t]["dept"] for t in suggested]
-            if len(teams) < 2:
-                teams.append("bim" if "bim" not in teams else "director")
-            default_teams = [t for t in dict.fromkeys(teams) if t in DEPARTMENTS]
+            templates = {
+                "technical": ("Phối hợp kỹ thuật MEP",
+                              "Họp phối hợp Điện – HVAC – PCCC",
+                              "Đối chiếu tuyến cáp, ống gió, hệ PCCC và revision bản vẽ; thống nhất phương án không xung đột.",
+                              ["electrical", "hvac", "fire"]),
+                "site": ("Giải quyết vướng mắc hiện trường",
+                         "Họp xử lý vướng mắc thi công MEP và Xây dựng",
+                         "Xác định vướng mắc hiện trường, bản vẽ gốc, biện pháp xử lý và thời hạn sửa đổi.",
+                         ["xd_site", "electrical", "structure"]),
+                "bim": ("Phối hợp BIM/Shopdrawing",
+                        "Họp phối hợp BIM và Shopdrawing",
+                        "So sánh bản vẽ/IFC được duyệt, rà soát điểm giao cắt giữa các hệ và phân công phát hành revision.",
+                        ["bim", "xd_bim", "electrical", "hvac"]),
+                "schedule": ("Tiến độ và nguồn lực",
+                             "Họp tiến độ thi công liên bộ môn",
+                             "Kiểm tra tiến độ hiện trường, công việc chậm và tài nguyên, thống nhất người phụ trách và mốc mới.",
+                             ["xd_planning", "xd_site", "director"]),
+                "qa": ("QA/QC và nghiệm thu",
+                       "Họp phối hợp hồ sơ nghiệm thu XD và MEP",
+                       "Đối chiếu ITP, NCR/CAR, hồ sơ kiểm tra và điều kiện nghiệm thu, xác định đầu việc còn thiếu.",
+                       ["qa", "xd_site", "director"]),
+                "materials": ("Vật tư và submittal",
+                              "Họp tiến độ vật tư và hồ sơ duyệt mẫu",
+                              "Đối chiếu nhu cầu thi công, vật tư CO/CQ, submittal và hạn cung cấp, phân rõ người xử lý.",
+                              ["xd_material", "qs", "electrical"]),
+            }
+            template = st.selectbox(
+                "Mẫu họp nhanh", options=list(templates),
+                format_func=lambda x: templates[x][0], key="v752_meeting_template_" + pid)
+            _, title_hint, agenda_hint, preset_teams = templates[template]
+            teams = [tasks[t]["dept"] for t in suggested] + preset_teams
+            default_teams = [t for t in dict.fromkeys(teams) if t in DEPARTMENTS][:8]
             now = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh"))
-            st.caption("Kết nối các bộ môn để xử lý xung đột thiết kế, khối lượng, "
-                       "tiến độ, hồ sơ hoặc vướng mắc hiện trường.")
+            st.caption("Mẫu tự điền tên, agenda và bộ môn; sửa trực tiếp trước khi lưu.")
             with st.form("v752_meeting_create"):
-                title = st.text_input("Tên cuộc họp *", max_chars=180,
-                                     placeholder="Họp phối hợp Điện – HVAC – PCCC tầng 5")
+                title = st.text_input("Tên cuộc họp *", value=title_hint, max_chars=180)
                 chosen_tasks = st.multiselect(
                     "Các công việc đang vướng (1–5)", options=list(tasks),
                     default=suggested, max_selections=5,
@@ -98,8 +124,8 @@ def meeting_dialog(st, action):
                 clock = st.time_input("Giờ họp (Việt Nam)", value=now.time().replace(
                     second=0, microsecond=0))
                 agenda = st.text_area(
-                    "Nội dung cần phối hợp *", max_chars=1600,
-                    placeholder="Mô tả xung đột/vướng mắc, hồ sơ phiên bản và phương án cần thống nhất")
+                    "Nội dung cần phối hợp *", value=agenda_hint, max_chars=1600,
+                    help="Bổ sung công việc, mã hồ sơ và revision thực tế; mẫu chỉ là gợi ý")
                 confirmed = st.checkbox("Tôi xác nhận đúng dự án và bộ môn tham gia")
                 submitted = st.form_submit_button("Tạo cuộc họp và ghi nhật ký", type="primary")
             if submitted:
