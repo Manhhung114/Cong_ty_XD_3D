@@ -1,6 +1,6 @@
 {
   "project": "Công ty Xây dựng & MEP AI 3D",
-  "artifact_version": "0.6.7.5-header-visibility-crop-fix",
+  "artifact_version": "0.6.7.6-shared-ai-assignments",
   "release_date": "2026-11-16",
   "modules": [
     {
@@ -176,6 +176,12 @@
       "area": "64px-height panoramic vector drawing shows complete building, lower overlay without changing command buttons",
       "entry": "static/assets/premium_header_visible_v675.svg",
       "status": "implemented_ci_browser_acceptance_pending"
+    },
+    {
+      "label": "V6.7.6",
+      "area": "Central encrypted company AI provider key, Admin-only server dialog; signed task assignment and explicit per-task expert Agent run",
+      "entry": "drive_storage/ai_vault.py",
+      "status": "implemented_ci_and_live_acceptance_pending"
     }
   ],
   "data_categories": {
@@ -259,14 +265,16 @@
     "V6.7.1 UI reference uses original owned app building artwork rather than reusing red-annotated screenshot; visual QA on target 1648px browser not yet completed.",
     "V6.7.4 uses resolution-independent original vector SVG skyline/emblem rather than stretching 350x90 WebP; no raster 2x is needed for sharpness.",
     "V6.7.4 browser quality and position must be accepted on company Streamlit Cloud after deploy.",
-    "V6.7.5 corrects roof-only cropping with a dedicated 3200x120 SVG header composition; verify visibility in live 1910x898 Chrome session."
+    "V6.7.5 corrects roof-only cropping with a dedicated 3200x120 SVG header composition; verify visibility in live 1910x898 Chrome session.",
+    "V6.7.6 Agent runs remain explicit, synchronous and audited; assignment alone is NOT background execution. No worker heartbeat/queue.",
+    "To restore encrypted AI API after auth.cookie_secret rotation, restore the previous secret. Admin must re-enter prior browser-local API key once to migrate to central Drive vault."
   ],
   "divisions": {
     "shared": "Ban giám đốc",
     "mep": "Cơ điện",
     "construction": "Xây dựng"
   },
-  "current_version": "V6.7.5 (Header Visibility Fix)",
+  "current_version": "V6.7.6 (Shared AI API + Agent Assignments)",
   "backend": {
     "framework": "FastAPI",
     "database": "PostgreSQL or SQLite local",
