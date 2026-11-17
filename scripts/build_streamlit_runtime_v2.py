@@ -97,7 +97,7 @@ def build(static: Path, *, role: str = 'member', nonce: str = '', initial_sectio
     resources_json = json.dumps(resources, ensure_ascii=False).replace("<", "\\u003c")
     role_json = json.dumps(role)
     nonce_json = json.dumps(nonce)
-    allowed_sections = ('overview', 'company', 'agents', 'projects', 'documents', 'boq', 'bim', 'tasks', 'reviews', 'activity') + (('settings',) if role == 'admin' else ())
+    allowed_sections = ('overview', 'monitor', 'company', 'agents', 'projects', 'documents', 'boq', 'bim', 'tasks', 'reviews', 'activity') + (('settings',) if role == 'admin' else ())
     section_json = json.dumps(initial_section if initial_section in allowed_sections else 'overview')
     email_json = json.dumps(str(account_email)[:254]).replace('<', '\\u003c')
     configured_json = 'true' if drive_configured else 'false'
