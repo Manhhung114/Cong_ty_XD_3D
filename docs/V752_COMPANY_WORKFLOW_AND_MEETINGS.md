@@ -81,3 +81,12 @@ LEG **chưa được tự đọc hợp đồng**; mọi thông tin nhạy cảm 
 5. Kiểm kết quả, lỗi, quyền và rollback; chỉ sau đó duyệt phát hành chính thức.
 
 **Không được tuyên bố production hoàn tất hoặc AI Agent tự họp/ra quyết định khi mới chỉ có nhật ký cuộc họp và kết luận của người dùng.** Tương lai có thể nối từng bước tổng hợp đề xuất kỹ thuật vào LLM worker thật, sau khi có consent/cost/identity checks.
+
+## 9. Các cải tiến thao tác nhanh và kiểm soát người thực hiện
+
+- Mẫu họp nhanh: **Kỹ thuật MEP**, **BIM/Shopdrawing**, **Hiện trường**, **Tiến độ**, **QA/QC**, **Vật tư/Submittal**; tự điền tên, agenda và các bộ môn dự kiến. Người dùng chỉnh trước khi lưu.
+- Sheet Công việc có bộ lọc ngay trên danh sách: **Tất cả / Của tôi / Chờ tôi duyệt / Cần phối hợp / Quá hạn**. Chỉ lọc giao diện, không cấp thêm quyền và không thay đổi dữ liệu ký HMAC.
+- Biên bản được phép tham khảo **kết quả Agent đã thực sự chạy và được ký**, vẫn hiển thị DRAFT. Không có báo cáo Agent thì thông báo chưa có, không sinh ý kiến giả.
+- **Đầu việc tạo từ biên bản đã duyệt:** chỉ người được giao đúng email hoặc Admin mới được bắt đầu, trình báo cáo, chạy Agent; chỉ Admin được điều chỉnh hoặc thu hồi phân công. Luật này chỉ áp dụng cho việc meetingId mới, không thay cách xử lý công việc V7.5.1 lịch sử.
+- Chốt thử nghiệm riêng theo dự án: cả hai biến **XD_V752_MEETINGS=1** và **XD_V752_MEETING_PROJECTS** (danh sách ID dự án, phân cách dấu phẩy) phải được cấu hình thì nút họp mới hiện. Thiếu một trong hai → tắt.
+- Không tự cấp quyền dự án cho email được ghi trong biên bản. Nếu người được giao chưa có quyền, Admin phải cấp quyền riêng qua Google OIDC.
