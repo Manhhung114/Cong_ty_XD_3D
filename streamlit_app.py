@@ -52,6 +52,51 @@ html,body,[data-testid="stApp"],[data-testid="stAppViewContainer"]{
  [data-testid="stHorizontalBlock"]{margin:0 4px!important}
  .st-key-xd_fullwidth_workspace iframe{height:calc(100dvh - 48px)!important}
 }
+/* V6.7.3: no secondary Streamlit-page scrolling below the application.
+   The authenticated iframe is the scroll owner for all in-app sheets. */
+:root{--xd-auth-height:46px}
+[data-testid="stAppViewContainer"]:has(.st-key-xd_fullwidth_workspace){
+    height:100dvh!important;min-height:0!important;overflow-y:hidden!important;
+}
+[data-testid="stAppViewContainer"]:has(.st-key-xd_fullwidth_workspace)
+  [data-testid="stMain"]{
+    height:100dvh!important;max-height:100dvh!important;min-height:0!important;
+    overflow-y:hidden!important;
+}
+[data-testid="stMainBlockContainer"]:has(.st-key-xd_fullwidth_workspace){
+    height:100dvh!important;max-height:100dvh!important;min-height:0!important;
+    width:100%!important;max-width:100%!important;
+    display:flex!important;flex-direction:column!important;overflow:hidden!important;
+}
+[data-testid="stMainBlockContainer"]:has(.st-key-xd_fullwidth_workspace)
+  [data-testid="stVerticalBlock"]:has(.st-key-xd_fullwidth_workspace){
+    width:100%!important;max-width:100%!important;min-width:0!important;
+    flex:1 1 auto!important;min-height:0!important;
+}
+.st-key-xd_fullwidth_workspace{
+    flex:1 1 auto!important;min-height:0!important;
+    width:100vw!important;max-width:100vw!important;min-width:0!important;
+    position:relative!important;left:50%!important;
+    transform:translateX(-50%)!important;
+    overflow:hidden!important;
+}
+.st-key-xd_fullwidth_workspace,
+.st-key-xd_fullwidth_workspace > div,
+.st-key-xd_fullwidth_workspace [data-testid="stIframe"],
+.st-key-xd_fullwidth_workspace [data-testid="stElementContainer"]{
+    width:100%!important;max-width:none!important;min-width:0!important;
+    box-sizing:border-box!important;margin:0!important;padding:0!important;
+}
+.st-key-xd_fullwidth_workspace iframe{
+    display:block!important;width:100%!important;max-width:none!important;
+    height:calc(100dvh - var(--xd-auth-height))!important;
+    min-height:0!important;border:0!important;
+    margin:0!important;padding:0!important;
+}
+@media(max-width:750px){
+ :root{--xd-auth-height:50px}
+ .st-key-xd_fullwidth_workspace{left:50%!important;max-width:100vw!important}
+}
 
 </style>""", unsafe_allow_html=True)
 
