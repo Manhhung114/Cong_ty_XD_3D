@@ -63,7 +63,7 @@ LEG **chưa được tự đọc hợp đồng**; mọi thông tin nhạy cảm 
 - meeting.approved tạo tối đa 6 nhiệm vụ có ID deterministic tính từ event ID duyệt và chỉ hiển thị sau khi duyệt (replay một event). Sự kiện cũ không sửa và không đổi chữ ký.
 - Một khi production có sự kiện meeting.* V7.5.2, phiên bản V7.5.1 cũ KHÔNG được đọc trực tiếp ledger mới vì chưa nhận action mới. Rollback an toàn: dùng bản trình đọc V7.5.2 và tắt cờ XD_V752_MEETINGS, không redeploy trình đọc cũ.
 - Chỉ bật trên production sau backup/restore và test với 2 tài khoản, kiểm soát max ledger 2500 event (điểm chặn ở 2250), kiểm tra replay.
-- Feature flag mặc định **XD_V752_MEETINGS=0**, bật =1 trên môi trường test sau khi xác minh cách khôi phục, không yêu cầu thay đổi Secrets cũ.
+- Feature flag mặc định **XD_V752_MEETINGS=0** và **XD_V752_MEETING_PROJECTS** để trống; chỉ bật =1 trên môi trường test, cùng allowlist ID dự án sau khi xác minh cách khôi phục, không yêu cầu thay đổi Secrets cũ.
 
 ## 7. Kiểm thử & điểm chặn nghiệm thu
 
