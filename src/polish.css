@@ -636,3 +636,18 @@ body{background:radial-gradient(ellipse at 78% 1%,rgba(0,126,191,.16),transparen
  .v67-mode .v67-stat{padding:10px 7px}
  .v67-mode .v67-stat strong{font-size:19px}
 }
+
+
+/* Read-only reports use exactly the same dark design language as live monitoring. */
+.command-report .company-kpi-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+.command-report-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+.command-report-grid>.panel{border-color:#205a78;box-shadow:0 5px 14px #02102060}
+.command-report-grid h3{font-size:15px!important;color:#dcf5ff;margin:0 0 18px!important}
+.command-report-row{display:grid;grid-template-columns:minmax(105px,175px) minmax(0,1fr) 32px;align-items:center;gap:9px;padding:7px 0}
+.command-report-row>span{font-size:12px;color:#afcfe0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.command-report-row>strong{text-align:right;font-size:12px;color:#e8faff}
+.command-report-track{height:11px;background:#13374e;border-radius:5px;overflow:hidden}
+.command-report-track b{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,#148cc8,#23d6c4)}
+.command-report-grid>.panel:nth-child(2) .command-report-track b{background:linear-gradient(90deg,#815dda,#53c1fa)}
+@media(max-width:1050px){.command-report .company-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.command-report-grid{grid-template-columns:1fr}}
+@media(max-width:520px){.command-report .company-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.command-report-row{grid-template-columns:110px minmax(0,1fr) 28px}}
