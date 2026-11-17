@@ -21,6 +21,7 @@ COMMANDS = {
     "activity": {"refresh", "select"},
     "agents": {"refresh", "select", "agent_run"},
     "company": {"refresh", "select", "handoff_create", "handoff_resolve", "ops_audit"},
+    "monitor": {"refresh", "select"},
 }
 DEPARTMENT_NAMES = {
     "director": "Ban giám đốc", "electrical": "Điện", "hvac": "HVAC",
@@ -47,7 +48,7 @@ def load_snapshot(st) -> dict:
     if not actor:
         raise PermissionError("Phiên đăng nhập không còn quyền truy cập")
     workspace = service_for(st)
-    snapshot = workspace.snapshot(actor)
+    snapshot = workspace.snapshot(actor, include_monitor=True) if st.session_state.get("xd_current_sheet") == "monitor" else workspace.snapshot(actor)
     requested = str(st.session_state.get("xd_selected_cloud_project", ""))
     valid = {p["id"] for p in snapshot["projects"]}
     selected = requested if requested in valid else (snapshot["projects"][0]["id"] if snapshot["projects"] else "")
