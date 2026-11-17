@@ -60,7 +60,11 @@ test('Persistent successful action notice is accessible and HTML escaped',()=>{
  assert.doesNotMatch(html,/<img src=x onerror=/);
 });
 
-test('The deployed static JS/CSS mirrors match source exactly',()=>{
+test('Deployed bundle, version badge and source mirrors match current release',()=>{
  assert.equal(read('src/core/cloud_workspace.js'),read('static/src/core/cloud_workspace.js'));
+ assert.equal(read('src/core/company_suite.js'),read('static/src/core/company_suite.js'));
  assert.equal(read('src/portal.css'),read('static/src/portal.css'));
+ const manifest=JSON.parse(read('VERSION_MANIFEST.json'));
+ const tag=manifest.current_version.split(' ')[0];
+ assert.ok(read('static/index.html').includes('class="command-version">'+tag+'</span>'));
 });
