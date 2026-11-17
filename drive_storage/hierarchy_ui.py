@@ -229,14 +229,19 @@ def hierarchy_dialog(st, action):
                         message=("Đã duyệt kế hoạch CEO và tạo các nhiệm vụ "
                                  "PM → Trưởng bộ môn → Chuyên gia → QA/QC.")
                         if auto_checklist:
-                            from agent_runtime.batch import batch_preflight
-                            result=batch_preflight(
-                                configured_client(st),service,identity,
-                                project_id=pid,proposal_id=plan["id"])
-                            message+=(" Đã vào hàng đợi "+str(len(result["queued"]))+
-                                      " checklist; thất bại "+str(len(result["failed"]))+
-                                      "; chờ điều kiện "+str(len(result["blockedByDependency"]))+
-                                      ". Theo dõi từng job tại Giám sát Agent.")
+                            try:
+                                from agent_runtime.batch import batch_preflight
+                                result=batch_preflight(
+                                    configured_client(st),service,identity,
+                                    project_id=pid,proposal_id=plan["id"])
+                                message+=(" Đã vào hàng đợi "+str(len(result["queued"]))+
+                                          " checklist; thất bại "+str(len(result["failed"]))+
+                                          "; chờ điều kiện "+str(len(result["blockedByDependency"]))+
+                                          ". Theo dõi từng job tại Giám sát Agent.")
+                            except Exception:
+                                message+=(" Đã lưu phân phối lên Drive nhưng KHÔNG xác minh "
+                                          "được hàng đợi worker; kiểm tra Redis và thử "
+                                          "từng công việc, không có kết quả giả.")
                         success(message)
                     else:
                         success("Đã trả phương án về Giám đốc với lý do được lưu.")
