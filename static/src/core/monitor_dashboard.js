@@ -370,7 +370,7 @@ function filteredDashboard(f){
 export function renderMonitorDashboard(){
  const packet=mon();
  if(!st().enabled||!packet)return '<section class="v67-shell">'+
- '<h2>Giám sát Agent V6.7</h2><p>Cần đăng nhập Google và tải dữ liệu nhật ký đã ký từ máy chủ.</p></section>';
+ '<h2>Giám sát Agent V6.7</h2><p>Đang yêu cầu dữ liệu giám sát có chữ ký từ máy chủ…</p></section>';
  const f=filters();
  const projectList=(st().projects||[]).filter(p=>p.id!==undefined);
  const deptOptions=Object.keys(departments).filter(d=>d!=='director');
@@ -408,6 +408,7 @@ function sendMonitorRefresh(f){
   monitorPeriod:f.period,monitorDepartment:f.department,
  },'*');
 }
+export function requestMonitorSnapshot(){sendMonitorRefresh(filters());}
 export function stopMonitorPolling(){
  if(typeof window!=='undefined'&&window.__xdMonitorTimer){
   clearInterval(window.__xdMonitorTimer);window.__xdMonitorTimer=null;
