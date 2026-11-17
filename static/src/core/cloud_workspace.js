@@ -60,7 +60,7 @@ const tasksHtml=filter=>{
   'Đã tạo '+reports.length+' báo cáo nháp; chờ kỹ sư kiểm chứng':
   t.status==='cancelled'?'Không chạy — công việc đã hủy':'Agent chưa chạy cho công việc này';
  return '<article class="portal-task"><div class="portal-task-head"><div><strong>'+h(t.title)+'</strong><small>'+h(t.code)+' · '+h(t.dept)+' · '+h(t.assignee||'Chưa giao')+
- '</small></div><span class="portal-pill '+(t.status==='review'?'review':t.status==='done'?'done':'')+'">'+h(labels[t.status]||t.status)+'</span></div>'+
+ '</small></div><span class="portal-pill '+(t.status==='review'?'review':t.status==='done'?'done':t.status==='cancelled'?'cancelled':'')+'">'+h(labels[t.status]||t.status)+'</span></div>'+
  '<p class="company-secondary"><b>Chuyên gia được giao:</b> '+h(agentLabel)+
   ' · <b>Trạng thái Agent:</b> '+h(runLabel)+'</p>'+
  (t.status==='cancelled'?'<p class="company-secondary"><b>Đã hủy:</b> '+h(t.cancelReason||'')+
