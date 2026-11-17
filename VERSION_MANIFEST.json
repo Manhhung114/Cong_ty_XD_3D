@@ -1,6 +1,6 @@
 {
   "project": "Công ty Xây dựng & MEP AI 3D",
-  "artifact_version": "0.6.6-expert-evidence-pilot",
+  "artifact_version": "0.6.7-realtime-dual-system-monitor",
   "release_date": "2026-11-16",
   "modules": [
     {
@@ -152,6 +152,12 @@
       "area": "Signed specialist/DOC/QAC/PM evidence workflow with optional consent-based LLM",
       "entry": "drive_storage/expert_orchestrator.py",
       "status": "implemented_human_approval_required"
+    },
+    {
+      "label": "V6.7",
+      "area": "Near-real-time 15s polling dashboard; MEP/XD separated with cross-system flows, live signed activity feed and alarms",
+      "entry": "src/core/monitor_dashboard.js",
+      "status": "implemented_pending_live_browser_multiaccount_acceptance"
     }
   ],
   "data_categories": {
@@ -178,7 +184,30 @@
     "audit_backup": "admin_only_signed_ledger_metadata_sha256_export",
     "engineering_file_reader": "PDF XLSX CSV DXF IFC small registered Drive files up to 8 MiB",
     "engineering_rules": "BOQ quantity-times-price, 3phase current, ACH, pipe velocity, gravity example",
-    "expert_orchestrator": "user_triggered_specialist_doc_qac_pm_quality_gates"
+    "expert_orchestrator": "user_triggered_specialist_doc_qac_pm_quality_gates",
+    "realtime_dashboard": {
+      "mode": "near_realtime_polling_15s",
+      "websocket": false,
+      "system_scope": [
+        "MEP",
+        "XD",
+        "cross_system"
+      ],
+      "data_source": "project_scoped_HMAC_signed_google_drive_events",
+      "widgets": [
+        "KPI",
+        "time_series",
+        "donut",
+        "department_bar",
+        "sankey",
+        "network",
+        "timeline",
+        "agent_rank",
+        "bottleneck",
+        "alerts",
+        "feed"
+      ]
+    }
   },
   "warnings": [
     "No real AI agents connected",
@@ -205,14 +234,17 @@
     "V6.4 DWG/RVT/NWD raw parsing, IFC geometry clash and >8 MB analysis require a separate worker not deployed.",
     "V6.5 formula checks are preliminary, not certified TCVN/QCVN compliance or full engineering design.",
     "V6.6 executes deterministic quality gates, not four independently running autonomous AI agents.",
-    "Streamlit parser deployment and real two-account engineering file acceptance are not yet verified."
+    "Streamlit parser deployment and real two-account engineering file acceptance are not yet verified.",
+    "V6.7 is 15-second polling over Google Drive signed event journal, not a WebSocket or true Agent RUNNING heartbeat.",
+    "V6.7 inline monitoring limits include 900 recent 7-day events; truncated event windows are flagged.",
+    "V6.7 runtime Google OAuth, two-account, graph responsiveness and Google Drive load must be verified on the deployed Streamlit site."
   ],
   "divisions": {
     "shared": "Ban giám đốc",
     "mep": "Cơ điện",
     "construction": "Xây dựng"
   },
-  "current_version": "V6.6 (Evidence-driven specialists)",
+  "current_version": "V6.7 (Giám sát Agent MEP ↔ XD)",
   "backend": {
     "framework": "FastAPI",
     "database": "PostgreSQL or SQLite local",
