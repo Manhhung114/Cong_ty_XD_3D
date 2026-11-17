@@ -85,7 +85,7 @@ def company_dialog(st, action):
             task_id = str(action.get("taskId") or "")
             agent_id = str(action.get("agentId") or "")
             from drive_storage.company_agents import _task_context
-            from drive_storage.hierarchy import require_operator
+            from drive_storage.hierarchy import require_operator, require_qc_role, dependencies_block
             try:
                 profile, task, _, related = _task_context(state, pid, task_id, agent_id)
                 require_operator(identity, task)
@@ -249,7 +249,6 @@ def company_dialog(st, action):
                         raise PermissionError("Cần xác nhận truyền metadata/trích xuất cho AI")
                     if mode in {"expert", "expert_llm"} and selected is None:
                         raise ValueError("Cần chọn file đã ghi sổ để xử lý nền")
-                    from drive_storage.hierarchy import require_operator, require_qc_role, dependencies_block
                     require_operator(identity, task)
                     require_qc_role(identity, task, state)
                     if dependencies_block(task, state["tasks"]):
