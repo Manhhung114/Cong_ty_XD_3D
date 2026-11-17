@@ -2,7 +2,7 @@
 
 Từ sheet **Công việc**, tạo việc cấp Giám đốc (`director + CEO`) → bấm **Giám đốc AI lập phương án** → Admin **Duyệt phân phối** → sinh tự động cây **PM → trưởng bộ môn → chuyên gia + QA/QC** (có mã CV-, quan hệ cha–con, danh bạ nhân sự và tiến độ). Người quản lý trực tiếp được duyệt đầu ra cấp dưới; QA độc lập và CEO cuối cùng do Admin duyệt. Toàn bộ phân công ghi trên nhật ký HMAC Google Drive, không xóa hồ sơ cũ.
 
-Trước khi phân việc, Admin vào **⚙ Cơ cấu tổ chức** để gán email chức danh cho từng dự án. Việc này **không tự cấp quyền đăng nhập**: phải phân quyền Google OIDC `Cập nhật` riêng. Cấp dưới chỉ được làm việc sau khi tiền nhiệm hoàn thành; không tự chạy model AI. Hệ thống gợi ý bộ môn từ từ khóa và phân việc theo quy tắc đã duyệt, **không phải LLM CEO tự lập kế hoạch**, không có worker chạy nền. Báo cáo vẫn là nháp kỹ thuật cần người thẩm tra, không chứng nhận TCVN/QCVN. Cần nghiệm thu trực tiếp trước khi coi là production.
+Khi cần thu hồi cả luồng, Admin bấm **Dừng toàn bộ cây phân phối** trên thẻ CEO (ghi lý do, không xóa báo cáo đã duyệt). Trước khi phân việc, Admin vào **⚙ Cơ cấu tổ chức** để gán email chức danh cho từng dự án. Việc này **không tự cấp quyền đăng nhập**: phải phân quyền Google OIDC `Cập nhật` riêng. Cấp dưới chỉ được làm việc sau khi tiền nhiệm hoàn thành; không tự chạy model AI. Hệ thống gợi ý bộ môn từ từ khóa và phân việc theo quy tắc đã duyệt, **không phải LLM CEO tự lập kế hoạch**, không có worker chạy nền. Báo cáo vẫn là nháp kỹ thuật cần người thẩm tra, không chứng nhận TCVN/QCVN. Cần nghiệm thu trực tiếp trước khi coi là production.
 
 Chi tiết: [V6.9.0 Hierarchical AI Task Orchestrator](docs/V690_HIERARCHICAL_AI_TASK_ORCHESTRATOR.md).
 
