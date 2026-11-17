@@ -12,10 +12,26 @@
 </head>
 <body>
   <div id="app">
+    <header class="command-header" aria-label="Thanh điều khiển công ty">
+      <div class="command-brand">
+        <span class="command-brand-logo" aria-hidden="true"><img data-brand-image alt="" /></span>
+        <div class="command-brand-identity"><strong>Công ty XD &amp; MEP AI 3D</strong><small>ENGINEERING COMMAND CENTER</small></div>
+        <span class="command-version">V6.7</span>
+      </div>
+      <div class="command-heading">
+        <svg viewBox="0 0 50 28" aria-hidden="true" class="command-heartbeat"><path d="M1 14h12l5-9 5 19 6-22 5 12h15" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <strong id="commandTitle">Giám sát Agent — Hoạt động &amp; Phối hợp theo thời gian thực</strong>
+      </div>
+      <div class="command-actions">
+        <span id="commandLive" class="command-online"><i></i><span>Hệ thống trực tuyến</span></span>
+        <button type="button" class="command-icon-button" id="commandNotifications" aria-label="Xem cảnh báo công việc" title="Xem cảnh báo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="commandAlertCount" class="command-alert-count" hidden>0</span></button>
+        <button type="button" class="command-icon-button" id="commandHelp" aria-label="Hướng dẫn sử dụng giao diện" title="Hướng dẫn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M9.6 9a2.5 2.5 0 1 1 4.4 1.5c-1 1-2 1.1-2 3m0 3.5v.2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></button>
+        <button type="button" class="command-user" id="commandAccount" aria-label="Thông tin tài khoản"><span class="command-user-avatar" id="commandAvatar">A</span><span id="commandRole">Tài khoản</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m5 7 5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.7"/></svg></button>
+      </div>
+    </header>
     <aside class="sidebar">
-      <div class="brand"><div class="brand-mark">X<span>∕</span></div><div><strong>XD + MEP <em>CÔNG TY AI</em></strong><small>TRUNG TÂM ĐIỀU HÀNH 3D</small></div></div>
-      <div class="nav-caption">KHÔNG GIAN LÀM VIỆC</div>
       <nav id="nav" aria-label="Điều hướng"></nav>
+      <div class="sidebar-visual"><img data-brand-image alt="Minh họa văn phòng Xây dựng và MEP" /><span class="sidebar-visual-caption"><b>XD + MEP</b><small>Hai hệ chuyên môn · Một nền tảng</small></span></div>
       <div class="sidebar-tools"><button type="button" id="exportBtnSidebar" class="btn outline small">↧ Sao lưu dữ liệu</button></div>
     </aside>
     <button class="mobile-nav-scrim" id="navScrim" aria-label="Đóng menu" type="button" tabindex="-1"></button>
