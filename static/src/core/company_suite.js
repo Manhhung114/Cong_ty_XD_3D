@@ -98,6 +98,9 @@ function companyDashboard(){
  const tasks=(s.tasks||[]).filter(t=>t.projectId===p?.id);
  const available=(s.handoffs||[]).filter(x=>x.projectId===p?.id);
  const pending=available.filter(x=>x.status==='open');
+ const meetings=(s.meetings||[]).filter(x=>x.projectId===p?.id);
+ const meetingNames={scheduled:'Đã lên lịch',pending_approval:'Chờ duyệt kết luận',
+   revision_requested:'Yêu cầu sửa biên bản',in_progress:'Đang xử lý đầu việc',closed:'Đã giải quyết'};
  const notices=m.alerts||[];
  return '<section class="panel padded company-suite"><div class="panel-heading"><div><h2>V6.2 · Trung tâm điều hành toàn công ty</h2>'+
  '<p>Ưu tiên dựa trên dữ liệu thật của các dự án được cấp quyền, không dùng số liệu giả.</p></div>'+
@@ -106,7 +109,8 @@ function companyDashboard(){
  kpi('DỰ ÁN',m.projects||0)+kpi('CÔNG VIỆC',m.tasks||0)+kpi('ĐANG LÀM',m.doing||0)+
  kpi('QUÁ HẠN',m.overdue||0)+kpi('CHỜ DUYỆT',m.review||0)+
  kpi('CHƯA PHÂN CÔNG',m.unassigned||0)+kpi('ƯU TIÊN CAO/KHẨN',m.highPriority||0)+kpi('HỒ SƠ CHỜ XỬ LÝ',m.documentPending||0)+
- kpi('PHỐI HỢP ĐANG MỞ',m.handoffsOpen||0)+'</div>'+
+ kpi('PHỐI HỢP ĐANG MỞ',m.handoffsOpen||0)+
+ kpi('CUỘC HỌP CẦN XỬ LÝ',meetings.filter(x=>x.status!=='closed').length)+'</div>'+
  '<div class="company-notice"><b>Quy trình điều hành:</b> PM tiếp nhận yêu cầu → kỹ sư bộ môn xử lý → phối hợp liên ngành → QA/DOC kiểm tra → Admin phê duyệt → lưu bản phát hành và nhật ký. Agent chỉ đề xuất, không thay vai trò con người.</div>'+
  '<details class="company-raci"><summary><b>📋 Ma trận trách nhiệm RACI – vận hành toàn công ty</b></summary>'+
  '<div class="company-table-wrap"><table class="company-table"><thead><tr><th>Công đoạn</th><th>Chịu trách nhiệm (R)</th><th>Chịu trách nhiệm cuối (A)</th><th>Phối hợp / thẩm tra (C)</th></tr></thead><tbody>'+
@@ -125,7 +129,10 @@ function companyDashboard(){
  (!notices.length?'<p>Chưa có cảnh báo từ metadata công việc/hồ sơ trong phạm vi được xem.</p>':
  '<div class="company-alert-list">'+notices.map(x=>'<article class="company-alert"><strong>'+
  h(x.title)+'</strong><span>'+h(x.action)+'</span></article>').join('')+'</div>')+
+ '<div class="company-workflow-steps" aria-label="Quy trình làm việc"><b>1 · Giao việc</b><b>2 · Phân công</b><b>3 · Phối hợp/họp</b><b>4 · QA kiểm tra</b><b>5 · Duyệt và lưu</b></div>'+
  '<div class="company-controls">'+
+ (writable()&&s.meetingsAvailable?'<button class="btn primary" data-company-action="meeting_create">＋ Tạo cuộc họp phối hợp</button>':'')+
+ '<button class="btn outline" data-go="tasks">☷ Xem và giao công việc</button>'+
  (writable()?'<button class="btn primary" data-company-action="handoff_create">＋ Yêu cầu phối hợp liên phòng</button>':'')+
  (s.role==='admin'?'<button class="btn outline" data-company-action="ops_audit">🛡 Kiểm soát hệ thống & sao lưu</button>':'')+
  '</div></section>'+
@@ -135,6 +142,37 @@ function companyDashboard(){
  '<td>'+h(d.count)+'</td><td>'+h(d.doing)+'</td><td>'+h(d.pending)+'</td>'+
  '<td>'+h(d.overdue)+'</td><td>'+h(d.activeAgents)+'</td></tr>').join('')+
  '</tbody></table></div></section>'+
+ '<section class="panel padded company-suite company-meetings"><div class="panel-heading"><div>'+
+ '<h3>📅 Họp phối hợp MEP ↔ Xây dựng ↔ Điều hành</h3>'+
+ '<p>Mỗi cuộc họp gắn công việc, bộ môn, biên bản và các đầu việc cần giải quyết. Chỉ sau khi Admin duyệt mới sinh nhiệm vụ thật.</p></div>'+
+ '<span class="mini-label">'+meetings.length+' CUỘC HỌP</span></div>'+
+ (!s.meetingsAvailable?'<p class="company-secondary">Chức năng họp V7.5.2 chưa được bật trên Streamlit cho đến khi kiểm thử tương thích nhật ký Drive. Dữ liệu cũ không thay đổi.</p>':'')+
+ (meetings.length?'<div class="company-meeting-list">'+meetings.map(item=>{
+   const actions=(item.actionTaskIds||[]).map(id=>(s.tasks||[]).find(t=>t.id===id)).filter(Boolean);
+   return '<article class="company-meeting-card">'+
+   '<div class="company-handoff-heading"><strong>'+h(item.title)+'</strong><span class="company-state">'+
+   h(meetingNames[item.status]||item.status)+'</span></div>'+
+   '<p><b>Thời gian:</b> '+h(item.scheduledAt||'Chưa ghi')+
+   ' · <b>Bộ môn:</b> '+(item.departments||[]).map(d=>h(deptLabel[d]||d)).join(' · ')+'</p>'+
+   '<p><b>Nội dung:</b> '+h(item.agenda||'')+'</p>'+
+   (item.minutes?'<details><summary>Biên bản và kết luận</summary><p>'+h(item.minutes)+'</p><p><b>Kết luận:</b> '+h(item.decisions)+'</p></details>':'')+
+   (item.status==='revision_requested'?'<p class="portal-hierarchy-block">Cần sửa: '+h(item.revisionReason||'')+'</p>':'')+
+   (actions.length?'<div class="company-meeting-actions"><strong>Đầu việc sau họp: '+
+      h(item.completedActions)+'/'+h(item.totalActions)+' được phê duyệt</strong>'+
+      actions.map(t=>'<p>'+h(t.code)+' · '+h(t.title)+' · '+h(t.assignee||'Chưa có người')+
+       ' · '+h(t.status==='done'?'Đã duyệt':t.status==='review'?'Chờ duyệt':'Đang xử lý')+'</p>').join('')+'</div>':'')+
+   (writable()&&s.meetingsAvailable?'<div class="portal-review-actions">'+
+     (['scheduled','revision_requested'].includes(item.status)?
+       '<button class="btn primary small" data-meeting-op="meeting_minutes" data-meeting-id="'+h(item.id)+'">📝 Ghi biên bản và giao đầu việc</button>':'')+
+     (s.role==='admin'&&item.status==='pending_approval'?
+       '<button class="btn primary small" data-meeting-op="meeting_approve" data-meeting-id="'+h(item.id)+'">✓ Duyệt kết luận cuộc họp</button>':'')+
+     (s.role==='admin'&&item.readyToClose?
+       '<button class="btn outline small" data-meeting-op="meeting_close" data-meeting-id="'+h(item.id)+'">Đóng cuộc họp đã giải quyết</button>':'')+
+     '</div>':'')+
+   '</article>';
+ }).join('')+'</div>':
+ '<p>Chưa có cuộc họp. Chọn một nhiệm vụ cần phối hợp hoặc nhấn Tạo cuộc họp.</p>')+
+ '</section>'+
  '<section class="panel padded company-suite"><div class="panel-heading"><h3>V6.2 · Phiếu phối hợp liên phòng</h3>'+
  '<span class="mini-label">'+available.length+' PHIẾU</span></div>'+
  (!available.length?'<p>Chưa có yêu cầu phối hợp. Có thể tạo yêu cầu từ một nhiệm vụ của dự án.</p>':
@@ -156,14 +194,14 @@ export function renderCompanySuite(section){
  const base=projectPicker(section);
  return base+(section==='agents'?agentCards()+runHistory():companyDashboard());
 }
-function send(section,op,taskId='',agentId='',handoffId=''){
+function send(section,op,taskId='',agentId='',handoffId='',meetingId=''){
  const token=window.__xdDriveNonce;
  const p=ownProject();
  if(!token||!p)return;
  const id=(globalThis.crypto?.randomUUID?.()||String(Date.now())+'-'+Math.random().toString().slice(2)).replace(/-/g,'').slice(0,32);
  window.parent.postMessage({
   channel:'XD_MEP_DRIVE_V1',nonce:token,
-  kind:'workspace',section,op,projectId:p.id,taskId,agentId,handoffId,actionId:id
+  kind:'workspace',section,op,projectId:p.id,taskId,agentId,handoffId,meetingId,actionId:id
  },'*');
 }
 export function bindCompanySuite(root,section){
@@ -186,6 +224,11 @@ export function bindCompanySuite(root,section){
    const taskId=root.querySelector('[data-agent-task="'+agentId+'"]')?.value||'';
    if(taskId)send('agents','agent_run',taskId,agentId);
   });
+ });
+ root.querySelectorAll('[data-meeting-op]').forEach(button=>{
+   button.addEventListener('click',()=>{
+     if(writable())send('company',button.dataset.meetingOp,'','','',button.dataset.meetingId);
+   });
  });
  root.querySelectorAll('[data-handoff-resolve]').forEach(button=>{
   button.addEventListener('click',()=>{
