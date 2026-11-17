@@ -16,7 +16,7 @@ from drive_storage.ai_settings_ui import ai_settings_dialog, ai_connection_dialo
 from drive_storage.v75_rollout import BUILD_LABEL
 
 st.set_page_config(
-    page_title="Công ty Xây dựng & MEP AI 3D", page_icon="🏗️",
+    page_title=f"Công ty Xây dựng & MEP AI 3D · {BUILD_LABEL}", page_icon="🏗️",
     layout="wide", initial_sidebar_state="collapsed",
 )
 st.markdown("""<style>
