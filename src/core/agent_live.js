@@ -37,7 +37,7 @@ export function agentEvidenceSummary(cloud,projectId=''){
  const rows=(cloud?.agentActivity||[]).filter(a=>!selected||a.projectId===selected);
  const counts={started_unconfirmed:0,stale:0,completed:0,failed:0};
  for(const r of rows){
-  const e=agentEvidence(cloud,r.agentId,selected);
+  const e=agentEvidence(cloud,r.agentId,projectId==='all'?'all':selected);
   if(Object.prototype.hasOwnProperty.call(counts,e.state))counts[e.state]++;
  }
  return counts;
