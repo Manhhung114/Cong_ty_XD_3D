@@ -44,6 +44,7 @@ const canReviewTask=t=>{
 };
 const taskWithdrawControl=t=>{
  if(!canWrite())return '';
+ if(t.meetingId&&!canReview())return '';
  if(t.hierarchyStage&&!canReview()){
   const parent=(view().tasks||[]).find(x=>x.id===t.parentTaskId);
   const isManager=parent&&String(parent.assignee||'').toLowerCase()===
@@ -129,8 +130,9 @@ const tasksHtml=filter=>{
  const progress=t.hierarchyProgress||{total:0,done:0,blockedBy:[]};
  const blocked=(progress.blockedBy||[]).length>0;
  const actor=(view().actor||'').toLowerCase();
- const canOperate=canWrite()&&(!t.hierarchyStage||canReview()||
-  (t.assignee||'').toLowerCase()===actor);
+ const canOperate=canWrite()&&
+  (t.meetingId?(canReview()||(t.assignee||'').toLowerCase()===actor):
+   (!t.hierarchyStage||canReview()||(t.assignee||'').toLowerCase()===actor));
  const supervisor=p&&((p.assignee||'').toLowerCase()===actor);
  const canDelegate=canReview()||!!supervisor;
  const statusLabel=returned?'Yêu cầu sửa':(labels[t.status]||t.status);
@@ -175,7 +177,8 @@ const tasksHtml=filter=>{
  )+'</b></p>':'')+
   '<div class="portal-review-actions">'+
  (canWrite()&&['todo','working'].includes(t.status)&&
-   (!t.hierarchyStage||canDelegate)?btn('Gán / Sửa phân công','task_assign',t.id):'')+
+   (!t.meetingId||canReview())&&(!t.hierarchyStage||canDelegate)?
+    btn('Gán / Sửa phân công','task_assign',t.id):'')+
  (canWrite()&&t.assignedAgentId==='CEO'&&t.dept==='director'&&
   !t.parentTaskId&&!existingPlan&&['todo','working'].includes(t.status)&&
   (canReview()||(t.assignee||'').toLowerCase()===actor)?
