@@ -14,7 +14,8 @@ from drive_storage.ai_probe import probe_ai_connection
 
 
 def ai_settings_dialog(st):
-    @st.dialog("Cấu hình AI toàn công ty · V6.7.6", width="large")
+    @st.dialog("Cấu hình AI toàn công ty · V6.7.6", width="large",
+               on_dismiss=lambda: st.session_state.pop("drive_in_app_action", None))
     def render():
         identity = identity_for(st)
         if not can_admin(identity):
@@ -165,7 +166,8 @@ def ai_settings_dialog(st):
 
 def ai_connection_dialog(st):
     """Read-only one-click check of the saved server credential (Admin only)."""
-    @st.dialog("🔎 Kiểm tra kết nối API dùng chung", width="large")
+    @st.dialog("🔎 Kiểm tra kết nối API dùng chung", width="large",
+               on_dismiss=lambda: st.session_state.pop("drive_in_app_action", None))
     def render():
         if not can_admin(identity_for(st)):
             st.error("Chỉ Admin đã xác thực được kiểm tra khóa API dùng chung.")

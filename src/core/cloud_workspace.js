@@ -3,11 +3,12 @@
  * without Google OIDC and per-project RBAC. Legacy local data is untouched.
  */
 const h=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[ch]));
-const labels={todo:'Chờ xử lý',working:'Đang thực hiện',review:'Chờ duyệt',done:'Hoàn thành'};
+const labels={todo:'Chờ xử lý',working:'Đang thực hiện',review:'Chờ duyệt',done:'Hoàn thành',cancelled:'Đã hủy'};
 const actionLabels={
  'project.created':'Tạo dự án', 'task.created':'Giao công việc',
  'task.started':'Bắt đầu công việc', 'task.submitted':'Trình phê duyệt',
  'task.approved':'Chấp thuận', 'task.returned':'Trả lại', 'task.assigned':'Phân công kỹ sư và Agent',
+ 'task.unassigned':'Thu hồi phân công', 'task.cancelled':'Hủy công việc',
  'document.registered':'Đăng ký hồ sơ trên Drive',
  'document.metadata_updated':'Cập nhật sổ hồ sơ',
  'document.submitted':'Trình hồ sơ',
@@ -57,11 +58,15 @@ const tasksHtml=filter=>{
  const agentLabel=specialist?specialist.title+' ('+specialist.id+')':'Chưa gán Agent';
  const runLabel=reports.length?
   'Đã tạo '+reports.length+' báo cáo nháp; chờ kỹ sư kiểm chứng':
-  'Agent chưa chạy cho công việc này';
+  t.status==='cancelled'?'Không chạy — công việc đã hủy':'Agent chưa chạy cho công việc này';
  return '<article class="portal-task"><div class="portal-task-head"><div><strong>'+h(t.title)+'</strong><small>'+h(t.code)+' · '+h(t.dept)+' · '+h(t.assignee||'Chưa giao')+
- '</small></div><span class="portal-pill '+(t.status==='review'?'review':t.status==='done'?'done':'')+'">'+h(labels[t.status]||t.status)+'</span></div>'+
+ '</small></div><span class="portal-pill '+(t.status==='review'?'review':t.status==='done'?'done':t.status==='cancelled'?'cancelled':'')+'">'+h(labels[t.status]||t.status)+'</span></div>'+
  '<p class="company-secondary"><b>Chuyên gia được giao:</b> '+h(agentLabel)+
   ' · <b>Trạng thái Agent:</b> '+h(runLabel)+'</p>'+
+ (t.status==='cancelled'?'<p class="company-secondary"><b>Đã hủy:</b> '+h(t.cancelReason||'')+
+  ' · '+h(t.cancelledBy||'')+' · '+h(t.cancelledAt||'')+'</p>':
+  (!t.assignee&&!t.assignedAgentId&&t.withdrawnAt?'<p class="company-secondary"><b>Đã thu hồi:</b> '+
+   h(t.withdrawReason||'')+' · '+h(t.withdrawnBy||'')+'</p>':''))+
  (t.dueDate?'<p>Hạn: '+h(t.dueDate)+'</p>':'')+
  (t.docCode?'<p>Hồ sơ: '+h(t.docCode)+'</p>':'')+
  (t.report?'<div class="portal-report"><b>Báo cáo</b><p>'+h(t.report)+'</p><p>'+h(t.findings)+'</p></div>':'')+
@@ -76,13 +81,16 @@ const tasksHtml=filter=>{
  )+'</b></p>':'')+
   '<div class="portal-review-actions">'+
  (canWrite()&&['todo','working'].includes(t.status)?btn('Gán / Sửa phân công','task_assign',t.id):'')+
+ (canWrite()?(['todo','working'].includes(t.status)||(canReview()&&t.status==='review')?
+  btn('↩ Thu hồi / Hủy giao việc','task_withdraw',t.id):
+  '<button type="button" class="btn outline small" disabled title="Công việc đã đóng hoặc không được phép thu hồi">↩ Thu hồi / Hủy giao việc</button>'):'')+
  (canWrite()&&specialist&&['todo','working'].includes(t.status)?
   '<button type="button" class="btn primary small" data-agent-run-task="'+h(t.id)+'" data-agent-run-id="'+h(specialist.id)+'" data-agent-run-project="'+h(t.projectId)+'">🤖 Chạy Agent '+h(specialist.id)+'</button>':'')+
  (canWrite()&&t.status==='todo'?btn('Bắt đầu','task_start',t.id):'')+
  (canWrite()&&['todo','working'].includes(t.status)?btn('Gửi báo cáo phê duyệt','task_submit',t.id,'primary'):'')+
  (canReview()&&t.status==='review'?btn('Xét duyệt / Trả lại','task_review',t.id,'primary'):'')+
  '</div>'+
- (history.length?'<details><summary>Nhật ký phê duyệt ('+history.length+')</summary>'+history.map(x=>'<p>'+h(x.at)+' · '+h(x.actor)+' · '+h(x.decision)+' · '+h(x.note)+'</p>').join('')+'</details>':'')+
+ (history.length?'<details><summary>Lịch sử xử lý ('+history.length+')</summary>'+history.map(x=>'<p>'+h(x.at)+' · '+h(x.actor)+' · '+h(({withdraw:'Thu hồi phân công',cancel:'Hủy công việc',submitted:'Trình duyệt',approve:'Phê duyệt',reject:'Trả lại'})[x.decision]||x.decision)+' · '+h(x.note)+'</p>').join('')+'</details>':'')+
  '</article>';
  }).join('')+'</div>'+
  (!tasks.length?'<div class="empty-state">Chưa có công việc trong mục này.</div>':'')+
@@ -267,7 +275,7 @@ export function bindCloudPage(root,section){
    return;
   }
   if(op==='project_create'&&role()!=='admin')return;
-  if(['task_create','task_assign','task_start','task_submit'].includes(op)&&!canWrite())return;
+  if(['task_create','task_assign','task_withdraw','task_start','task_submit'].includes(op)&&!canWrite())return;
   if(op==='task_review'&&!canReview())return;
   send(section,op,b.dataset.workspaceTask||'');
  }));

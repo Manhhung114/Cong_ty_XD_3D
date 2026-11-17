@@ -87,6 +87,9 @@ def company_dialog(st, action):
             if not profile or not task:
                 st.error("Agent hoặc công việc không tồn tại trong dự án")
                 return
+            if task.get("status") == "cancelled":
+                st.error("Công việc đã hủy; không thể chạy Agent.")
+                return
             if profile["department"] != task["dept"] and agent_id not in {"CEO", "PM", "DOC", "QAC"}:
                 st.error("Agent chuyên ngành không khớp bộ môn công việc")
                 return
@@ -175,8 +178,9 @@ def company_dialog(st, action):
                 except Exception:
                     st.error("Không thực hiện được Agent. Không ghi một kết quả giả vào lịch sử.")
         elif op == "handoff_create":
+            tasks = [task for task in tasks if task.get("status") != "cancelled"]
             if not tasks:
-                st.info("Dự án chưa có công việc để chuyển phối hợp")
+                st.info("Dự án chưa có công việc đang hoạt động để chuyển phối hợp")
                 return
             with st.form("v62_handoff_new"):
                 selected_task = st.selectbox(

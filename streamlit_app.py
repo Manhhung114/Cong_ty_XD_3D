@@ -114,6 +114,12 @@ with right:
 action = mount_bridge(st)
 if action:
     if action.get("kind") == "workspace":
+        # A previously dismissed Settings dialog must not reopen on task click.
+        # Streamlit native dialogs are controlled by session state, not by
+        # the iframe page currently visible.
+        st.session_state.drive_in_app_action = None
+        st.session_state.pop("v677_api_probe_pending", None)
+        st.session_state.pop("v677_api_probe_result", None)
         try:
             handle_workspace_action(st, action)
         except (PermissionError, ValueError) as exc:
@@ -121,6 +127,8 @@ if action:
         except Exception:
             st.error("Không thể lưu thao tác dùng chung. Dữ liệu cũ trên Drive được giữ nguyên.")
     else:
+        # A new settings/Drive dialog supersedes any old task dialog.
+        st.session_state.xd_workspace_dialog = None
         st.session_state.drive_in_app_action = action
         st.session_state.xd_current_sheet = action['section']
         if action.get("kind") == "ai_check":
@@ -171,6 +179,8 @@ if st.session_state.get("drive_in_app_action"):
     else:
         drive_dialog(st)
 
+# Only one native dialog may be opened per Streamlit script run.
+# The two action namespaces are mutually exclusive after dispatch above.
 # Server-side workflows with verified Google identity (V5.9/V6.0).
-if st.session_state.get('xd_workspace_dialog'):
+if not st.session_state.get("drive_in_app_action") and st.session_state.get('xd_workspace_dialog'):
     workspace_dialog(st)

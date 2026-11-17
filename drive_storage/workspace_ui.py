@@ -15,7 +15,7 @@ from drive_storage.shared_workspace import SharedWorkspace, DEPARTMENTS
 
 COMMANDS = {
     "projects": {"refresh", "select", "project_create", "project_import"},
-    "tasks": {"refresh", "select", "task_create", "task_assign", "task_start", "task_submit"},
+    "tasks": {"refresh", "select", "task_create", "task_assign", "task_withdraw", "task_start", "task_submit"},
     "reviews": {"refresh", "select", "task_review"},
     "documents": {"refresh", "select", "document_inventory", "document_manage"},
     "activity": {"refresh", "select"},
@@ -31,7 +31,7 @@ DEPARTMENT_NAMES = {
     "xd_planning": "Kế hoạch", "xd_site": "Hiện trường",
     "xd_safety": "An toàn XD", "xd_material": "Vật tư",
 }
-INTERACTIVE = {"project_create", "project_import", "task_create", "task_assign", "task_submit",
+INTERACTIVE = {"project_create", "project_import", "task_create", "task_assign", "task_withdraw", "task_submit",
                "task_review", "document_manage", "agent_run", "handoff_create",
                "handoff_resolve", "ops_audit"}
 
@@ -145,7 +145,7 @@ def handle_workspace_action(st, action: dict):
         return
     if op in {"project_create", "project_import"} and not can_admin(actor):
         raise PermissionError("Chỉ Admin được tạo dự án")
-    if op in {"task_create", "task_assign", "task_start", "task_submit"} and not can_upload(actor):
+    if op in {"task_create", "task_assign", "task_withdraw", "task_start", "task_submit"} and not can_upload(actor):
         raise PermissionError("Tài khoản Chỉ đọc không được cập nhật công việc")
     if op in {"agent_run", "handoff_create", "handoff_resolve"} and not can_upload(actor):
         raise PermissionError("Chỉ đọc không được chạy Agent hoặc gửi phối hợp")
@@ -156,7 +156,7 @@ def handle_workspace_action(st, action: dict):
     if op not in {"project_create", "project_import", "ops_audit"} and pid not in {p["id"] for p in current["projects"]}:
         raise PermissionError("Dự án không thuộc phạm vi")
     task_id = str(action.get("taskId") or "")
-    if op in {"task_assign", "task_start", "task_submit", "task_review", "agent_run"}:
+    if op in {"task_assign", "task_withdraw", "task_start", "task_submit", "task_review", "agent_run"}:
         if not any(t["id"] == task_id and t["projectId"] == pid
                    for t in current["tasks"]):
             raise PermissionError("Nhiệm vụ không thuộc dự án")
@@ -217,11 +217,13 @@ def workspace_dialog(st):
         "project_import": "V5.9 · Nhập dữ liệu từ bản sao cục bộ",
         "task_create": "V5.9 · Giao công việc",
         "task_assign": "V6.7.6 · Gán người phụ trách và Agent",
+        "task_withdraw": "Thu hồi / Hủy giao việc",
         "task_submit": "V6.0 · Trình báo cáo phê duyệt",
         "task_review": "V6.0 · Quyết định phê duyệt",
     }
 
-    @st.dialog(titles[action["op"]], width="large")
+    @st.dialog(titles[action["op"]], width="large",
+               on_dismiss=lambda: st.session_state.pop("xd_workspace_dialog", None))
     def render():
         actor = identity_for(st)
         if not actor:
@@ -231,7 +233,7 @@ def workspace_dialog(st):
         if op in {"project_create", "project_import", "task_review"} and not can_admin(actor):
             st.error("Không có quyền quản trị/phê duyệt")
             return
-        if op in {"task_create", "task_assign", "task_submit"} and not can_upload(actor):
+        if op in {"task_create", "task_assign", "task_withdraw", "task_submit"} and not can_upload(actor):
             st.error("Không có quyền cập nhật")
             return
         if st.button("Đóng", key="xd_workspace_dialog_close"):
@@ -248,7 +250,7 @@ def workspace_dialog(st):
                 return
             task = next((t for t in current["tasks"] if t["id"] == action["taskId"]
                          and t["projectId"] == pid), None)
-            if op in {"task_assign", "task_submit", "task_review"} and not task:
+            if op in {"task_assign", "task_withdraw", "task_submit", "task_review"} and not task:
                 st.error("Nhiệm vụ không tồn tại")
                 return
         except Exception:
@@ -397,6 +399,65 @@ def workspace_dialog(st):
                     st.error(str(exc))
                 except Exception:
                     st.error("Không lưu được phân công. Dữ liệu cũ vẫn giữ nguyên.")
+
+        elif op == "task_withdraw":
+            st.markdown("**" + task["code"] + " · " + task["title"] + "**")
+            st.caption("Mọi thao tác được ghi nhật ký có chữ ký; không xóa báo cáo "
+                       "Agent, hồ sơ hay lịch sử đã có.")
+            eligible = task["status"] in {"todo", "working"}
+            cancellable = task["status"] in {"todo", "working", "review"}
+            assigned = bool(task.get("assignee") or task.get("assignedAgentId"))
+            choices = []
+            if eligible and assigned:
+                choices.append("withdraw")
+            if can_admin(actor) and cancellable:
+                choices.append("cancel")
+            if not choices:
+                st.warning("Không có thao tác thu hồi/hủy được phép cho nhiệm vụ này.")
+                return
+            with st.form("v677_task_withdraw"):
+                choice = st.radio(
+                    "Hình thức xử lý", choices, horizontal=False,
+                    format_func=lambda value: (
+                        "Thu hồi phân công — bỏ người phụ trách và Agent, đưa về Chờ xử lý"
+                        if value == "withdraw" else
+                        "Hủy công việc — chuyển sang Đã hủy, không thể giao/chạy lại"),
+                )
+                reason = st.text_area(
+                    "Lý do (bắt buộc, ít nhất 5 ký tự)", max_chars=600,
+                    placeholder="Ví dụ: điều chỉnh kế hoạch hoặc thay đổi phạm vi nhiệm vụ",
+                )
+                confirmed = st.checkbox(
+                    "Tôi xác nhận thao tác trên đúng công việc; giữ nguyên lịch sử và hồ sơ."
+                )
+                submitted = st.form_submit_button(
+                    "Xác nhận thu hồi / hủy giao việc", type="primary",
+                )
+            if submitted:
+                try:
+                    if not confirmed:
+                        raise PermissionError("Cần xác nhận trước khi thu hồi/hủy")
+                    if choice == "withdraw":
+                        server.withdraw_task(
+                            actor, project_id=pid, task_id=task["id"],
+                            reason=reason, event_id=action["actionId"],
+                        )
+                        feedback = "Đã thu hồi phân công. Công việc trở lại Chờ xử lý."
+                    elif choice == "cancel":
+                        server.cancel_task(
+                            actor, project_id=pid, task_id=task["id"],
+                            reason=reason, event_id=action["actionId"],
+                        )
+                        feedback = "Đã hủy công việc; toàn bộ lịch sử và hồ sơ được giữ nguyên."
+                    else:
+                        raise ValueError("Hình thức xử lý không hợp lệ")
+                    st.session_state.xd_workspace_dialog = None
+                    st.session_state.xd_workspace_feedback = feedback
+                    st.rerun()
+                except (PermissionError, ValueError) as exc:
+                    st.error(str(exc))
+                except Exception:
+                    st.error("Không thu hồi/hủy được công việc; dữ liệu gốc vẫn giữ nguyên.")
 
         elif op == "task_submit":
             st.markdown("**Công việc:** " + task["title"])
