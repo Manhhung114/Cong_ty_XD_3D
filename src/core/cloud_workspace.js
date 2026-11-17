@@ -25,6 +25,21 @@ const btn=(label,op,task='',other='outline')=>'<button type="button" class="btn 
 const role=()=>view().role||'read';
 const canWrite=()=>['update','admin'].includes(role());
 const canReview=()=>role()==='admin';
+const taskWithdrawControl=t=>{
+ if(!canWrite())return '';
+ if(['done','cancelled'].includes(t.status))
+  return '<button type="button" class="btn outline small" disabled title="Công việc đã đóng và không thể hủy lại">↩ Thu hồi / Hủy giao việc</button>';
+ if(canReview())return btn('↩ Thu hồi / Hủy giao việc','task_withdraw',t.id);
+ // Editor may withdraw an assignment, or reset unassigned work in progress.
+ // Permanent cancellation remains an authenticated Admin action.
+ if(['todo','working'].includes(t.status)&&
+   (t.status==='working'||t.assignee||t.assignedAgentId))
+  return btn('↩ Thu hồi / Đặt về Chờ xử lý','task_withdraw',t.id);
+ const reason=t.status==='review'?'Công việc đang chờ duyệt: chỉ Admin được hủy':
+  'Công việc chưa giao và đang Chờ xử lý: chỉ Admin được hủy';
+ return '<button type="button" class="btn outline small" disabled title="'+h(reason)+
+  '">↩ Hủy công việc (cần Admin)</button>';
+};
 const header=()=>{
  const s=view(),p=current();
  return '<section class="panel padded"><div class="panel-heading"><div><h3>☁️ V5.9 / V6.0 · Dữ liệu dùng chung</h3><p>Google Drive bảo vệ dự án, công việc và phê duyệt • '+h(s.actor||'')+'</p></div><span class="mini-label">'+(s.role==='admin'?'ADMIN':s.role==='update'?'CẬP NHẬT':'CHỈ ĐỌC')+'</span></div>'+
@@ -81,9 +96,7 @@ const tasksHtml=filter=>{
  )+'</b></p>':'')+
   '<div class="portal-review-actions">'+
  (canWrite()&&['todo','working'].includes(t.status)?btn('Gán / Sửa phân công','task_assign',t.id):'')+
- (canWrite()?(['todo','working'].includes(t.status)||(canReview()&&t.status==='review')?
-  btn('↩ Thu hồi / Hủy giao việc','task_withdraw',t.id):
-  '<button type="button" class="btn outline small" disabled title="Công việc đã đóng hoặc không được phép thu hồi">↩ Thu hồi / Hủy giao việc</button>'):'')+
+ taskWithdrawControl(t)+
  (canWrite()&&specialist&&['todo','working'].includes(t.status)?
   '<button type="button" class="btn primary small" data-agent-run-task="'+h(t.id)+'" data-agent-run-id="'+h(specialist.id)+'" data-agent-run-project="'+h(t.projectId)+'">🤖 Chạy Agent '+h(specialist.id)+'</button>':'')+
  (canWrite()&&t.status==='todo'?btn('Bắt đầu','task_start',t.id):'')+
