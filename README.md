@@ -1,3 +1,18 @@
+# V6.7.9 — Agent đọc file Google Drive đến 50 MB (17/11/2026)
+
+Nâng giới hạn **kích thước file đầu vào** cho **Chuyên gia phân tích file thật / AI + trích xuất file** từ **8 MiB lên 50 MiB (52.428.800 byte)**. Áp dụng tệp đã ghi sổ, thuộc đúng dự án/bộ môn: **PDF, XLSX, CSV, DXF, IFC**. Máy chủ kiểm tra dung lượng, vị trí Google Drive, quyền dự án, checksum/MD5 và mã hồ sơ trước khi tải và phân tích. Tệp 50 MiB đúng ngưỡng được chấp nhận; lớn hơn ngưỡng bị từ chối trước khi tải.
+
+- DXF ASCII từ 8 MiB được đọc **theo luồng** bằng ezdxf iterdxf từ tệp tạm; không xây full CAD DOM. Bộ đọc chỉ xét mẫu tối đa **1.500 đối tượng**, trích tối đa **300 nguồn**.
+- XLSX kiểm tra số phần tử ZIP và kích thước XML dự kiến khi giải nén trước khi load; các file ZIP nén nguy hiểm cần worker.
+- PDF đọc tối đa 12 trang đầu; CSV/XLSX giới hạn dòng/ô; IFC giới hạn mẫu 1.500 phần tử. **50 MiB không phải cam kết đọc toàn bộ bản vẽ hoặc hoàn tất với mọi file phức tạp.**
+- Màn hình chạy Agent loại file vượt ngưỡng và giải thích khi danh sách trống; UI đã đổi hiển thị 50 MB.
+- **Không thay đổi** tải file lên Google Drive (500 MB), API key, OAuth, phân quyền, nội dung hồ sơ/nhật ký hay hành vi phê duyệt. **DWG, RVT, NWD chưa có bộ đọc trực tiếp**.
+- Kiểm thử CI sử dụng file tổng hợp trên 8 MiB, đúng 50 MiB, vượt 50 MiB; chưa thay thế nghiệm thu 50 MiB thật trên Streamlit Cloud.
+
+Xem quy trình, giới hạn và checklist: [docs/V679_50MB_ENGINEERING_FILE_ANALYSIS.md](docs/V679_50MB_ENGINEERING_FILE_ANALYSIS.md).
+
+---
+
 # Bản cập nhật thu hồi / hủy giao việc và sửa hộp thoại mở nhầm (17/11/2026)
 
 **Lỗi từ video:** Trong sheet Công việc, bấm `＋ Tạo công việc` đôi lúc mở lại **Cấu hình AI toàn công ty**. Do luồng cũ giữ `drive_in_app_action` sau khi dialog cấu hình bị đóng bằng dấu X/ESC hoặc nhấp ngoài; một thao tác workspace mới không xóa trạng thái cũ. Đã bổ sung callback dọn trạng thái khi dismiss và khóa luồng chỉ mở **một native dialog tại một thời điểm**: công việc không thể mở nhầm API, và Cài đặt không thể mở lại hộp thoại công việc cũ.
