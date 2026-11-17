@@ -20,5 +20,7 @@ test('V5.1 preserves existing tasks when migrating display mode',()=>{
  state.tasks.push({id:'TASK-999',title:'Giữ hồ sơ cũ',dept:'electrical',status:'todo',assignee:'ELE'});
  state.officeRenderMode='live';localStorage.setItem('mep-ai-company3d.v1',JSON.stringify(state));
  const restored=loadState();assert.equal(restored.officeRenderMode,'live');
+ restored.officeRenderMode='illustrated';localStorage.setItem('mep-ai-company3d.v1',JSON.stringify(restored));
+ assert.equal(loadState().officeRenderMode,'illustrated','preserve existing visual preference');
  assert.ok(restored.tasks.some(t=>t.id==='TASK-999'));
 });
