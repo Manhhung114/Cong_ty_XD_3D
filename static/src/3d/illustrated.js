@@ -85,7 +85,7 @@ export class IllustratedOffice {
       button.classList.toggle('selected',this.selected===id);
       const statuses=AGENTS.filter(a=>a.dept===id)
         .map(a=>agentEvidence(this.options.getCloud?.(),a.id));
-      const status=statuses.some(s=>s.state==='started_unconfirmed')?'started':
+      const status=statuses.some(s=>['started_unconfirmed','running'].includes(s.state))?'started':
         statuses.some(s=>s.state==='failed')?'failed':
         statuses.some(s=>s.state==='stale')?'stale':
         statuses.some(s=>s.state==='completed')?'completed':'idle';
