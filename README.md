@@ -1,3 +1,16 @@
+# Bản cập nhật thu hồi / hủy giao việc và sửa hộp thoại mở nhầm (17/11/2026)
+
+**Lỗi từ video:** Trong sheet Công việc, bấm `＋ Tạo công việc` đôi lúc mở lại **Cấu hình AI toàn công ty**. Do luồng cũ giữ `drive_in_app_action` sau khi dialog cấu hình bị đóng bằng dấu X/ESC hoặc nhấp ngoài; một thao tác workspace mới không xóa trạng thái cũ. Đã bổ sung callback dọn trạng thái khi dismiss và khóa luồng chỉ mở **một native dialog tại một thời điểm**: công việc không thể mở nhầm API, và Cài đặt không thể mở lại hộp thoại công việc cũ.
+
+**Cách thao tác mới:** Admin / Cập nhật vào **Công việc**, trên mỗi thẻ bấm **↩ Thu hồi / Hủy giao việc**.
+- **Thu hồi phân công:** bỏ cả người phụ trách và Agent, đưa việc về **Chờ xử lý**; cho phép giao lại. Chỉ áp dụng việc chưa trình duyệt và đã có người hoặc Agent được giao; Admin/Cập nhật được cấp quyền.
+- **Hủy công việc:** chuyển trạng thái sang **Đã hủy**; chỉ Admin, dành cho việc chưa hoàn thành (kể cả đang chờ duyệt). Không cho tiếp tục giao/chạy Agent, trình duyệt hoặc tạo phiếu phối hợp từ công việc đã hủy. Nút vẫn xuất hiện nhưng bị vô hiệu hóa trên thẻ đã hoàn thành/đã hủy.
+- **Bắt buộc nhập lý do và xác nhận**. Hệ thống lưu sự kiện `task.unassigned` hoặc `task.cancelled` có chữ ký HMAC trên Drive, gồm tài khoản và thời điểm. Không xóa tệp gốc, báo cáo nháp, lịch sử/nhật ký hay các tác vụ khác.
+- KPI / giám sát không tính công việc đã hủy là công việc còn mở hoặc quá hạn.
+- Kiểm thử code/ACL và mô phỏng click của trình duyệt đã có trong bộ CI. Vẫn cần xác nhận thực tế trên Streamlit Cloud với tài khoản Admin, người Cập nhật và Chỉ đọc.
+
+---
+
 # V6.7.6 — Bổ sung kiểm tra kết nối API AI dùng chung (17/11/2026)
 
 Admin vào **Cài đặt → API & 18 Agent → 🔎 Kiểm tra kết nối API** để xác minh API key/model **đã lưu trên server** (tự mở cửa sổ với kết quả). Trong **Cài đặt / Thay API dùng chung**, bấm **🔎 Kiểm tra kết nối API** để kiểm tra cả **khóa hoặc model vừa nhập nhưng chưa lưu**; có thể kiểm tra model riêng của Agent được chọn.
