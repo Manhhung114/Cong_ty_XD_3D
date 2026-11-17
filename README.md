@@ -1,3 +1,17 @@
+# V6.7 — Graphic theo dõi Agent & phối hợp hai hệ MEP ↔ Xây dựng
+
+Đã bổ sung sheet **Giám sát Agent** theo giao diện dark navy/xanh cyan đã duyệt; toàn bộ nền sidebar, topbar và card của ứng dụng sử dụng cùng ngôn ngữ thiết kế. Dashboard gồm KPI, biểu đồ theo thời gian, trạng thái công việc, hoạt động theo phòng, Sankey, network, timeline phiếu phối hợp, Top Agent/điểm nghẽn, activity feed và cảnh báo.
+
+**Hai hệ độc lập nhưng phối hợp 2 chiều:** MEP gồm Điện/HVAC/Cấp thoát nước/PCCC/BIM MEP/QS MEP/QA MEP; XD gồm Kiến trúc/Kết cấu/BIM XD/QS XD/Kế hoạch/Hiện trường/HSE/Vật tư. Phiếu MEP → XD, XD → MEP và nội bộ mỗi hệ được vẽ từ log thật; không tạo số liệu minh họa.
+
+**Near real-time:** Người dùng có thể lọc dự án, hệ, bộ môn, khoảng 1h/Hôm nay/7 ngày; khi đang ở sheet Giám sát Agent tự làm mới mỗi **15 giây** hoặc bấm Làm mới ngay. Tất cả số liệu đến từ event ledger có chữ ký và lọc theo quyền Google trước khi gửi đến trình duyệt. Đây là polling, **không phải** WebSocket hay giám sát RUNNING của worker. Đã giữ nguyên OAuth, Cài đặt chỉ Admin, dữ liệu Drive và các chức năng V6.6.
+
+**Giới hạn:** 900 sự kiện gần nhất trong 7 ngày cho một packet; dữ liệu bị cắt có cảnh báo. Cần nghiệm thu hiệu năng Google Drive và hai tài khoản trên Streamlit thật. Không có báo cáo người dùng nào bị tự phát hành hoặc phê duyệt.
+
+[Spec V6.7 – Graphic realtime giám sát Agent & phối hợp MEP/XD](docs/SPEC_V67_REALTIME_AGENT_MONITORING.md).
+
+---
+
 # V6.4–V6.6 – Chuyên gia kỹ thuật đọc hồ sơ có nguồn & kiểm tra độc lập
 
 18 Agent đã có **chế độ chuyên gia trên hồ sơ thật** trong sheet **Nhân viên AI**. V6.4 dùng Python đọc file PDF, XLSX, CSV, DXF và các phần tử IFC đã ghi sổ trên Google Drive (tối đa 8 MB trong Streamlit); V6.5 tính phép kiểm tra có nguồn cho BOQ, dòng điện 3 pha, trao đổi khí, vận tốc ống và kiểm kê BIM; V6.6 lưu chuỗi kiểm soát **chuyên gia → DOC → QA/QC → PM** với mã tệp, revision và SHA-256.
