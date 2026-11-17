@@ -12,6 +12,7 @@ import streamlit.components.v1 as legacy_components
 from scripts.build_streamlit_runtime_v2 import build
 from drive_storage.in_app import require_login, mount_bridge, drive_dialog, access_management_dialog
 from drive_storage.workspace_ui import load_snapshot, handle_workspace_action, workspace_dialog
+from drive_storage.ai_settings_ui import ai_settings_dialog
 
 st.set_page_config(
     page_title="Công ty Xây dựng & MEP AI 3D", page_icon="🏗️",
@@ -160,6 +161,8 @@ if st.session_state.get("drive_in_app_action"):
     current_action = st.session_state["drive_in_app_action"]
     if current_action.get("kind") == "access" and current_action.get("section") == "settings":
         access_management_dialog(st)
+    elif current_action.get("kind") == "ai_config" and current_action.get("section") == "settings":
+        ai_settings_dialog(st)
     else:
         drive_dialog(st)
 
