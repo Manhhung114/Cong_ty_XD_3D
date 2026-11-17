@@ -77,9 +77,9 @@ class CoordinationTests(unittest.TestCase):
             self.ws, self.admin, project_id=P, meeting_id=meeting,
             approve=True, event_id="c"*32)
         self.assertFalse(approval["existing"])
-        self.assertTrue(decide_meeting(
-            self.ws, self.admin, project_id=P, meeting_id=meeting,
-            approve=True, event_id="c"*32)["existing"] is False if False else True)
+        with self.assertRaises(ValueError):
+            decide_meeting(self.ws, self.admin, project_id=P, meeting_id=meeting,
+                           approve=True, event_id="c"*32)
         # No duplicate after re-reading the same signed result.
         state = self.ws.snapshot(self.admin)
         self.assertEqual(len(state["tasks"]), 4)
