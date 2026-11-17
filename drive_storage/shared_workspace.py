@@ -176,13 +176,14 @@ class SharedWorkspace:
             for p in items if allows_project(identity, p["id"])
         ]
 
-    def snapshot(self, identity):
+    def snapshot(self, identity, *, include_monitor=False):
         if not identity or identity.get("role") not in {"read", "update", "admin"}:
             raise PermissionError("Chưa được cấp quyền")
         projects = self._projects(identity)
         allowed = {p["id"] for p in projects}
         task_map, documents, audit, handoff_map, agent_runs = {}, {}, [], {}, []
-        for event in self.events():
+        signed_events = self.events()
+        for event in signed_events:
             pid = event["project_id"]
             if pid not in allowed:
                 continue
@@ -345,11 +346,15 @@ class SharedWorkspace:
                 })
             audit.append({**entry, "detail": _clean_text(data.get("title", data.get("code", "")), 160)})
         tasks = sorted(task_map.values(), key=lambda x: x["createdAt"], reverse=True)
-        return {"version": 63, "projects": projects, "tasks": tasks,
-                "documents": list(documents.values()), "events": audit[-200:],
-                "handoffs": sorted(handoff_map.values(), key=lambda h: h["createdAt"], reverse=True),
-                "agentRuns": sorted(agent_runs, key=lambda r: r["at"], reverse=True)[:200],
-                "role": identity["role"], "actor": identity["email"]}
+        result = {"version": 67, "projects": projects, "tasks": tasks,
+                  "documents": list(documents.values()), "events": audit[-200:],
+                  "handoffs": sorted(handoff_map.values(), key=lambda h: h["createdAt"], reverse=True),
+                  "agentRuns": sorted(agent_runs, key=lambda r: r["at"], reverse=True)[:200],
+                  "role": identity["role"], "actor": identity["email"]}
+        if include_monitor:
+            from drive_storage.monitoring import build_monitor_packet
+            result["monitorData"] = build_monitor_packet(identity, result, signed_events)
+        return result
 
     def _check_project(self, identity, project_id, write=False):
         pid = _require_id(project_id, "Mã dự án")
