@@ -1,6 +1,6 @@
 {
   "project": "Công ty Xây dựng & MEP AI 3D",
-  "artifact_version": "0.7.0.0-3d-hq-signed-agent-lifecycle",
+  "artifact_version": "0.7.4.0-integrated-agent-runtime-suite",
   "release_date": "2026-11-17",
   "modules": [
     {
@@ -206,6 +206,12 @@
       "area": "Interactive 3D Virtual HQ, CEO hierarchical dashboard and signed Agent start/fail/finish evidence with 15-second authenticated polling",
       "entry": "src/core/hq_dashboard.js",
       "status": "implemented_ci_pending_live_streamlit_acceptance"
+    },
+    {
+      "label": "V7.1–V7.4",
+      "area": "Private PostgreSQL/Celery/Redis worker runtime, real heartbeats and cancellation, LangGraph human gate, licensed citation retrieval, safe DXF copy, opt-in Anthropic/Ollama adapters, Docker Compose deployment",
+      "entry": "agent_runtime/api.py",
+      "status": "implemented_feature_gated_pending_live_deployment_and_load_acceptance"
     }
   ],
   "data_categories": {
@@ -298,7 +304,7 @@
     "mep": "Cơ điện",
     "construction": "Xây dựng"
   },
-  "current_version": "V7.0.0 (3D Virtual HQ + Signed Agent Control)",
+  "current_version": "V7.4.0 (Agent Runtime + Orchestration + Engineering Suite)",
   "backend": {
     "framework": "FastAPI",
     "database": "PostgreSQL or SQLite local",
@@ -309,7 +315,10 @@
     "available_as_source_for_future": true,
     "streamlit_shared_workspace_active": true,
     "postgresql_deployed": false,
-    "streamlit_optional_real_ai_execution": true
+    "streamlit_optional_real_ai_execution": true,
+    "v74_runtime_available_as_separate_service": true,
+    "v74_runtime_deployed": false,
+    "v74_worker_heartbeats_available_when_configured": true
   },
   "latest": null
 }
