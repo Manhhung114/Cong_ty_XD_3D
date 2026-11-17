@@ -1,18 +1,20 @@
 {
   "project": "Công ty Xây dựng & MEP AI 3D",
-  "artifact_version": "0.7.5.1-specialist-office-rooms",
+  "artifact_version": "0.7.5.2-coordination-workflows",
   "staged_release": {
-    "version": "7.5.1",
+    "version": "7.5.2",
     "catalog_agents": 20,
     "office_rooms": 18,
     "live_acceptance_recorded": false,
     "catalog_default_enabled_for_authorized_projects": true,
     "qcx_default_enabled": false,
     "leg_execution_enabled": false,
+    "meeting_workflows_default_enabled": false,
+    "meeting_workflows_require_project_allowlist": true,
     "legacy_release": "7.4.0",
     "acceptance": "docs/V750_STAGING_ACCEPTANCE.md"
   },
-  "release_date": "2026-11-17",
+  "release_date": "2026-11-18",
   "modules": [
     {
       "label": "V1.0",
@@ -276,6 +278,7 @@
   },
   "warnings": [
     "No real AI agents connected",
+    "V7.5.2 interdisciplinary meetings are disabled by default. Enable only for explicitly permitted canary project IDs after Drive backup and two-account acceptance. Do not downgrade the signed-ledger reader after creating meeting.* events.",
     "No BIM IFC viewer connected",
     "Browser data can be cleared",
     "Sample calculations are not engineering deliverables",
@@ -315,7 +318,7 @@
     "mep": "Cơ điện",
     "construction": "Xây dựng"
   },
-  "current_version": "V7.5.1 (Specialist Office Rooms)",
+  "current_version": "V7.5.2 (Interdisciplinary Coordination, Canary Disabled)",
   "backend": {
     "framework": "FastAPI",
     "database": "PostgreSQL or SQLite local",
