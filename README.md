@@ -1,3 +1,11 @@
+# V6.7.5 – Header Visibility Fix
+
+Đã khắc phục hiện tượng **chỉ thấy mái tòa nhà** ở header: thay ảnh SVG 3200×420 bị crop trong thanh cao 64px bằng **panorama vector mới 3200×120** có đủ mái, tầng kính, cửa chính và cảnh quan. Giảm lớp phủ tối ở trung tâm, giữ vùng chữ và nút Google Drive rõ nét; vẫn trải ngang trên desktop và mobile. Không đổi mã nguồn điều khiển nghiệp vụ, OAuth, quyền Admin hay dữ liệu Drive.
+
+[Chi tiết nguyên nhân, thay đổi và checklist nghiệm thu V6.7.5](docs/V675_HEADER_VISIBILITY_FIX.md).
+
+---
+
 # V6.7.4 — Premium Header Upgrade
 
 Đã thay ảnh header cắt 350×90px bị vỡ/méo bằng **ảnh thành phố và công trình dạng SVG vector sắc nét theo mọi độ phân giải**, thêm logo kiến trúc vector 512×512 riêng biệt; dàn skyline toàn chiều ngang bằng `background-size:cover`, tinh chỉnh ánh sáng cyan, tên công ty, tiêu đề sheet, trạng thái Google Drive và nút tài khoản.

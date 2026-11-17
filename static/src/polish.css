@@ -1034,3 +1034,82 @@ html,body{
 @media(prefers-reduced-motion:reduce){
  .command-heartbeat{animation:none!important}
 }
+
+
+/* V6.7.5 Header Visibility Fix — the previous 3200×420 skyline was
+   cropped vertically inside a 64px masthead: only its roof was visible.
+   The new 3200×120 panorama includes the ENTIRE roof + glass facade
+   + entrance. Its aspect ratio matches the long command strip. */
+.command-header:before{
+  background-image:
+    linear-gradient(90deg,
+      rgba(3,14,31,.88) 0%,
+      rgba(3,17,35,.79) 17%,
+      rgba(4,24,43,.29) 31%,
+      rgba(4,23,44,.08) 44%,
+      rgba(4,23,44,.08) 61%,
+      rgba(4,20,39,.34) 75%,
+      rgba(3,16,32,.82) 88%,
+      rgba(3,14,30,.91) 100%),
+    var(--xd-visible-header)!important;
+  background-repeat:no-repeat,no-repeat!important;
+  background-size:100% 100%,cover!important;
+  background-position:center center,center 50%!important;
+  opacity:1!important;
+  filter:none!important;
+}
+.command-header{
+  background-color:#071b32!important;
+  box-shadow:0 4px 22px rgba(0,6,22,.54),
+    inset 0 0 16px rgba(22,162,210,.09)!important;
+}
+.command-heading strong,
+.command-brand-identity strong{
+  text-shadow:0 2px 5px rgba(0,8,20,.97),
+    0 0 13px rgba(18,107,165,.42),
+    0 0 2px rgba(255,255,255,.13)!important;
+}
+.command-heading,.command-brand,.command-actions{position:relative;z-index:1}
+.command-online{background:rgba(3,41,55,.80)!important}
+.topbar{
+  background-image:
+    linear-gradient(90deg,
+      rgba(4,22,42,.94),
+      rgba(4,28,52,.66) 45%,
+      rgba(4,19,38,.93) 100%),
+    var(--xd-visible-header)!important;
+  background-repeat:no-repeat,no-repeat!important;
+  background-size:100% 100%,cover!important;
+  background-position:center center,center 55%!important;
+}
+@media(min-width:1700px){
+  .command-header:before{
+    background-size:100% 100%,cover!important;
+    background-position:center center,center 50%!important;
+  }
+}
+@media(max-width:1500px){
+  .command-header:before{
+    background-size:100% 100%,cover!important;
+    background-position:center center,center 50%!important;
+  }
+}
+@media(max-width:1020px){
+  .command-header:before{
+    background-size:100% 100%,cover!important;
+    background-position:center center,center 50%!important;
+  }
+}
+@media(max-width:750px){
+  .command-header:before{
+    background-image:
+      linear-gradient(90deg,
+        rgba(3,14,31,.89),
+        rgba(3,17,36,.36) 38%,
+        rgba(3,17,33,.48) 65%,
+        rgba(3,14,30,.93)),
+      var(--xd-visible-header)!important;
+    background-size:100% 100%,cover!important;
+    background-position:center center,center 50%!important;
+  }
+}
