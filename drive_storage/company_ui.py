@@ -170,6 +170,26 @@ def company_dialog(st, action):
             else:
                 st.info("Hệ thống worker V7.4 chưa được kết nối. Có thể chạy trực tiếp "
                         "với V7.0, hoặc Admin cấu hình runtime API/worker để chạy nền.")
+            if runtime_enabled:
+                from agent_runtime.client import public_jobs, configured_client
+                jobs=public_jobs(st,identity,pid)["jobs"]
+                related=[j for j in jobs if j["taskId"]==task_id and j["agentId"]==agent_id]
+                if related:
+                    with st.expander("📡 Phiên Agent nền · Tiến độ thực",expanded=True):
+                        for job in related[:5]:
+                            st.caption("Job "+job["id"][:8]+" · "+job["state"]+
+                                       " · "+str(job["progress"])+"% · "+job["phase"])
+                            if job["state"]=="running" and job.get("hasHeartbeat"):
+                                st.progress(min(100,int(job["progress"])),text="Heartbeat worker đã xác nhận")
+                            if job.get("canCancel") and job["state"] in {"queued","running","unconfirmed"}:
+                                if st.button("Thu hồi lượt "+job["id"][:8],key="stop_"+job["id"]):
+                                    try:
+                                        configured_client(st).send("/api/runtime/jobs/cancel",{
+                                            "jobId":job["id"],"projectId":pid,"identity":identity})
+                                        st.success("Đã yêu cầu thu hồi. Job đang chạy chỉ dừng tại điểm kiểm tra an toàn.")
+                                        st.rerun()
+                                    except (RuntimeError,PermissionError) as exc:
+                                        st.error(str(exc))
             if not configured["configured"]:
                 st.caption("Chưa kích hoạt nhà cung cấp AI trên máy chủ. "
                            "Admin vào Cài đặt → API dùng chung để lưu khóa trên Drive. "
