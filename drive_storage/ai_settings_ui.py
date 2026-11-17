@@ -10,6 +10,7 @@ from drive_storage.ai_vault import (
 )
 from drive_storage.manager import from_streamlit_secrets
 from drive_storage.company_agents import agents
+from drive_storage.ai_probe import probe_ai_connection
 
 
 def ai_settings_dialog(st):
@@ -87,6 +88,7 @@ def ai_settings_dialog(st):
                 "có thể phát sinh chi phí khi nhân viên chạy AI.",
                 value=False,
             )
+            check = st.form_submit_button("🔎 Kiểm tra kết nối API", type="secondary")
             save = st.form_submit_button("Lưu mã hóa và áp dụng toàn công ty",
                                          type="primary")
         st.caption(
@@ -94,6 +96,25 @@ def ai_settings_dialog(st):
             "cho Agent khác, hệ thống giữ các tùy chỉnh đó. Muốn sửa model riêng "
             "hãy chọn đúng Agent và nhập mã mới."
         )
+        if check:
+            try:
+                test_key = key.strip()
+                if not test_key and str(current.get("provider") or "").lower() == provider:
+                    test_key = str(current.get("api_key") or "")
+                if not test_key:
+                    raise ValueError("Chưa có API key cho nhà cung cấp đang chọn. Hãy nhập khóa để kiểm tra.")
+                test_model = (agent_model.strip() or overrides.get(agent_id) or model) if agent_id else model
+                result = probe_ai_connection(provider, test_model, test_key)
+                if result["ok"]:
+                    st.success(result["message"] + " · " + provider + " / " + test_model)
+                else:
+                    st.error(result["message"])
+                st.caption("Đã kiểm tra trực tuyến từ máy chủ, không lưu khóa vừa nhập, không gọi AI sinh nội dung.")
+            except ValueError as exc:
+                st.error(str(exc))
+            except Exception:
+                st.error("Chưa kiểm tra được kết nối; cấu hình đã lưu không bị thay đổi.")
+
         if save:
             try:
                 if not consent:
@@ -138,5 +159,57 @@ def ai_settings_dialog(st):
                     st.rerun()
                 except Exception:
                     st.error("Không thu hồi được. Vui lòng kiểm tra quyền quản trị Drive.")
+
+    render()
+
+
+def ai_connection_dialog(st):
+    """Read-only one-click check of the saved server credential (Admin only)."""
+    @st.dialog("🔎 Kiểm tra kết nối API dùng chung", width="large")
+    def render():
+        if not can_admin(identity_for(st)):
+            st.error("Chỉ Admin đã xác thực được kiểm tra khóa API dùng chung.")
+            return
+        if st.button("Đóng", key="v677_api_check_close"):
+            st.session_state.drive_in_app_action = None
+            st.session_state.pop("v677_api_probe_pending", None)
+            st.session_state.pop("v677_api_probe_result", None)
+            st.rerun()
+            return
+        try:
+            current = effective_config(st)
+            provider = str(current.get("provider") or "").lower()
+            model = str(current.get("model") or "")
+            key = str(current.get("api_key") or "")
+        except Exception:
+            st.error("Không đọc được khóa API trên máy chủ. Kiểm tra kho mã hóa Google Drive.")
+            return
+        if provider not in PROVIDERS or not model or not key:
+            st.warning("Chưa cấu hình API hợp lệ. Hãy vào Cài đặt / Thay API dùng chung để nhập khóa và model.")
+            return
+        label = "Google Gemini" if provider == "gemini" else "OpenAI"
+        st.write("**Nhà cung cấp:** " + label + " · **Model:** " + model)
+        st.caption("Kiểm tra trực tiếp quyền truy cập thông tin model từ máy chủ. "
+                   "Không tạo nội dung AI, không thay đổi API key hoặc dữ liệu trên Drive.")
+        run = bool(st.session_state.pop("v677_api_probe_pending", False))
+        if st.button("🔎 Kiểm tra lại", key="v677_api_check_retry", type="primary"):
+            run = True
+        if run:
+            try:
+                result = probe_ai_connection(provider, model, key)
+            except ValueError:
+                result = {"ok": False, "message": "Cấu hình API key hoặc model không hợp lệ."}
+            except Exception:
+                result = {"ok": False, "message": "Không kiểm tra được kết nối nhà cung cấp AI."}
+            # Never retain plaintext keys or provider error bodies in session.
+            st.session_state.v677_api_probe_result = result
+        result = st.session_state.get("v677_api_probe_result")
+        if isinstance(result, dict):
+            if result.get("ok"):
+                st.success("Kết nối thành công: " + result["message"])
+            else:
+                st.error("Chưa kết nối thành công: " + str(result.get("message") or "Lỗi không xác định"))
+        st.caption("Kết quả chỉ phản ánh trạng thái kiểm tra tại thời điểm nhấn nút. "
+                   "Không bảo đảm hạn mức tạo nội dung AI, chi phí hoặc khả năng chạy Agent sau này.")
 
     render()

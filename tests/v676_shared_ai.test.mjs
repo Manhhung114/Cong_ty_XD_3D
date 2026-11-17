@@ -29,6 +29,7 @@ test('Admin configures centrally and no key entry/local vault exposed in authent
  const html=ui.render();
  assert.match(html,/API & 18 Agent/);
  assert.match(html,/data-drive-kind="ai_config"/);
+ assert.match(html,/data-drive-kind="ai_check"/);
  assert.match(html,/Google Drive \(mã hóa AES-256-GCM\)/);
  assert.match(html,/data-drive-kind="access"/);
  assert.doesNotMatch(html,/id="apiKey"/);
@@ -66,7 +67,7 @@ test('Assigned does not mean finished; signed report creates visible draft only'
 });
 test('Bridge, secure role and same source/static modules retained',()=>{
  const bridge=read('drive_storage/in_app.py');
- assert.match(bridge,/\["access","ai_config"\]/);
+ assert.match(bridge,/\["access","ai_config","ai_check"\]/);
  assert.match(bridge,/can_admin\(identity_for\(st\)\)/);
  const server=read('streamlit_app.py');
  assert.match(server,/ai_settings_dialog\(st\)/);

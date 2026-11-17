@@ -76,7 +76,7 @@ def mount_bridge(st) -> dict | None:
           function onMessage(event) {
             const d = event.data;
             if (!d || d.channel !== "XD_MEP_DRIVE_V1" || d.nonce !== data.nonce) return;
-            const userGrant = ["access","ai_config"].includes(d.kind) && d.section === "settings";
+            const userGrant = ["access","ai_config","ai_check"].includes(d.kind) && d.section === "settings";
             const driveAction = ["upload","browse"].includes(d.kind) && allowed.has(d.section);
             const workSections = new Set(["projects","tasks","reviews","documents","activity","agents","company","monitor"]);
             const workspaceAction = d.kind === "workspace" && workSections.has(d.section);
@@ -130,7 +130,7 @@ def mount_bridge(st) -> dict | None:
             "monitorDepartment": str(action.get("monitorDepartment") or "all")[:40],
             "actionId": str(action.get("actionId") or "")[:32],
         }
-    if action.get("section") == "settings" and action.get("kind") in {"access", "ai_config"}:
+    if action.get("section") == "settings" and action.get("kind") in {"access", "ai_config", "ai_check"}:
         if not can_admin(identity_for(st)):
             return None
     elif action.get("section") not in SECTIONS or action.get("kind") not in {"upload", "browse"}:

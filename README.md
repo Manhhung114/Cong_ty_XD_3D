@@ -1,3 +1,15 @@
+# V6.7.6 — Bổ sung kiểm tra kết nối API AI dùng chung (17/11/2026)
+
+Admin vào **Cài đặt → API & 18 Agent → 🔎 Kiểm tra kết nối API** để xác minh API key/model **đã lưu trên server** (tự mở cửa sổ với kết quả). Trong **Cài đặt / Thay API dùng chung**, bấm **🔎 Kiểm tra kết nối API** để kiểm tra cả **khóa hoặc model vừa nhập nhưng chưa lưu**; có thể kiểm tra model riêng của Agent được chọn.
+
+- Kiểm tra thực bằng lệnh GET tới metadata model Gemini/OpenAI, server dùng header bí mật, thời gian chờ tối đa 8 giây. **Không tạo prompt, không phát sinh lượt suy luận, không sửa khóa hoặc lưu kết quả lên Drive.**
+- Hiển thị rõ thành công, lỗi quyền/khóa (401/403), sai model (404), hạn mức (429) và lỗi mạng. Thông tin API key và nội dung phản hồi lỗi không xuất ra giao diện/nhật ký.
+- **Đã cấu hình** không có nghĩa đã kiểm tra; chỉ khi nút cho kết quả thành công mới xác nhận nhà cung cấp đã chấp nhận khóa/model tại thời điểm đó. Kết quả không bảo đảm quyền chạy tạo nội dung và hạn mức sau này.
+- Sửa đồng thời đường gọi AI metadata dùng **API chung mã hóa trên Drive** thay vì Secrets cũ; chế độ checklist không cần nhà cung cấp.
+- CI kiểm thử bảo mật, điều hướng nút Admin, trường hợp lỗi và đồng bộ mã giao diện. Nghiệm thu đăng nhập thực tế/API thật vẫn cần thực hiện sau deploy.
+
+---
+
 # V6.7.6 – Giao việc cho Agent và API chung toàn công ty
 
 **Kiểm tra phát hiện:** Nhiệm vụ hiển thị `electrical · Chưa giao` nhưng có trạng thái `Đang thực hiện` chỉ là công việc đã bắt đầu; không chứng minh Agent đang hoạt động. API cũ trong Settings là local/browser, trong khi Agent server dùng Streamlit Secrets — không chia sẻ key với nhân viên khác.

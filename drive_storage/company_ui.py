@@ -157,7 +157,7 @@ def company_dialog(st, action):
                             server, identity, project_id=pid, task_id=task_id,
                             agent_id=agent_id, file_id=selected["id"], mode=mode,
                             note=note, consent=consent,
-                            ai_config=effective_config(st, agent_id),
+                            ai_config=effective_config(st, agent_id) if mode == "expert_llm" else {},
                             event_id=action["actionId"],
                         )
                     else:
@@ -165,7 +165,7 @@ def company_dialog(st, action):
                             server, identity, project_id=pid,
                             task_id=task_id, agent_id=agent_id,
                             mode=mode, note=note, consent=consent,
-                            ai_config=dict(st.secrets.get("ai", {})),
+                            ai_config=effective_config(st, agent_id) if mode == "llm" else {},
                             event_id=action["actionId"],
                         )
                     done("Đã lưu báo cáo chuyên gia kèm bằng chứng và luồng QA. "
