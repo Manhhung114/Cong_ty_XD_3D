@@ -33,3 +33,6 @@ credentials*.json
 drive_oauth_private*
 google_drive_tokens_private*
 *_tokens_private*.txt
+
+# V7.4 safe example only (real .env.v74 stays private)
+!.env.v74.example
