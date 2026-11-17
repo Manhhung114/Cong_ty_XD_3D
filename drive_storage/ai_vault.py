@@ -179,8 +179,12 @@ def effective_config(st, agent_id: str = "") -> dict:
     from drive_storage.manager import from_streamlit_secrets
     drive = dict(st.secrets.get("drive", {}))
     secret = str(st.secrets.get("auth", {}).get("cookie_secret", ""))
-    storage = from_streamlit_secrets(drive)
-    _, common = read_shared(storage, secret)
+    required = ("root_folder_id", "refresh_token", "client_id", "client_secret")
+    if all(drive.get(field) for field in required):
+        storage = from_streamlit_secrets(drive)
+        _, common = read_shared(storage, secret)
+    else:
+        common = None
     if common is not None:
         config = dict(common)
         if agent_id:
@@ -198,9 +202,14 @@ def effective_config(st, agent_id: str = "") -> dict:
 def safe_status(st) -> dict:
     """Metadata only; zero credential bytes included in the browser snapshot."""
     from drive_storage.manager import from_streamlit_secrets
-    storage = from_streamlit_secrets(dict(st.secrets.get("drive", {})))
-    secret = str(st.secrets.get("auth", {}).get("cookie_secret", ""))
-    _, common = read_shared(storage, secret)
+    drive = dict(st.secrets.get("drive", {}))
+    required = ("root_folder_id", "refresh_token", "client_id", "client_secret")
+    if all(drive.get(field) for field in required):
+        storage = from_streamlit_secrets(drive)
+        secret = str(st.secrets.get("auth", {}).get("cookie_secret", ""))
+        _, common = read_shared(storage, secret)
+    else:
+        common = None
     source = "drive_encrypted" if common else "streamlit_secrets"
     config = common if common is not None else dict(st.secrets.get("ai", {}))
     provider = str(config.get("provider") or "").lower()
