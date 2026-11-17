@@ -77,7 +77,7 @@ export class APISettings {
   ' · <strong>Nhà cung cấp:</strong> '+esc(provider)+
   ' · <strong>Model:</strong> '+esc(model)+
   ' · <strong>Nguồn:</strong> '+esc(source)+'</div>'+
-  '<div class="portal-review-actions"><button type="button" class="btn primary" data-drive-kind="ai_config" data-drive-section="settings" id="openSharedAIConfig">⚙ Cài đặt / Thay API dùng chung</button></div>'+
+  '<div class="portal-review-actions"><button type="button" class="btn primary" data-drive-kind="ai_config" data-drive-section="settings" id="openSharedAIConfig">⚙ Cài đặt / Thay API dùng chung</button><button type="button" class="btn outline" data-drive-kind="ai_check" data-drive-section="settings" id="checkSharedAIConnection">🔎 Kiểm tra kết nối API</button></div>'+
   '<p class="footnote">Đây là cấu hình của backend đang chạy thật, không phải vault localStorage. Sau khi Admin lưu một lần, tài khoản khác có thể chạy Agent ở sheet Nhân viên AI mà không cần cung cấp khóa.</p>'+
   '<p class="footnote">Chạy Agent có thể phát sinh chi phí; từng lượt phải được người sử dụng xác nhận. Agent chỉ tạo báo cáo nháp, kỹ sư kiểm chứng trước khi phê duyệt.</p></section>'+
   '<div class="panel padded drive-settings-card"><h3>Google Drive & phân quyền</h3><p>'+
