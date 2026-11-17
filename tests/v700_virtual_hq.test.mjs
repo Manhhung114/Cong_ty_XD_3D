@@ -27,7 +27,8 @@ function cloud(status='completed'){
   projects:[{id:pid,code:'S234',name:'SUNSHINE SKY CITY'}],
   tasks:[root,task('b'.repeat(32),root.id,'pm'),
          task('c'.repeat(32),'b'.repeat(32),'lead'),
-         task('d'.repeat(32),'c'.repeat(32),'expert')],
+         task('d'.repeat(32),'c'.repeat(32),'expert'),
+         task('e'.repeat(32),'c'.repeat(32),'qa')],
   agentActivity:[activity('ELE',status)],
   hierarchyPlans:[{
    id:'e'.repeat(32),projectId:pid,rootTaskId:root.id,
