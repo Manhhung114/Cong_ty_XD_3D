@@ -111,6 +111,7 @@ def build_monitor_packet(identity, snapshot: dict, signed_events: list[dict],
         # untrusted raw event payloads, and OAuth tokens NEVER enter the client.
         events.append({
             "id": raw["id"], "at": at.isoformat(),
+            "actor": str(raw.get("actor") or "")[:254],
             "projectId": pid, "action": action,
             "agentId": agent_id[:16], "taskId": task_id[:160],
             "department": dept[:40], "system": system_for(dept),
@@ -137,6 +138,10 @@ def build_monitor_packet(identity, snapshot: dict, signed_events: list[dict],
         "id": t["id"], "projectId": t["projectId"],
         "dept": t["dept"], "system": system_for(t["dept"]),
         "status": t["status"], "dueDate": t.get("dueDate", ""),
+        "reviewSince": next(
+            (str(h.get("at") or "") for h in reversed(t.get("reviewHistory", []))
+             if h.get("decision") == "submitted"), ""
+        ) if t["status"] == "review" else "",
         "createdAt": t.get("createdAt", ""),
         "code": str(t.get("code") or "")[:30],
         "priority": t.get("priority", "normal"),
