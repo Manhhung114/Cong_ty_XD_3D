@@ -12,6 +12,7 @@ const actionLabels={
  'org.role_set':'Bổ nhiệm vị trí nhân sự', 'hierarchy.proposed':'CEO đề xuất phân việc',
  'hierarchy.approved':'Admin duyệt và giao việc các cấp',
  'hierarchy.rejected':'Admin trả lại phương án CEO',
+ 'hierarchy.stopped':'Admin dừng toàn bộ cây phân phối',
  'document.registered':'Đăng ký hồ sơ trên Drive',
  'document.metadata_updated':'Cập nhật sổ hồ sơ',
  'document.submitted':'Trình hồ sơ',
@@ -113,6 +114,8 @@ const tasksHtml=filter=>{
  const returned=t.status==='working'&&t.lastReviewDecision==='reject';
  const p=all.find(x=>x.id===t.parentTaskId);
  const plan=(view().hierarchyPlans||[]).find(x=>x.rootTaskId===t.id&&x.status==='pending');
+ const activePlan=(view().hierarchyPlans||[]).find(x=>
+  x.rootTaskId===t.id&&x.status==='dispatched');
  const existingPlan=(view().hierarchyPlans||[]).some(x=>
   x.rootTaskId===t.id&&['pending','dispatched'].includes(x.status));
  const progress=t.hierarchyProgress||{total:0,done:0,blockedBy:[]};
@@ -168,6 +171,9 @@ const tasksHtml=filter=>{
   (canReview()||(t.assignee||'').toLowerCase()===actor)?
   btn('🏢 Giám đốc AI lập phương án','hierarchy_propose',t.id,'primary'):'')+
  (canReview()&&plan?btn('✓ Duyệt phân phối từ CEO','hierarchy_review',t.id,'primary'):'')+
+ (canReview()&&activePlan&&t.hierarchyStage==='ceo'&&
+  !['done','cancelled'].includes(t.status)?
+  btn('⛔ Dừng toàn bộ cây phân phối','hierarchy_stop',t.id):'')+
  taskWithdrawControl(t)+
  (canOperate&&!blocked&&specialist&&['todo','working'].includes(t.status)?
   '<button type="button" class="btn primary small" data-agent-run-task="'+h(t.id)+'" data-agent-run-id="'+h(specialist.id)+'" data-agent-run-project="'+h(t.projectId)+'">🤖 Chạy Agent '+h(specialist.id)+'</button>':'')+
@@ -363,7 +369,7 @@ export function bindCloudPage(root,section){
   }
   if(op==='project_create'&&role()!=='admin')return;
   if(['task_create','task_assign','task_withdraw','task_start','task_submit','hierarchy_propose'].includes(op)&&!canWrite())return;
-  if(['org_roles','hierarchy_review'].includes(op)&&!canReview())return;
+  if(['org_roles','hierarchy_review','hierarchy_stop'].includes(op)&&!canReview())return;
   if(op==='task_review'){
    const selected=(view().tasks||[]).find(t=>t.id===b.dataset.workspaceTask);
    if(!selected||!canReviewTask(selected))return;
