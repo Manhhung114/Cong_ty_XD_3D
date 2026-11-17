@@ -153,8 +153,7 @@ def handle_workspace_action(st, action: dict):
         raise PermissionError("Chỉ đọc không được chạy Agent hoặc gửi phối hợp")
     if op == "ops_audit" and not can_admin(actor):
         raise PermissionError("Chỉ Admin được kiểm soát và sao lưu hệ thống")
-    if op == "task_review" and not can_admin(actor):
-        raise PermissionError("Chỉ Admin có quyền duyệt")
+
     if op not in {"project_create", "project_import", "ops_audit"} and pid not in {p["id"] for p in current["projects"]}:
         raise PermissionError("Dự án không thuộc phạm vi")
     task_id = str(action.get("taskId") or "")
@@ -162,6 +161,12 @@ def handle_workspace_action(st, action: dict):
         if not any(t["id"] == task_id and t["projectId"] == pid
                    for t in current["tasks"]):
             raise PermissionError("Nhiệm vụ không thuộc dự án")
+    if op == "task_review":
+        from drive_storage.hierarchy import can_review_node
+        task = next((t for t in current["tasks"]
+                     if t["id"] == task_id and t["projectId"] == pid), None)
+        if not task or not can_review_node(actor, task, current["tasks"]):
+            raise PermissionError("Chỉ cấp quản lý trực tiếp hoặc Admin được xét duyệt")
     if op == "agent_run":
         from drive_storage.company_agents import agents
         profile = agents().get(str(action.get("agentId") or ""))
@@ -236,7 +241,7 @@ def workspace_dialog(st):
             st.error("Phiên đăng nhập không hợp lệ")
             return
         op = action["op"]
-        if op in {"project_create", "project_import", "task_review"} and not can_admin(actor):
+        if op in {"project_create", "project_import"} and not can_admin(actor):
             st.error("Không có quyền quản trị/phê duyệt")
             return
         if op in {"task_create", "task_assign", "task_withdraw", "task_submit"} and not can_upload(actor):
@@ -259,6 +264,12 @@ def workspace_dialog(st):
             if op in {"task_assign", "task_withdraw", "task_submit", "task_review"} and not task:
                 st.error("Nhiệm vụ không tồn tại")
                 return
+            if op == "task_review":
+                from drive_storage.hierarchy import can_review_node
+                if not can_review_node(actor, task, current["tasks"]):
+                    st.error("Chỉ cấp quản lý trực tiếp được duyệt nhiệm vụ cấp dưới; "
+                             "QA độc lập và công việc gốc cần Admin.")
+                    return
         except Exception:
             st.error("Không đọc được dữ liệu dùng chung. Thử lại sau khi kiểm tra Drive.")
             return
@@ -523,7 +534,7 @@ def workspace_dialog(st):
             st.markdown("**Công việc:** " + task["title"])
             st.write("Báo cáo: " + task.get("report", ""))
             st.write("Phát hiện: " + task.get("findings", ""))
-            st.info("Đây là quyết định phê duyệt công việc, KHÔNG phải xác nhận "
+            st.info("Đây là quyết định cấp quản lý/QA phê duyệt công việc, KHÔNG phải xác nhận "
                     "tất cả tính toán, bản vẽ CAD hoặc TCVN/QCVN đã được Agent kiểm chứng. "
                     "Admin cần thẩm tra trước khi quyết định.")
             with st.form("cloud_task_review"):
