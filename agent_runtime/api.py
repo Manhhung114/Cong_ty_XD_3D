@@ -145,7 +145,13 @@ def create_runtime_app(db_url=None, dispatcher=None):
             rows = db.scalars(select(AgentJob).where(
                 AgentJob.project_id == b.projectId).order_by(
                 AgentJob.created_at.desc()).limit(150)).all()
-            return {"projectId": b.projectId, "jobs": [public(row) for row in rows]}
+            jobs=[]
+            for row in rows:
+                item=public(row)
+                item["canCancel"]=(b.identity.get("role")=="admin" or
+                                    row.actor==str(b.identity.get("email","")).lower())
+                jobs.append(item)
+            return {"projectId": b.projectId, "jobs":jobs}
 
     @app.post("/api/runtime/jobs/cancel")
     async def cancel_job(req: Request):
