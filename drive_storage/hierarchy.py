@@ -88,7 +88,7 @@ def _routing_text(value: str) -> str:
     decomposed = unicodedata.normalize("NFKD", str(value or "").casefold())
     ascii_letters = "".join("d" if ch == "đ" else ch for ch in decomposed
                             if not unicodedata.combining(ch))
-    return " ".join(ascii_letters.split())
+    return " ".join(re.sub(r"[^a-z0-9]+", " ", ascii_letters).split())
 
 
 def suggest_departments(title: str, doc_code: str = "") -> list[str]:
