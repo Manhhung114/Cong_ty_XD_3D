@@ -19,7 +19,7 @@ class CoordinationTests(unittest.TestCase):
     def setUp(self):
         fixtures.CloudWorkflowTests.setUp(self)
         self.addCleanup(fixtures.CloudWorkflowTests.tearDown, self)
-        context = patch.dict(os.environ, {"XD_V752_MEETINGS": "1"})
+        context = patch.dict(os.environ, {"XD_V752_MEETINGS": "1", "XD_V752_MEETING_PROJECTS": P})
         context.start()
         self.addCleanup(context.stop)
         self.one = self.ws.create_task(
