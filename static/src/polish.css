@@ -618,7 +618,7 @@ body{background:radial-gradient(ellipse at 78% 1%,rgba(0,126,191,.16),transparen
  .command-user-avatar{height:29px;width:29px;font-size:10px}
  .command-icon-button{width:29px;height:30px}
  .main{padding-top:59px}
- .sidebar{top:59px;margin-top:59px;height:calc(100dvh - 59px);width:min(280px,85vw);flex-basis:0}
+ .sidebar{top:59px;margin-top:0;height:calc(100dvh - 59px);width:min(280px,85vw);flex-basis:0}
  .sidebar-visual{height:160px}
  .v67-mode .content{padding:8px 7px 16px}
  .v67-mode .v67-toolbar{grid-template-columns:1fr 1fr}
