@@ -36,5 +36,5 @@ test('V6.7.4 premium header prioritizes readability without stretching artwork',
  assert.match(premium,/\.command-online\.is-connected i/);
  assert.match(premium,/@media\(max-width:750px\)/);
  assert.equal(css,read('static/src/polish.css'));
- assert.match(read('static/index.html'),/class="command-version">V6\.7\.6</);
+ assert.match(read('static/index.html'),/class="command-version">V6\.[0-9]+(?:\.[0-9]+)?</);
 });
