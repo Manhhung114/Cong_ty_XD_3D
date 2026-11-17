@@ -561,14 +561,26 @@ class SharedWorkspace:
         if dependencies_block(task, state["tasks"]):
             raise PermissionError("Chưa đủ điều kiện phụ thuộc để chạy Agent")
         # A signed completed event of the same attempt must never be retried.
-        for e in self.events():
-            if e["id"] == attempt_id and e["action"] == "agent.completed":
-                return {"existing": True, "completed": True}
+        previous = self.events()
+        # Completion takes precedence even if the signed start sorts before
+        # completion; this must remain idempotent after a finished attempt.
+        for e in previous:
+            if e["id"] != attempt_id:
+                continue
+            if (e["action"] != "agent.completed" or e["project_id"] != pid
+                    or e["actor"] != identity["email"]
+                    or e["data"].get("task_id") != task_id
+                    or e["data"].get("agent_id") != agent_id
+                    or e["data"].get("mode") != mode):
+                raise PermissionError("Mã thực thi đã được dùng cho lượt khác")
+            return {"existing": True, "completed": True}
+        for e in previous:
             if e["id"] == execution_event_id(attempt_id, "started"):
                 if (e["action"] != "agent.started" or e["project_id"] != pid
                         or e["actor"] != identity["email"]
                         or e["data"].get("task_id") != task_id
-                        or e["data"].get("agent_id") != agent_id):
+                        or e["data"].get("agent_id") != agent_id
+                        or e["data"].get("mode") != mode):
                     raise PermissionError("Mã thực thi đã được dùng cho lượt khác")
                 # No duplicate provider charge, even if an earlier attempt is
                 # now stale. The user must open a NEW action for a NEW attempt.
