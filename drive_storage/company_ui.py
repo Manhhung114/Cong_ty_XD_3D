@@ -128,6 +128,13 @@ def company_dialog(st, action):
                 st.caption(f"Đã tìm thấy {len(file_docs)} file phù hợp trong sổ hồ sơ "
                            "của dự án. Giới hạn 50 MB/file; Agent chỉ trích xuất mẫu "
                            "theo giới hạn an toàn, không xác nhận đã đọc toàn bộ file.")
+            from drive_storage.v75_registers import HEADERS, IFC_AGENTS, REGISTER_TOOLS
+            comparison_enabled = bool(profile.get("skill_version")) and agent_id in IFC_AGENTS
+            if profile.get("skill_version") and agent_id in REGISTER_TOOLS:
+                st.caption("Cột bảng CSV/XLSX: " + ", ".join(HEADERS[REGISTER_TOOLS[agent_id]]))
+            if comparison_enabled:
+                st.caption("Đối chiếu hai IFC đã duyệt cùng mã hồ sơ. Chọn file hiện tại và IFC gốc, "
+                           "sau đó chạy ngay trong Streamlit ở chế độ Chuyên gia.")
             with st.form("v61_agent_run_form"):
                 choices = ["preflight", "expert"]
                 if configured["configured"] and agent_id != "QCX":
@@ -147,6 +154,15 @@ def company_dialog(st, action):
                     format_func=lambda d: "— Chưa chọn file —" if d is None else
                         d["code"] + " · " + d.get("revision", "") + " · " + d["filename"],
                 )
+                baseline = None
+                if comparison_enabled:
+                    baselines = [d for d in file_docs if d.get("status") == "approved"
+                                 and PurePath(d["filename"]).suffix.casefold() == ".ifc"]
+                    baseline = st.selectbox(
+                        "Phiên bản IFC gốc để đối chiếu (tùy chọn)", [None, *baselines],
+                        format_func=lambda d: "— Phân tích một tệp —" if d is None else
+                        d["code"] + " · " + d.get("revision", "") + " · " + d["filename"],
+                    )
                 note = st.text_area("Yêu cầu bổ sung cho Agent (tùy chọn)",
                                     max_chars=700, height=110)
                 consent = st.checkbox(
@@ -227,6 +243,8 @@ def company_dialog(st, action):
             if queued:
                 from agent_runtime.client import configured_client
                 try:
+                    if baseline:
+                        raise ValueError("Chọn Chạy ngay trong Streamlit để đối chiếu hai phiên bản IFC")
                     if mode in {"llm", "expert_llm"} and not consent:
                         raise PermissionError("Cần xác nhận truyền metadata/trích xuất cho AI")
                     if mode in {"expert", "expert_llm"} and selected is None:
@@ -275,6 +293,8 @@ def company_dialog(st, action):
                         raise PermissionError("Chưa xác nhận truyền dữ liệu đến nhà cung cấp AI")
                     if mode in {"expert", "expert_llm"} and selected is None:
                         raise ValueError("Cần chọn file đã ghi sổ để phân tích kỹ thuật")
+                    if baseline and mode != "expert":
+                        raise ValueError("Đối chiếu IFC cần chế độ Chuyên gia phân tích file thật")
                     attempt = server.record_agent_start(
                         identity, project_id=pid, task_id=task_id,
                         agent_id=agent_id, mode=mode, attempt_id=attempt_id,
@@ -295,6 +315,7 @@ def company_dialog(st, action):
                             server, identity, project_id=pid, task_id=task_id,
                             agent_id=agent_id, file_id=selected["id"], mode=mode,
                             note=note, consent=consent,
+                            baseline_file_id=baseline["id"] if baseline else "",
                             ai_config=effective_config(st, agent_id) if mode == "expert_llm" else {},
                             event_id=action["actionId"],
                         )

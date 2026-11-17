@@ -1,5 +1,7 @@
 """Bounded V7.5 draft checks for registered spreadsheets with explicit SI headers."""
+from datetime import datetime
 from math import isfinite, sqrt
+from zoneinfo import ZoneInfo
 from graphlib import CycleError, TopologicalSorter
 
 
@@ -175,3 +177,8 @@ def checks(agent_id, parsed):
         yield _critical_path(rows, not complete)
     if agent_id == "QCX":
         yield from _itp(rows)
+
+    from drive_storage.v75_registers import REGISTER_TOOLS, check_register
+    if agent_id in REGISTER_TOOLS and parsed["type"] in {"csv", "xlsx"}:
+        today = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).date()
+        yield from check_register(REGISTER_TOOLS[agent_id], rows, _finding, today)

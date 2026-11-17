@@ -6,6 +6,7 @@ Never execute workbook macros, CAD scripts, IFC custom code or external links.
 """
 from __future__ import annotations
 
+import json
 from collections import Counter
 from datetime import datetime, timezone
 from hashlib import sha256, md5
@@ -264,7 +265,7 @@ def _ifc(data: bytes):
     elements = model.by_type("IfcProduct")
     if len(elements) > 100_000:
         raise ValueError("Mô hình IFC quá lớn cho Streamlit; cần worker riêng")
-    records, counts, guid_seen, duplicated = [], Counter(), set(), []
+    records, counts, guid_seen, duplicated, comparison = [], Counter(), set(), [], []
     for element in elements[:MAX_IFC_ELEMENTS]:
         typ = element.is_a()
         ident = str(getattr(element, "GlobalId", "") or "")
@@ -272,6 +273,10 @@ def _ifc(data: bytes):
         if ident in guid_seen and ident:
             duplicated.append(ident)
         guid_seen.add(ident)
+        properties = [typ, *(str(getattr(element, name, None) or "") for name in
+                            ("Name", "ObjectType", "PredefinedType", "Tag"))]
+        comparison.append((ident, sha256(json.dumps(properties, ensure_ascii=False)
+                                      .encode("utf8")).hexdigest()))
         records.append(_row(f"IFC:GlobalId:{ident or element.id()}", "element",
                             f"{typ}: {_text(getattr(element, 'Name', ''), 140)}",
                             {"ifcType": typ, "globalId": ident}))
@@ -280,7 +285,8 @@ def _ifc(data: bytes):
                          "Chỉ kiểm tra tối đa 1500 phần tử đầu"],
             "stats": {"products_total": len(elements), "products_checked": min(len(elements), MAX_IFC_ELEMENTS),
                       "ifc_types": dict(counts.most_common(30)),
-                      "duplicate_global_ids": duplicated[:15]}}
+                      "duplicate_global_ids": duplicated[:15],
+                      "ifc_schema": model.schema, "comparison_products": comparison}}
 
 
 PARSERS = {".pdf": _pdf, ".xlsx": _spreadsheet,
@@ -350,6 +356,7 @@ def concise_evidence(parsed: dict):
     stats = dict(parsed.get("stats") or {})
     stats.pop("numeric_cells", None)
     stats.pop("table_rows", None)
+    stats.pop("comparison_products", None)
     return {
         "format": parsed["type"],
         "provenance": parsed.get("provenance", {}),

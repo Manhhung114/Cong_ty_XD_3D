@@ -6,7 +6,9 @@
     "catalog_agents": 20,
     "office_rooms": 16,
     "production_deployed": false,
-    "default_enabled": false,
+    "catalog_default_enabled_for_authorized_projects": true,
+    "qcx_default_enabled": false,
+    "leg_execution_enabled": false,
     "legacy_release": "7.4.0",
     "acceptance": "docs/V750_STAGING_ACCEPTANCE.md"
   },

@@ -512,7 +512,10 @@
         "rà soát revision",
         "đề nghị phát hành issue"
       ],
-      "calculators": [],
+      "calculators": [
+        "bim_issue_register",
+        "ifc_revision_delta"
+      ],
       "standards_pack": {
         "status": "requires_verified_source",
         "references": []
@@ -588,7 +591,9 @@
         "kiểm đơn vị tính",
         "phân nhóm thay đổi phiên bản"
       ],
-      "calculators": [],
+      "calculators": [
+        "boq_acceptance_register"
+      ],
       "standards_pack": {
         "status": "requires_verified_source",
         "references": []
@@ -967,7 +972,10 @@
         "liên kết vấn đề",
         "gợi ý bộ môn xử lý"
       ],
-      "calculators": [],
+      "calculators": [
+        "bim_issue_register",
+        "ifc_revision_delta"
+      ],
       "standards_pack": {
         "status": "requires_verified_source",
         "references": []
@@ -1042,7 +1050,9 @@
         "đối chiếu khối lượng",
         "phân loại phát sinh"
       ],
-      "calculators": [],
+      "calculators": [
+        "boq_acceptance_register"
+      ],
       "standards_pack": {
         "status": "requires_verified_source",
         "references": []
@@ -1268,7 +1278,9 @@
         "phân loại sự cố",
         "nhắc nghiệm thu an toàn"
       ],
-      "calculators": [],
+      "calculators": [
+        "jsa_ptw_register"
+      ],
       "standards_pack": {
         "status": "requires_verified_source",
         "references": []
@@ -1343,7 +1355,9 @@
         "kiểm trình mẫu",
         "theo dõi thiếu nguồn cung"
       ],
-      "calculators": [],
+      "calculators": [
+        "material_certificate_register"
+      ],
       "standards_pack": {
         "status": "requires_verified_source",
         "references": []
