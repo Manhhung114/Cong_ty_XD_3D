@@ -2,7 +2,7 @@ import {INITIAL_TASKS,CONSTRUCTION_SAMPLE_TASKS,AGENTS,DEPARTMENTS,TASK_STATES} 
 const KEY='mep-ai-company3d.v1';
 const deepCopy=v=>JSON.parse(JSON.stringify(v));
 const now=()=>new Date().toISOString();
-function makeInitial(){return {tasks:[],events:[],selectedDept:'director',officeView:'all',officeRenderMode:'illustrated',constructionSeeded:true,sampleTasksRemoved:true,createdAt:now()};}
+function makeInitial(){return {tasks:[],events:[],selectedDept:'director',officeView:'all',officeRenderMode:'live',constructionSeeded:true,sampleTasksRemoved:true,createdAt:now()};}
 // One-way, non-destructive cleanup of generated tasks. A sample with submitted
 // evidence/decisions is retained because a human may have added real work.
 export function removeGeneratedTasks(data){
