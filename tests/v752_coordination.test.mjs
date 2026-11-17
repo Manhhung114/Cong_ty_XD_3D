@@ -66,7 +66,6 @@ test('meeting approval sends only a scoped authenticated workspace command',()=>
  setup();
  const messages=[];
  window.parent={postMessage:m=>messages.push(m)};
- globalThis.crypto={randomUUID:()=> 'e'.repeat(32)};
  const button={dataset:{meetingOp:'meeting_approve',meetingId:meeting},
    addEventListener:(type,callback)=>{assert.equal(type,'click');button.click=callback}};
  const root={querySelectorAll:selector=>selector==='[data-meeting-op]'?[button]:[]};
