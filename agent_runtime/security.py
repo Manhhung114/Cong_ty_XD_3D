@@ -50,6 +50,10 @@ def validate_request(body: dict) -> dict:
         or not HEX_ID.fullmatch(job_id) or not AGENT_ID.fullmatch(agent)
         or mode not in MODES):
         raise ValueError("Nhiệm vụ/Agent/mã lượt chạy không hợp lệ")
+    if agent in {"QCX", "LEG"}:
+        from drive_storage.v75_rollout import qcx_enabled
+        if agent != "QCX" or not qcx_enabled(project) or mode not in {"preflight", "expert"}:
+            raise PermissionError("Agent hoặc chế độ chạy chưa được bật cho dự án")
     if mode in {"expert", "expert_llm"} and not GOOGLE_ID.fullmatch(file_id):
         raise ValueError("Phân tích chuyên gia cần file Google Drive hợp lệ")
     if file_id and not GOOGLE_ID.fullmatch(file_id):

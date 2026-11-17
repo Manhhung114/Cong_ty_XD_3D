@@ -7,6 +7,13 @@ on:
       - "docker-compose.v74.yml"
       - "drive_storage/**"
       - ".github/workflows/test-agent-runtime-v74.yml"
+      - ".github/workflows/test-v750-canary.yml"
+      - "data/agents_v75.json"
+      - "scripts/tests/check_v750_browser.py"
+      - "src/**"
+      - "static/src/**"
+      - "tests/test_v750_canary.py"
+      - "tests/v750_canary.test.mjs"
   push:
     branches: [main]
     paths:
@@ -38,3 +45,7 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_*.py'
       - name: Node regression suite
         run: npm test
+
+  v75-canary:
+    if: github.event_name != 'push'
+    uses: ./.github/workflows/test-v750-canary.yml

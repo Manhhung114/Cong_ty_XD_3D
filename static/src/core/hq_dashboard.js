@@ -103,7 +103,7 @@ export function renderCEOCommandCenter(cloud,project='all'){
   '<h4>Luồng phân phối CEO → PM → Trưởng bộ môn → Chuyên gia & QA</h4>'+
   (lines||'<div class="v70-empty">Chưa có phương án phân phối CEO trong phạm vi đã chọn. '+
    'Vào Công việc → giao nhiệm vụ CEO → Giám đốc lập phương án → Admin duyệt để tạo cây thật.</div>')+
-  '<h4>18 Agent · trạng thái từ sự kiện thực thi đã ký</h4>'+
+  '<h4>'+AGENTS.length+' Agent · trạng thái từ sự kiện thực thi đã ký</h4>'+
   '<div class="v70-agent-grid">'+cards+'</div>'+
   '</section>';
 }

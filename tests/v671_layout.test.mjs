@@ -25,7 +25,7 @@ test('approved screenshot: full-width company masthead and image in pinned sideb
 test('approved menu order: specialist controls, handoff, monitor, reports, Admin-only settings',()=>{
  const app=read('src/app.js');
  const index=name=>app.indexOf("name:'"+name+"'");
- const sequence=['Văn phòng 3D','Nhân viên AI (18 Agent)','Công việc','Chờ phê duyệt',
+ const sequence=['Văn phòng 3D','Nhân viên AI','Công việc','Chờ phê duyệt',
   'Quản lý dự án','Kho tài liệu','BOQ / Dự toán','BIM / Mô hình',
   'Phối hợp liên phòng','Giám sát Agent','Báo cáo & Thống kê',
   'Pháp luật & tiêu chuẩn','Nhật ký hoạt động','Cài đặt hệ thống'];

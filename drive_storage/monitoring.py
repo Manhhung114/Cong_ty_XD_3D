@@ -29,7 +29,7 @@ WINDOW_DAYS = 7
 def system_for(department: str) -> str:
     if department in MEP_DEPARTMENTS:
         return "mep"
-    if department in XD_DEPARTMENTS:
+    if department == "xd_qc" or department in XD_DEPARTMENTS:
         return "xd"
     return "shared"
 
@@ -86,6 +86,7 @@ def build_monitor_packet(identity, snapshot: dict, signed_events: list[dict],
                  if d.get("projectId") in allowed}
     from drive_storage.company_agents import agents
     agent_dept = {key: profile["department"] for key, profile in agents().items()}
+    agent_dept["QCX"] = "xd_qc"
     events = []
     eligible = 0
     for raw in signed_events:

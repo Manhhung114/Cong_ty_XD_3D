@@ -9,6 +9,7 @@ import re
 import secrets
 from pathlib import PurePath
 
+from drive_storage.v75_rollout import BUILD_LABEL
 from drive_storage.manager import ALLOWED_EXTENSIONS, FOLDER_CATEGORIES, MAX_FILE_SIZE, from_streamlit_secrets
 from drive_storage.document_control import base_code
 from drive_storage.access_control import (
@@ -51,6 +52,7 @@ def require_login(st) -> str:
         st.stop()
     if not getattr(st.user, "is_logged_in", False):
         st.title("Công ty Xây dựng & MEP AI 3D")
+        st.caption(BUILD_LABEL)
         st.info("Đăng nhập bằng Google để truy cập công ty và hồ sơ dự án.")
         if st.button("Đăng nhập với Google", type="primary"):
             st.login()

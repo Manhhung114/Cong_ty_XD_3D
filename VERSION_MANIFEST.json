@@ -1,6 +1,17 @@
 {
   "project": "Công ty Xây dựng & MEP AI 3D",
-  "artifact_version": "0.7.4.0-integrated-agent-runtime-suite",
+  "artifact_version": "0.7.5.0-specialist-agent-catalog",
+  "staged_release": {
+    "version": "7.5.0",
+    "catalog_agents": 20,
+    "office_rooms": 16,
+    "live_acceptance_recorded": false,
+    "catalog_default_enabled_for_authorized_projects": true,
+    "qcx_default_enabled": false,
+    "leg_execution_enabled": false,
+    "legacy_release": "7.4.0",
+    "acceptance": "docs/V750_STAGING_ACCEPTANCE.md"
+  },
   "release_date": "2026-11-17",
   "modules": [
     {
@@ -304,7 +315,7 @@
     "mep": "Cơ điện",
     "construction": "Xây dựng"
   },
-  "current_version": "V7.4.0 (Agent Runtime + Orchestration + Engineering Suite)",
+  "current_version": "V7.5.0 (Specialist Agent Catalog and Engineering Checks)",
   "backend": {
     "framework": "FastAPI",
     "database": "PostgreSQL or SQLite local",

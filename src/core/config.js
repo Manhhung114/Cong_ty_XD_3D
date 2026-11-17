@@ -26,7 +26,7 @@ export const departmentDivision=dept=>dept?.division==='shared'?'shared':dept?.d
 // Company leadership works across both disciplines. Filter by division without
 // duplicating their department or the two shared staff records.
 export const visibleDepartments=view=>DEPARTMENTS.filter(d=>!['mep','construction'].includes(view)||d.division===view||d.division==='shared');
-export const AGENTS = [
+const LEGACY_AGENTS = [
   {id:'CEO',name:'Giám đốc công ty',role:'Giám đốc công ty AI',dept:'director',tag:'Điều phối liên ngành'},
   {id:'PM',name:'Trưởng ban quản lý dự án',role:'Quản lý dự án AI',dept:'director',tag:'Tiến độ tổng thể'},
   {id:'ELE',name:'Kỹ sư điện',role:'Kỹ sư Điện AI',dept:'electrical',tag:'Tính toán điện'},
@@ -46,11 +46,20 @@ export const AGENTS = [
   {id:'HSE',name:'Kỹ sư chất lượng và an toàn xây dựng',role:'An toàn & QA/QC XD AI',dept:'xd_safety',tag:'Chất lượng/An toàn'},
   {id:'MAT',name:'Kỹ sư quản lý vật tư',role:'Kỹ sư Vật tư AI',dept:'xd_material',tag:'Vật liệu xây dựng'}
 ];
-// This view intentionally includes the same CEO and Project Manager in both
-// filtered branches; the complete company still has only eighteen unique agents.
+// Only the authenticated server snapshot can add the two canary profiles.
+const canary=globalThis.__xdCloud;
+const additions=(canary?.enabled===true?canary.agentsCatalog||[]:[]).filter(a=>
+  ['QCX','LEG'].includes(a.id)&&DEPARTMENTS.some(d=>d.id===a.office_room_id));
+export const AGENTS = [...LEGACY_AGENTS, ...additions.map(a=>({
+  id:a.id,name:a.title,role:a.title,dept:a.department,roomId:a.office_room_id,
+  tag:a.mission,executionDisabled:a.execution_disabled
+}))];
+export const agentOffice=a=>a.roomId||a.dept;
+export const roomAgents=room=>AGENTS.filter(a=>agentOffice(a)===room);
+export const seatOffset=(index,count)=>count===1?0:(index/(count-1)-.5)*(count===2?2.5:3.8);
 export const visibleAgents=view=>{
   const departments=new Set(visibleDepartments(view).map(d=>d.id));
-  return AGENTS.filter(a=>departments.has(a.dept));
+  return AGENTS.filter(a=>departments.has(agentOffice(a)));
 };
 export const CATEGORIES = [
   {id:'drawings',title:'Bản vẽ',icon:'▤',desc:'PDF, DWG, DXF, bản vẽ thiết kế',formats:'.pdf,.dwg,.dxf,.png,.jpg,.jpeg,.ifc'},

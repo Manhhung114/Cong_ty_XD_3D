@@ -9,13 +9,15 @@ from __future__ import annotations
 from hashlib import sha256
 import json
 import re
+from pathlib import PurePath
 
 from drive_storage.access_control import can_upload
 from drive_storage.company_agents import (
     agents, _task_context, preflight, call_provider, _quota_check,
 )
 from drive_storage.expert_tools import extract_registered, concise_evidence
-from drive_storage.expert_rules import analyze, EXPERT_DOMAINS
+from drive_storage.expert_rules import analyze
+from drive_storage.v75_registers import IFC_AGENTS, compare_inventory
 from drive_storage.shared_workspace import _require_id, _clean_text
 
 MAX_RENDERED_RESULT = 4200
@@ -72,9 +74,34 @@ def _pretty(profile, task, parsed, analysis, steps):
     return "\n".join(lines)[:MAX_RENDERED_RESULT]
 
 
+def _ifc_pair(documents, baseline_id, current, profile, mode):
+    if mode != "expert" or not profile.get("skill_version") or profile["id"] not in IFC_AGENTS:
+        raise PermissionError("Đối chiếu phiên bản chỉ chạy nội bộ bằng BIM/XBI V7.5")
+    baseline = next((doc for doc in documents if doc["id"] == baseline_id
+                     and doc["projectId"] == current["projectId"]), None)
+    if (baseline is None or baseline_id == current["id"]
+            or baseline["category"] != current["category"]
+            or baseline["code"].casefold() != current["code"].casefold()
+            or any(doc.get("status") != "approved"
+                   or PurePath(doc["filename"]).suffix.casefold() != ".ifc"
+                   for doc in (baseline, current))):
+        raise PermissionError("Cần hai tệp IFC đã duyệt, cùng mã hồ sơ và nhóm tài liệu trong dự án")
+    versions = [doc.get("revision", "") for doc in (baseline, current)]
+    if (any(not re.fullmatch(r"R[0-9]{2,4}", version) for version in versions)
+            or int(versions[0][1:]) >= int(versions[1][1:])):
+        raise ValueError("Phiên bản IFC gốc phải có số revision nhỏ hơn bản hiện tại")
+    return baseline
+
+
+def _source_evidence(doc, parsed):
+    return {"code": doc["code"], "revision": doc.get("revision", ""),
+            "status": doc.get("status", ""), "fileId": doc["id"],
+            "sha256": parsed["hashes"]["sha256"]}
+
+
 def run_expert(workspace, identity, *, project_id, task_id, agent_id,
                file_id, mode="expert", note="", consent=False,
-               ai_config=None, event_id=None, opener=None):
+               ai_config=None, event_id=None, opener=None, baseline_file_id=""):
     if not can_upload(identity):
         raise PermissionError("Tài khoản Chỉ đọc không được chạy chuyên gia")
     if mode not in {"expert", "expert_llm"}:
@@ -82,6 +109,7 @@ def run_expert(workspace, identity, *, project_id, task_id, agent_id,
     pid = workspace._check_project(identity, project_id, True)
     _require_id(task_id, "Công việc")
     fid = _require_id(file_id, "Tệp kỹ thuật")
+    baseline_id = _require_id(baseline_file_id, "Tệp IFC gốc") if baseline_file_id else ""
     if event_id:
         if not re.fullmatch(r"[0-9a-f]{32}", str(event_id)):
             raise ValueError("Mã lượt thực thi chuyên gia không hợp lệ")
@@ -94,7 +122,7 @@ def run_expert(workspace, identity, *, project_id, task_id, agent_id,
                     or prior["actor"] != identity["email"]
                     or old.get("task_id") != task_id
                     or old.get("agent_id") != agent_id or old.get("mode") != mode
-                    or old.get("file_id") != fid):
+                    or old.get("file_id") != fid or (old.get("baseline_file_id") or "") != baseline_id):
                 raise PermissionError("Mã giao dịch đã được dùng cho thao tác khác")
             return {"eventId": event_id, "existing": True, "draft": old.get("result", ""),
                     "stages": old.get("workflowStages", []),
@@ -102,8 +130,11 @@ def run_expert(workspace, identity, *, project_id, task_id, agent_id,
                     "reviewRequired": True}
     state = workspace.snapshot(identity)
     profile, task, project, docs = _task_context(state, pid, task_id, agent_id)
-    from drive_storage.hierarchy import require_operator, dependencies_block
+    from drive_storage.hierarchy import require_operator, require_qc_role, dependencies_block
     require_operator(identity, task)
+    require_qc_role(identity, task, state)
+    if agent_id == "QCX" and (mode != "expert" or fid not in {doc["id"] for doc in docs}):
+        raise PermissionError("QCX chỉ đọc hồ sơ đã duyệt gắn với nhiệm vụ, không gửi ra AI ngoài")
     if dependencies_block(task, state["tasks"]):
         raise PermissionError("Chưa thể chạy Agent: nhiệm vụ trước trong luồng phân cấp chưa được duyệt")
     registered = next((d for d in state["documents"]
@@ -113,11 +144,23 @@ def run_expert(workspace, identity, *, project_id, task_id, agent_id,
     if registered["category"] not in profile.get("expected_categories", []):
         if agent_id not in {"CEO", "PM", "DOC", "QAC"}:
             raise PermissionError("File không đúng loại bằng chứng chuyên môn của Agent")
+    baseline = _ifc_pair(state["documents"], baseline_id, registered, profile, mode) if baseline_id else None
     note = _clean_text(note, 700)
     parsed = extract_registered(workspace, identity, project_id=pid, file_id=fid)
-    findings = analyze(agent_id, parsed, registered)
+    findings = analyze(agent_id, parsed, registered, v75=bool(profile.get("skill_version")))
+    sources = [_source_evidence(registered, parsed)]
+    older = None
+    if baseline:
+        older = extract_registered(workspace, identity, project_id=pid, file_id=baseline_id)
+        if older["type"] != "ifc" or parsed["type"] != "ifc":
+            raise ValueError("Đối chiếu yêu cầu hai tệp IFC")
+        sources.append(_source_evidence(baseline, older))
+        findings["findings"] = [*compare_inventory(older, parsed), *findings["findings"]][:20]
     stages = _check_steps(parsed, findings, task, registered, profile)
     body = _pretty(profile, task, parsed, findings, stages)
+    if baseline:
+        body = ("IFC gốc · " + baseline["revision"] + " · SHA-256 " +
+                older["hashes"]["sha256"] + "\n" + body)[:MAX_RENDERED_RESULT]
     vendor = "none"
     if mode == "expert_llm":
         if not consent:
@@ -142,18 +185,18 @@ def run_expert(workspace, identity, *, project_id, task_id, agent_id,
         body = (body[:2400] + "\n\nDỰ THẢO AI TRÊN TRÍCH XUẤT CÓ NGUỒN (CHƯA THẨM TRA):\n"
                 + llm_text[:1700])[:MAX_RENDERED_RESULT]
     evidence = concise_evidence(parsed)
+    if baseline:
+        evidence["baseline"] = concise_evidence(older)
     # One signed event for the full pipeline; no tools can approve/publish files.
     data = {
         "task_id": task_id, "agent_id": agent_id,
         "attempt_id": str(event_id or ""),
         "file_id": fid, "mode": mode, "provider": vendor,
+        **({"baseline_file_id": baseline_id} if baseline_id else {}),
         "model": str((ai_config or {}).get("model") or "")[:90] if mode == "expert_llm" else "",
         "result": body, "workflowStages": stages,
         "expertEvidence": evidence,
-        "evidence": [{"code": registered["code"],
-                     "revision": registered.get("revision", ""),
-                     "status": registered.get("status", ""),
-                     "fileId": fid, "sha256": parsed["hashes"]["sha256"]}],
+        "evidence": sources,
         "missing": findings["warnings"][:5],
         "risks": [f["message"][:200] for f in findings["findings"]
                   if f["level"] in {"mismatch", "invalid_input"}][:8],

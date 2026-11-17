@@ -13,6 +13,7 @@ from scripts.build_streamlit_runtime_v2 import build
 from drive_storage.in_app import require_login, mount_bridge, drive_dialog, access_management_dialog
 from drive_storage.workspace_ui import load_snapshot, handle_workspace_action, workspace_dialog
 from drive_storage.ai_settings_ui import ai_settings_dialog, ai_connection_dialog
+from drive_storage.v75_rollout import BUILD_LABEL
 
 st.set_page_config(
     page_title="Công ty Xây dựng & MEP AI 3D", page_icon="🏗️",
@@ -105,7 +106,7 @@ html,body,[data-testid="stApp"],[data-testid="stAppViewContainer"]{
 role = require_login(st)
 left, right = st.columns([7, 1], vertical_alignment="center")
 with left:
-    st.caption("XD & MEP AI 3D · " + {"admin": "Admin", "update": "Cập nhật", "read": "Chỉ đọc"}.get(role, "Nhân viên"))
+    st.caption(f"XD & MEP AI 3D · {BUILD_LABEL} · " + {"admin": "Admin", "update": "Cập nhật", "read": "Chỉ đọc"}.get(role, "Nhân viên"))
 with right:
     if st.button("Đăng xuất", key="logout_from_app", help="Đăng xuất tài khoản Google"):
         st.logout()

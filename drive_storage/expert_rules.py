@@ -32,7 +32,10 @@ EXPERT_DOMAINS = {
     "HSE": ("field_reports", "source_completeness"),
     "MAT": ("boq_arithmetic", "material_tracking"),
 }
+V75_EXPERT_DOMAINS = {**EXPERT_DOMAINS, "QCX": ("itp_register_sample",), "LEG": ()}
 EXPERT_REQUIREMENTS = {
+    "QCX": ["ITP và kết quả thí nghiệm đối chiếu theo revision", "Kỹ sư QC độc lập"],
+    "LEG": ["Quyền đọc từng hồ sơ hợp đồng và nguồn được phê chuẩn"],
     "ELE": ["Bản vẽ và danh mục phụ tải điện", "Điện áp 3 pha, PF, hiệu suất có đơn vị nếu tính dòng"],
     "HVA": ["Thông số lưu lượng và thể tích không gian", "Biểu mẫu thiết kế / điều kiện vận hành"],
     "PLU": ["Lưu lượng, đường kính ống", "Hệ số tổn thất / bản vẽ mạng ống nếu kiểm tra thủy lực"],
@@ -196,8 +199,9 @@ def _boq(parsed):
     return diffs
 
 
-def analyze(agent_id: str, parsed: dict, registered: dict | None = None):
-    if agent_id not in EXPERT_DOMAINS:
+def analyze(agent_id: str, parsed: dict, registered: dict | None = None, *, v75=False):
+    domains = V75_EXPERT_DOMAINS if v75 else EXPERT_DOMAINS
+    if agent_id not in domains or agent_id == "LEG":
         raise ValueError("Không tồn tại chuyên gia bộ môn")
     warnings = list(parsed.get("warnings") or [])
     findings = []
@@ -219,15 +223,20 @@ def analyze(agent_id: str, parsed: dict, registered: dict | None = None):
              "Đã kiểm kê layer/đối tượng DXF, chưa xác minh tỷ lệ đơn vị, giao cắt hay clearance.",
              [r["source"] for r in parsed["records"][:3]],
              {"layers": stats.get("layers", {}), "types": stats.get("types", {})}))
+    if v75:
+        from drive_storage.v75_checks import checks
+        findings[0:0] = list(checks(agent_id, parsed))
     if not findings:
         findings.append(_record("EVIDENCE_INVENTORY", "insufficient",
            "Đã đọc mẫu file nhưng chưa đủ trường dữ liệu chuẩn hóa để thực hiện phép tính chuyên ngành.",
            [r["source"] for r in parsed["records"][:5]]))
     if registered and registered.get("status") != "approved":
         warnings.append("Bản hồ sơ chưa được duyệt; không dùng làm đầu vào phát hành thiết kế")
+    if v75 and agent_id == "ELE":
+        warnings.insert(0, "Cô lập nguồn, LOTO và xác minh hết điện theo quy trình trước thao tác hiện trường")
     warnings.append("Chưa thực hiện kiểm định phù hợp TCVN/QCVN; phải xác minh bản tiêu chuẩn có hiệu lực")
     return {
-        "agent": agent_id, "capabilities": list(EXPERT_DOMAINS[agent_id]),
+        "agent": agent_id, "capabilities": list(domains[agent_id]),
         "requirements": EXPERT_REQUIREMENTS[agent_id],
         "findings": findings[:20], "warnings": warnings[:12],
         "gate": "requires_engineer_verification",

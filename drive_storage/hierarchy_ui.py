@@ -72,6 +72,8 @@ def hierarchy_dialog(st, action):
             else:
                 st.caption("Chưa có nhân sự được gắn vị trí. Hệ thống vẫn phân "
                            "công Agent, nhưng người phụ trách cấp dưới để trống.")
+            from drive_storage.v75_rollout import qcx_enabled
+            qa_departments = ["qa", "xd_qc"] if qcx_enabled(pid) else ["qa"]
             with st.form("v690_org_role_form"):
                 email = st.text_input("Email nhân sự đã có quyền dự án",
                                       max_chars=254).strip().lower()
@@ -83,7 +85,7 @@ def hierarchy_dialog(st, action):
                                         "qa": "QA/QC", "none": "Ngừng phân công vị trí",
                                     }[r])
                 department = st.selectbox(
-                    "Bộ môn", ["director", "qa", *DEPT_LABELS],
+                    "Bộ môn", ["director", *qa_departments, *DEPT_LABELS],
                     format_func=lambda d: DEPARTMENT_NAMES.get(d, d))
                 approved = st.checkbox("Xác nhận cập nhật cơ cấu nhân sự dự án")
                 submitted = st.form_submit_button("Lưu vị trí và ghi nhật ký", type="primary")

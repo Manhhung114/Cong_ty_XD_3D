@@ -7,6 +7,9 @@ x-runtime-env: &runtime_env
   AGENT_RUNTIME_SECRET: ${AGENT_RUNTIME_SECRET}
   AGENT_QUEUE_MAX: ${AGENT_QUEUE_MAX:-100}
   AGENT_MONTHLY_RESERVE_USD: ${AGENT_MONTHLY_RESERVE_USD:-10}
+  XD_V75_CATALOG: ${XD_V75_CATALOG:-release}
+  XD_V75_QCX: ${XD_V75_QCX:-0}
+  XD_V75_CANARY_PROJECTS: ${XD_V75_CANARY_PROJECTS:-}
 services:
   postgres:
     image: postgres:16-alpine
@@ -75,6 +78,9 @@ services:
       AGENT_RUNTIME_SECRET: ${AGENT_RUNTIME_SECRET}
       AGENT_RUNTIME_ALLOW_DOCKER_HTTP: "1"
       STREAMLIT_SERVER_HEADLESS: "true"
+      XD_V75_CATALOG: ${XD_V75_CATALOG:-release}
+      XD_V75_QCX: ${XD_V75_QCX:-0}
+      XD_V75_CANARY_PROJECTS: ${XD_V75_CANARY_PROJECTS:-}
     volumes:
       - ${XD_STREAMLIT_SECRETS_FILE}:/home/agent/.streamlit/secrets.toml:ro
     ports: ["${XD_WEB_BIND:-127.0.0.1}:8501:8501"]

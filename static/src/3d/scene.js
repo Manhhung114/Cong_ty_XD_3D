@@ -1,4 +1,4 @@
-import {DEPARTMENTS,AGENTS,FLOOR_HEIGHT,visibleDepartments} from '../core/config.js';
+import {DEPARTMENTS,AGENTS,FLOOR_HEIGHT,visibleDepartments,agentOffice,roomAgents,seatOffset} from '../core/config.js';
 import {agentEvidence} from '../core/agent_live.js';
 const TAU=Math.PI*2;
 const norm=a=>{let l=Math.hypot(...a)||1;return a.map(n=>n/l)};
@@ -25,8 +25,10 @@ export class Office3D{
  resize(){if(!this.gl||this.dead)return;const w=this.container.clientWidth,h=this.container.clientHeight;this.width=w;this.height=h;this.canvas.width=Math.max(1,Math.round(w*this.dpr));this.canvas.height=Math.max(1,Math.round(h*this.dpr));this.gl.viewport(0,0,this.canvas.width,this.canvas.height);}
  _camera(){const r=this.distance;this.eye=[r*Math.cos(this.pitch)*Math.sin(this.yaw),this.focusY+r*Math.sin(this.pitch),r*Math.cos(this.pitch)*Math.cos(this.yaw)];this.forward=norm(this.eye.map((v,i)=>(i===1?this.focusY:0)-v));this.right=norm(cross(this.forward,[0,1,0]));this.up=cross(this.right,this.forward);this.fov=.68;this.aspect=(this.width||1)/(this.height||1);this.vp=mul(perspective(this.fov,this.aspect,.1,140),lookAt(this.eye,[0,this.focusY,0]));}
  project(p){const q=p.map((v,i)=>v-this.eye[i]);const z=dot(q,this.forward);if(z<.1)return null;const k=Math.tan(this.fov/2);return {x:this.width/2+dot(q,this.right)/z/k/this.aspect*this.width/2,y:this.height/2-dot(q,this.up)/z/k*this.height/2,z};}
- pick(e){const rect=this.canvas.getBoundingClientRect();const x=e.clientX-rect.left,y=e.clientY-rect.top;let nearest={dist:29,agent:null};const visible=visibleDepartments(this.view);const ids=new Set(visible.map(d=>d.id));for(const a of AGENTS.filter(a=>ids.has(a.dept))){const p=this.agentPos(a);const proj=this.project([p[0],p[1]+2.2,p[2]]);if(proj){const dis=Math.hypot(proj.x-x,proj.y-y);if(dis<nearest.dist)nearest={dist:dis,agent:a};}}if(nearest.agent){this.select(nearest.agent.dept);this.options.onAgent?.(nearest.agent);return;}const nx=(x/this.width*2-1)*this.aspect*Math.tan(this.fov/2),ny=(1-y/this.height*2)*Math.tan(this.fov/2);const ray=norm(this.forward.map((v,i)=>v+this.right[i]*nx+this.up[i]*ny));if(ray[1]>=0)return;const floors=[...new Set(visible.map(d=>d.floor))].sort((a,b)=>b-a);for(const floor of floors){const base=floor*FLOOR_HEIGHT;const t=(base-this.eye[1])/ray[1];if(t<=0)continue;const wx=this.eye[0]+t*ray[0],wz=this.eye[2]+t*ray[2];const found=visible.find(d=>d.floor===floor&&Math.abs(d.position[0]-wx)<2.95&&Math.abs(d.position[1]-wz)<3.22);if(found){this.select(found.id);return;}}}
- agentPos(a){const d=DEPARTMENTS.find(v=>v.id===a.dept);const inDept=AGENTS.filter(g=>g.dept===a.dept),index=inDept.findIndex(q=>q.id===a.id);return [d.position[0]+(inDept.length>1?(index?1.3:-1.3):0),d.floor*FLOOR_HEIGHT,d.position[1]+.75];}
+ pick(e){const rect=this.canvas.getBoundingClientRect();const x=e.clientX-rect.left,y=e.clientY-rect.top;let nearest={dist:29,agent:null};const visible=visibleDepartments(this.view);const ids=new Set(visible.map(d=>d.id));for(const a of AGENTS.filter(a=>ids.has(agentOffice(a)))){const p=this.agentPos(a);const proj=this.project([p[0],p[1]+2.2,p[2]]);if(proj){const dis=Math.hypot(proj.x-x,proj.y-y);if(dis<nearest.dist)nearest={dist:dis,agent:a};}}if(nearest.agent){this.select(agentOffice(nearest.agent));this.options.onAgent?.(nearest.agent);return;}const nx=(x/this.width*2-1)*this.aspect*Math.tan(this.fov/2),ny=(1-y/this.height*2)*Math.tan(this.fov/2);const ray=norm(this.forward.map((v,i)=>v+this.right[i]*nx+this.up[i]*ny));if(ray[1]>=0)return;const floors=[...new Set(visible.map(d=>d.floor))].sort((a,b)=>b-a);for(const floor of floors){const base=floor*FLOOR_HEIGHT;const t=(base-this.eye[1])/ray[1];if(t<=0)continue;const wx=this.eye[0]+t*ray[0],wz=this.eye[2]+t*ray[2];const found=visible.find(d=>d.floor===floor&&Math.abs(d.position[0]-wx)<2.95&&Math.abs(d.position[1]-wz)<3.22);if(found){this.select(found.id);return;}}}
+ agentPos(a){const room=agentOffice(a),d=DEPARTMENTS.find(v=>v.id===room);
+ const occupants=roomAgents(room),index=occupants.findIndex(q=>q.id===a.id);
+ return [d.position[0]+seatOffset(index,occupants.length),d.floor*FLOOR_HEIGHT,d.position[1]+.7];}
 
  draw(type,x,y,z,sx,sy,sz,color,rot=0,emissive=0){const g=this.gl,l=this.loc,m=this.meshes[type],mod=model(x,y,z,sx,sy,sz,rot);g.bindBuffer(g.ARRAY_BUFFER,m.position);g.vertexAttribPointer(l.pos,3,g.FLOAT,false,0,0);g.enableVertexAttribArray(l.pos);g.bindBuffer(g.ARRAY_BUFFER,m.normal);g.vertexAttribPointer(l.norm,3,g.FLOAT,false,0,0);g.enableVertexAttribArray(l.norm);g.uniformMatrix4fv(l.mvp,false,mul(this.vp,mod));g.uniformMatrix4fv(l.model,false,mod);g.uniform1f(l.rot,rot);g.uniform3fv(l.color,hex(color));g.uniform1f(l.emissive,emissive);g.drawArrays(g.TRIANGLES,0,m.count);}
  box(x,y,z,sx,sy,sz,color,r=0,em=0){this.draw('cube',x,y,z,sx,sy,sz,color,r,em);}
@@ -42,7 +44,7 @@ export class Office3D{
  this.ball(x+.45,y+2.77,z-1.85,.17,'#fff2c7',.35);
 
  this.box(x,y+2.86,z-1.85,2.8,.08,.18,'#dff5ff',0,.13);
- const members=AGENTS.filter(a=>a.dept===d.id);members.forEach((a,i)=>{const px=x+(members.length>1?(i?1.25:-1.25):0),pz=z+.7;this.desk(px,pz,d.color,y);this.avatar(a,px,pz,t,y);});
+ const members=roomAgents(d.id);members.forEach((a,i)=>{const px=x+seatOffset(i,members.length),pz=z+.7;this.desk(px,pz,d.color,y);this.avatar(a,px,pz,t,y);});
  this.box(x+2.14,y+.55,z-2.36,.8,1.12,.50,'#bdd3df');this.box(x+2.14,y+1.14,z-2.38,.82,.06,.55,'#f4faff');this.box(x-2.17,y+.29,z-2.4,.38,.5,.38,'#e0e8e1');this.ball(x-2.17,y+.73,z-2.4,.42,'#4c9a7e');this.ball(x-1.94,y+.94,z-2.55,.24,'#76c3a7');
  if(d.division==='construction'){// Construction props: material stacks and miniature structural frame
   this.box(x+2.18,y+.20,z+2.22,.65,.38,.52,'#d1ac78');this.box(x+2.18,y+.40,z+2.22,.6,.10,.48,'#f5d4a4');
@@ -144,8 +146,8 @@ export class Office3D{
     markup+=block(x,z-2.97,y-.04,5.8,.10,1.25,'#7aafcc','#4e88a8','#417496');
     markup+=block(x-2.85,z,y-.04,.10,6.0,1.2,'#83b5cf','#619ab9','#497b9c');
     markup+=block(x,z-2.84,y+1.23,3.1,.10,.08,d.color,d.color,d.color);
-    const members=AGENTS.filter(a=>a.dept===d.id);
-    members.forEach((a,i)=>{const ax=x+(members.length>1?(i?1.25:-1.25):0),az=z+.50;
+    const members=roomAgents(d.id);
+    members.forEach((a,i)=>{const ax=x+seatOffset(i,members.length),az=z+.50;
       markup+=block(ax,az,y,1.65,.94,.85,'#eef8fd','#87acc4','#6793b0');
       markup+=block(ax,az-.36,y+.86,.82,.12,.42,d.color,'#245477','#28618c');
       const [bx,by]=P(ax,az+1.0,y+1.05),[hx,hy]=P(ax,az+1.0,y+1.93);

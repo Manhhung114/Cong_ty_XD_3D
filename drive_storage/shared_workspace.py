@@ -17,6 +17,7 @@ from datetime import datetime, timezone
 
 from drive_storage.access_control import allows_project, can_admin, can_upload, clean_email
 from drive_storage.manager import FOLDER_CATEGORIES, validated_project_folder
+from drive_storage.v75_rollout import LEGACY_POLICY, QA_POLICY, qcx_enabled
 
 LEDGER_FOLDER = "_XD_MEP_WORKSPACE_EVENTS_V59"
 MAX_EVENTS = 2500
@@ -27,6 +28,8 @@ DEPARTMENTS = {
     "architecture", "structure", "xd_bim", "xd_qs", "xd_planning",
     "xd_site", "xd_safety", "xd_material",
 }
+REPLAY_DEPARTMENTS = DEPARTMENTS | {"xd_qc"}
+CANARY_LEDGER_LIMIT = 2250
 ACTIONS = {
     "project.created", "task.created", "task.started",
     "task.submitted", "task.approved", "task.returned", "task.assigned",
@@ -225,12 +228,14 @@ class SharedWorkspace:
                 if data["role"] not in ORG_ROLES:
                     raise ValueError("Vai trò tổ chức không hợp lệ")
                 department = data.get("department", "")
-                if department not in {*DEPT_LABELS, "director", "qa"}:
+                if department not in {*DEPT_LABELS, "director", "qa", "xd_qc"}:
                     raise ValueError("Bộ môn của vị trí không hợp lệ")
                 if data["role"] in {"director", "pm"} and department != "director":
                     raise ValueError("Vị trí giám đốc/PM phải thuộc khối điều hành")
-                if data["role"] == "qa" and department != "qa":
+                if data["role"] == "qa" and department not in {"qa", "xd_qc"}:
                     raise ValueError("QA/QC cần đúng bộ môn QA")
+                if department == "xd_qc" and data["role"] not in {"qa", "none"}:
+                    raise ValueError("Vị trí kiểm soát chất lượng XD không hợp lệ")
                 org_roles[(pid, email)] = {
                     "projectId": pid, "email": email,
                     "role": data["role"], "department": department,
@@ -242,6 +247,9 @@ class SharedWorkspace:
                 task = task_map.get(data["task_id"])
                 if not task or task["projectId"] != pid or task.get("assignedAgentId") != "CEO":
                     raise ValueError("Chỉ nhiệm vụ CEO có thật mới được trình phân phối")
+                policy = data.get("hierarchy_policy_version", LEGACY_POLICY)
+                if policy not in {LEGACY_POLICY, QA_POLICY}:
+                    raise ValueError("Phiên bản phân phối không hợp lệ")
                 hierarchy_plans[event["id"]] = {
                     "id": event["id"], "projectId": pid, "rootTaskId": task["id"],
                     "departments": normalize_departments(data["departments"]),
@@ -249,6 +257,7 @@ class SharedWorkspace:
                     "status": "pending", "createdBy": event["actor"],
                     "createdAt": event["at"], "reviewedBy": "", "reviewedAt": "",
                     "reason": "", "dispatchId": "",
+                    **({"hierarchyPolicyVersion": policy} if policy == QA_POLICY else {}),
                 }
             elif action == "hierarchy.rejected":
                 plan = hierarchy_plans.get(data["proposal_id"])
@@ -294,6 +303,7 @@ class SharedWorkspace:
                 plan = hierarchy_plans.get(data["proposal_id"])
                 if not plan or plan["projectId"] != pid or plan["status"] != "pending":
                     raise ValueError("Đề xuất phân phối chưa được phê duyệt")
+                policy = plan.get("hierarchyPolicyVersion", LEGACY_POLICY)
                 nodes = data["children"]
                 if not 4 <= len(nodes) <= 13:
                     raise ValueError("Số nhiệm vụ phân cấp không hợp lệ")
@@ -304,7 +314,11 @@ class SharedWorkspace:
                     if (nid in task_map or nid in seen or not EVENT_ID.fullmatch(nid)
                             or not parent or parent["projectId"] != pid
                             or node["stage"] not in STAGES - {"ceo"}
-                            or node["department"] not in DEPARTMENTS
+                            or node["department"] not in REPLAY_DEPARTMENTS
+                            or (node["department"] == "xd_qc" or node["agent_id"] == "QCX")
+                            and (policy != QA_POLICY or node["stage"] != "qa"
+                                 or node["department"] != "xd_qc" or node["agent_id"] != "QCX")
+                            or node["agent_id"] == "LEG"
                             or not isinstance(node.get("depends_on", []), list)
                             or any(d not in task_map for d in node["depends_on"])):
                         raise ValueError("Sơ đồ phân cấp không hợp lệ")
@@ -330,7 +344,10 @@ class SharedWorkspace:
                         "delegationPlanId": plan["id"],
                         "dependsOn": list(node["depends_on"]),
                         "assignedBy": event["actor"], "legacy": {},
+                        **({"hierarchyPolicyVersion": policy} if policy == QA_POLICY else {}),
                     }
+                if policy == QA_POLICY:
+                    task_map[plan["rootTaskId"]]["hierarchyPolicyVersion"] = policy
                 task_map[plan["rootTaskId"]]["hierarchyStage"] = "ceo"
                 task_map[plan["rootTaskId"]]["delegationPlanId"] = plan["id"]
                 plan.update({"status": "dispatched", "reviewedBy": event["actor"],
@@ -418,10 +435,10 @@ class SharedWorkspace:
                     "resolvedAt": event["at"], "resolvedBy": event["actor"],
                 })
             elif action in {"agent.started", "agent.failed"}:
-                from drive_storage.company_agents import agents
+                from drive_storage.company_agents import known_agent
                 from drive_storage.live_agents import ATTEMPT, ERROR_CODES
                 task = task_map.get(data.get("task_id"))
-                agent = agents().get(data.get("agent_id"))
+                agent = known_agent(data.get("agent_id"))
                 if (not task or task["projectId"] != pid or not agent
                         or (agent["department"] != task["dept"]
                             and agent["id"] not in {"PM", "CEO", "DOC", "QAC"})
@@ -433,10 +450,10 @@ class SharedWorkspace:
                 # No fabricated report or task status changes; events are
                 # projected separately into the read-only activity status.
             elif action == "agent.completed":
-                from drive_storage.company_agents import agents
+                from drive_storage.company_agents import known_agent
                 task_id, agent_id = data.get("task_id"), data.get("agent_id")
                 task = task_map.get(task_id)
-                profile = agents().get(agent_id)
+                profile = known_agent(agent_id)
                 if not task or task["projectId"] != pid or not profile:
                     raise ValueError("Báo cáo Agent không gắn với công việc hoặc Agent hợp lệ")
                 if (profile["department"] != task["dept"]
@@ -551,13 +568,16 @@ class SharedWorkspace:
         """Record a verified invocation, not proof of a durable running worker."""
         from drive_storage.live_agents import execution_event_id
         from drive_storage.company_agents import _task_context
-        from drive_storage.hierarchy import require_operator, dependencies_block
+        from drive_storage.hierarchy import require_operator, require_qc_role, dependencies_block
         if mode not in {"preflight", "llm", "expert", "expert_llm"}:
             raise ValueError("Chế độ Agent không hợp lệ")
         pid = self._check_project(identity, project_id, True)
         state = self.snapshot(identity)
         _, task, _, _ = _task_context(state, pid, task_id, agent_id)
         require_operator(identity, task)
+        require_qc_role(identity, task, state)
+        if agent_id == "QCX" and mode not in {"preflight", "expert"}:
+            raise PermissionError("QCX chỉ chạy kiểm tra nội bộ")
         if dependencies_block(task, state["tasks"]):
             raise PermissionError("Chưa đủ điều kiện phụ thuộc để chạy Agent")
         # A signed completed event of the same attempt must never be retried.
@@ -650,10 +670,12 @@ class SharedWorkspace:
             raise PermissionError("Chỉ Admin được cấu hình nhân sự phân cấp")
         pid = self._check_project(identity, project_id, True)
         email = clean_email(email)
-        if role not in ORG_ROLES or department not in {*DEPT_LABELS, "director", "qa"}:
+        if department == "xd_qc" and (not qcx_enabled(pid) or role not in {"qa", "none"}):
+            raise PermissionError("Vị trí QA/QC XD chỉ dùng trong dự án thí điểm")
+        if role not in ORG_ROLES or department not in {*DEPT_LABELS, "director", "qa", "xd_qc"}:
             raise ValueError("Chức danh hoặc bộ môn không hợp lệ")
         if ((role in {"director", "pm"} and department != "director")
-                or (role == "qa" and department != "qa")):
+                or (role == "qa" and department not in {"qa", "xd_qc"})):
             raise ValueError("Vai trò phải phù hợp bộ môn")
         return self._append(identity=identity, project_id=pid, action="org.role_set",
                             data={"email": email, "role": role,
@@ -674,9 +696,14 @@ class SharedWorkspace:
             raise ValueError("Giám đốc đã có phương án đang chờ duyệt hoặc đã phân phối")
         normalized = normalize_departments(departments)
         note = _clean_text(instructions, 500)
+        version = {}
+        if qcx_enabled(pid):
+            if len(self._records()) >= CANARY_LEDGER_LIMIT:
+                raise PermissionError("Nhật ký gần đầy, tạm dừng phân phối V7.5")
+            version["hierarchy_policy_version"] = QA_POLICY
         return self._append(identity=identity, project_id=pid, action="hierarchy.proposed",
                             data={"task_id": task_id, "departments": normalized,
-                                  "instructions": note}, event_id=event_id)
+                                  "instructions": note, **version}, event_id=event_id)
 
     def review_hierarchy(self, identity, *, project_id, proposal_id, decision,
                          reason="", event_id=None):
@@ -703,10 +730,13 @@ class SharedWorkspace:
                                 event_id=event_id)
         if decision != "approve":
             raise ValueError("Quyết định phân phối không hợp lệ")
+        policy = plan.get("hierarchyPolicyVersion", LEGACY_POLICY)
+        if policy == QA_POLICY and (not qcx_enabled(pid) or len(self._records()) >= CANARY_LEDGER_LIMIT):
+            raise PermissionError("Phân phối V7.5 đang tạm khóa cho dự án này")
         dispatch_id = str(event_id or uuid.uuid4().hex).lower()
         nodes = plan_tasks(root=task, departments=plan["departments"],
                            dispatch_id=dispatch_id, proposal_id=proposal_id,
-                           roles=[r for r in state["orgRoles"] if r["projectId"] == pid])
+                           policy_version=policy, roles=[r for r in state["orgRoles"] if r["projectId"] == pid])
         return self._append(identity=identity, project_id=pid,
                             action="hierarchy.approved",
                             data={"proposal_id": proposal_id, "children": nodes},
@@ -737,10 +767,12 @@ class SharedWorkspace:
         if not task.get("hierarchyStage"):
             return
         from drive_storage.hierarchy import (
-            require_operator, dependencies_block, unfinished_children,
+            require_operator, require_qc_role, dependencies_block, unfinished_children,
         )
-        tasks = self.snapshot(identity)["tasks"]
+        state = self.snapshot(identity)
+        tasks = state["tasks"]
         require_operator(identity, task)
+        require_qc_role(identity, task, state)
         waiting = dependencies_block(task, tasks)
         if waiting:
             raise PermissionError("Công việc còn phụ thuộc nhiệm vụ chưa duyệt: " +
@@ -790,6 +822,8 @@ class SharedWorkspace:
                            if t["id"] == task.get("parentTaskId")), None)
             if not parent or str(parent.get("assignee") or "").lower() != identity["email"].lower():
                 raise PermissionError("Chỉ cấp quản lý trực tiếp hoặc Admin được giao lại việc phân cấp")
+        if task["dept"] == "xd_qc":
+            raise PermissionError("Đổi nhân sự QCX qua cơ cấu và phương án phân phối mới")
         self._validate_task_agent(task["dept"], agent_id)
         assignee = _clean_text(assignee, 160)
         agent_id = _clean_text(agent_id, 20)
