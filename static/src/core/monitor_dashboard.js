@@ -15,7 +15,8 @@ const departments={
 const actions={
  'project.created':'Tạo dự án','task.created':'Tạo công việc','task.started':'Bắt đầu công việc',
  'task.submitted':'Trình duyệt công việc','task.approved':'Đã duyệt công việc',
- 'task.returned':'Trả lại công việc','agent.completed':'Agent hoàn thành phân tích',
+ 'task.returned':'Trả lại công việc','task.unassigned':'Thu hồi phân công',
+ 'task.cancelled':'Hủy công việc','agent.completed':'Agent hoàn thành phân tích',
  'handoff.requested':'Gửi phiếu phối hợp','handoff.resolved':'Đóng phiếu phối hợp',
  'document.registered':'Đăng ký hồ sơ','document.metadata_updated':'Sửa thông tin hồ sơ',
  'document.submitted':'Trình hồ sơ','document.approved':'Duyệt hồ sơ',
@@ -83,7 +84,7 @@ export function summarizeMonitor(packet,f,nowDate){
  const responseMinutes=solved.length?
   solved.reduce((n,h)=>n+minutesBetween(h.createdAt,h.resolvedAt),0)/solved.length:null;
  const today=localDay(now);
- const overdue=tasks.filter(t=>t.dueDate&&t.dueDate<today&&t.status!=='done');
+ const overdue=tasks.filter(t=>t.dueDate&&t.dueDate<today&&!['done','cancelled'].includes(t.status));
  const reviewStale=tasks.filter(t=>t.status==='review'&&t.reviewSince&&
   now-parseAt(t.reviewSince)>86400000);
  const pending=handoffs.filter(h=>h.status==='open');
@@ -102,7 +103,7 @@ export function summarizeMonitor(packet,f,nowDate){
   flows.set(key,(flows.get(key)||0)+1);
   handoffCounts.set(h.targetDept,(handoffCounts.get(h.targetDept)||0)+1);
  }
- const counts={todo:0,working:0,review:0,done:0};
+ const counts={todo:0,working:0,review:0,done:0,cancelled:0};
  for(const t of tasks)if(Object.prototype.hasOwnProperty.call(counts,t.status))counts[t.status]++;
  const alerts=[];
  if(staleHandoffs.length)alerts.push({level:'critical',
@@ -202,7 +203,8 @@ function donutChart(s){
  const vals=s.counts;
  const entries=[
   ['todo','Chưa bắt đầu',colors.cyan],['working','Đang làm',colors.amber],
-  ['review','Chờ duyệt',colors.purple],['done','Hoàn thành',colors.green]
+  ['review','Chờ duyệt',colors.purple],['done','Hoàn thành',colors.green],
+  ['cancelled','Đã hủy',colors.grey]
  ];
  const sum=entries.reduce((n,[k])=>n+vals[k],0);
  if(!sum)return empty('Chưa có công việc thuộc phạm vi đang xem');
@@ -346,7 +348,7 @@ function filteredDashboard(f){
  const agentLabels=id=>(st().agentsCatalog||[]).find(x=>x.id===id)?.title||id;
  return '<div class="v67-kpis">'+
  metric('LƯỢT AGENT HOÀN THÀNH',s.agentRuns,'Trong kỳ · '+s.agentsActiveInPeriod+' Agent','cyan','◎')+
- metric('CÔNG VIỆC ĐANG MỞ',s.tasks.filter(x=>x.status!=='done').length,'Tình trạng hiện tại','purple','▤')+
+ metric('CÔNG VIỆC ĐANG MỞ',s.tasks.filter(x=>!['done','cancelled'].includes(x.status)).length,'Tình trạng hiện tại','purple','▤')+
  metric('PHIẾU PHỐI HỢP ĐANG MỞ',s.pending.length,'MEP ↔ XD và nội bộ','green','⇄')+
  metric('PHẢN HỒI TRUNG BÌNH',s.responseMinutes===null?'—':timeDuration(s.responseMinutes),
     s.solved.length+' phiếu đóng trong kỳ','amber','◷')+
