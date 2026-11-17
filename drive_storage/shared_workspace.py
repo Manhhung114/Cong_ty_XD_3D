@@ -936,6 +936,8 @@ class SharedWorkspace:
         pid, task = self._current_task(identity, project_id, task_id)
         if task["status"] not in {"todo", "working"}:
             raise ValueError("Chỉ thu hồi phân công trước khi trình duyệt")
+        if task.get("meetingId") and not can_admin(identity):
+            raise PermissionError("Chỉ Admin được thu hồi đầu việc sau họp đã duyệt")
         if task.get("hierarchyStage") and not can_admin(identity):
             parent = next((t for t in self.snapshot(identity)["tasks"]
                            if t["id"] == task.get("parentTaskId")), None)
