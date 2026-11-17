@@ -107,7 +107,7 @@ export function summarizeMonitor(packet,f,nowDate){
  const alerts=[];
  if(staleHandoffs.length)alerts.push({level:'critical',
   title:staleHandoffs.length+' phiếu phối hợp quá 4 giờ',
-  detail:'MEP và XD cần phản hồi hoặc cập nhật trạng thái'});
+  detail:'Phòng nhận cần phản hồi hoặc cập nhật trạng thái'});
  if(overdue.length)alerts.push({level:'critical',
   title:overdue.length+' công việc quá hạn',detail:'PM kiểm tra người phụ trách và mốc tiến độ'});
  if(reviewStale.length)alerts.push({level:'warning',
@@ -173,8 +173,9 @@ function activityChart(s,f){
   if(j===undefined)continue;
   const channel=e.action==='agent.completed'?'agent':
    e.action.startsWith('handoff.')?'handoff':
-   /approved|returned/.test(e.action)?'approval':'task';
-  values[channel][j]++;
+   /^(task|document)\.(approved|returned)$/.test(e.action)?'approval':
+   e.action.startsWith('task.')?'task':null;
+  if(channel)values[channel][j]++;
  }
  const max=Math.max(1,...Object.values(values).flat());
  const left=48,right=662,top=18,bottom=202;
