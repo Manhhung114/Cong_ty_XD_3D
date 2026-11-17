@@ -33,7 +33,7 @@ def meeting_dialog(st, action):
         if not identity or not can_upload(identity):
             st.error("Tài khoản không có quyền cập nhật dự án")
             return
-        if not meetings_enabled():
+        if not meetings_enabled(str(action.get("projectId") or "")):
             st.warning("Quy trình họp V7.5.2 chưa được bật trên máy chủ sau kiểm thử")
             return
         if op in {"meeting_approve", "meeting_close"} and not can_admin(identity):
