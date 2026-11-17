@@ -395,6 +395,7 @@ def run_agent(workspace, identity, *, project_id: str, task_id: str,
     # Persist after computation. This is a draft and cannot approve anything.
     data = {
         "task_id": task_id, "agent_id": agent_id,
+        "attempt_id": str(event_id or ""),
         "provider": provider, "mode": mode,
         "model": str((ai_config or {}).get("model") or "")[:100] if mode == "llm" else "",
         "result": body, "missing": info["missing"], "risks": info["risks"],
