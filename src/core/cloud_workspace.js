@@ -28,6 +28,14 @@ const btn=(label,op,task='',other='outline')=>'<button type="button" class="btn 
 const role=()=>view().role||'read';
 const canWrite=()=>['update','admin'].includes(role());
 const canReview=()=>role()==='admin';
+const canReviewTask=t=>{
+ if(canReview())return true;
+ if(role()!=='update'||!t.parentTaskId||t.hierarchyStage==='qa')return false;
+ const parent=(view().tasks||[]).find(x=>x.id===t.parentTaskId);
+ const actor=(view().actor||'').toLowerCase();
+ return !!(parent&&(parent.assignee||'').toLowerCase()===actor&&
+  (t.assignee||'').toLowerCase()!==actor);
+};
 const taskWithdrawControl=t=>{
  if(!canWrite())return '';
  if(['done','cancelled'].includes(t.status))
@@ -159,7 +167,7 @@ const tasksHtml=filter=>{
  (canOperate&&!blocked&&(!progress.total||progress.done===progress.total)&&
   ['todo','working'].includes(t.status)?
   btn(returned?'Gửi lại báo cáo sau sửa':'Gửi báo cáo phê duyệt','task_submit',t.id,'primary'):'')+
- (canReview()&&t.status==='review'?btn('Xét duyệt / Trả lại','task_review',t.id,'primary'):'')+
+ (canReviewTask(t)&&t.status==='review'?btn('Xét duyệt / Trả lại','task_review',t.id,'primary'):'')+
  '</div>'+
  (history.length?'<details><summary>Lịch sử xử lý ('+history.length+')</summary>'+history.map(x=>'<p>'+h(x.at)+' · '+h(x.actor)+' · '+h(({withdraw:'Thu hồi phân công',cancel:'Hủy công việc',submitted:'Trình duyệt',approve:'Phê duyệt',reject:'Trả lại'})[x.decision]||x.decision)+' · '+h(x.note)+'</p>').join('')+'</details>':'')+
  '</article>';
@@ -348,7 +356,10 @@ export function bindCloudPage(root,section){
   if(op==='project_create'&&role()!=='admin')return;
   if(['task_create','task_assign','task_withdraw','task_start','task_submit','hierarchy_propose'].includes(op)&&!canWrite())return;
   if(['org_roles','hierarchy_review'].includes(op)&&!canReview())return;
-  if(op==='task_review'&&!canReview())return;
+  if(op==='task_review'){
+   const selected=(view().tasks||[]).find(t=>t.id===b.dataset.workspaceTask);
+   if(!selected||!canReviewTask(selected))return;
+  }
   send(section,op,b.dataset.workspaceTask||'');
  }));
  root.querySelectorAll('[data-agent-run-task]').forEach(b=>b.addEventListener('click',()=>{
