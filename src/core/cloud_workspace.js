@@ -18,7 +18,12 @@ const actionLabels={
  'document.submitted':'Trình hồ sơ',
  'document.approved':'Duyệt hồ sơ',
  'document.returned':'Trả hồ sơ yêu cầu sửa',
- 'document.archived':'Chuyển hồ sơ lưu trữ'
+ 'document.archived':'Chuyển hồ sơ lưu trữ',
+ 'meeting.created':'Lên lịch họp liên phòng',
+ 'meeting.minutes':'Gửi biên bản họp chờ duyệt',
+ 'meeting.approved':'Duyệt biên bản và giao đầu việc',
+ 'meeting.revision_requested':'Trả biên bản yêu cầu sửa',
+ 'meeting.closed':'Đóng cuộc họp đã giải quyết'
 };
 const view=()=>window.__xdCloud||{enabled:false,projects:[],tasks:[],documents:[],events:[]};
 const current=()=>{
@@ -100,9 +105,12 @@ const tasksHtml=filter=>{
   p.projectId===current()?.id&&p.status==='pending');
  return '<section class="panel padded"><div class="panel-heading"><h3>'+(filter?'Hồ sơ chờ phê duyệt':'Công việc dự án')+'</h3><span class="mini-label">'+tasks.length+' CÔNG VIỆC</span></div>'+
  (canWrite()&&!filter?'<div class="portal-review-actions">'+btn('＋ Tạo công việc','task_create','','primary')+
+  (view().meetingsAvailable?btn('📅 Họp phối hợp các bộ môn','meeting_create'):'')+
   (canReview()?btn('⚙ Cơ cấu tổ chức','org_roles'):'')+
   (canReview()&&pendingPlans.length?btn('✓ Duyệt phương án CEO ('+pendingPlans.length+')','hierarchy_review','','primary'):'')+
   '</div>':'')+
+ '<div class="portal-quickstart"><span><b>1</b> Giao việc</span><span><b>2</b> PM/Bộ môn nhận</span>'+
+ '<span><b>3</b> Họp phối hợp khi vướng</span><span><b>4</b> Kiểm tra & duyệt</span></div>'+
  '<div class="portal-tasks">'+tasks.map(t=>{
  const history=t.reviewHistory||[];
  const reports=(view().agentRuns||[]).filter(r=>r.taskId===t.id&&r.projectId===t.projectId);
@@ -153,6 +161,8 @@ const tasksHtml=filter=>{
   ' · '+h(t.lastSubmittedAt||'')+'</p>':'')+
  (t.dueDate?'<p>Hạn: '+h(t.dueDate)+'</p>':'')+
  (t.docCode?'<p>Hồ sơ: '+h(t.docCode)+'</p>':'')+
+ (t.meetingId?'<p class="company-secondary"><b>Đầu việc phát sinh từ cuộc họp:</b> '+
+  h(t.meetingId.slice(0,8).toUpperCase())+'</p>':'')+
  (t.report?'<div class="portal-report"><b>Báo cáo</b><p>'+h(t.report)+'</p><p>'+h(t.findings)+'</p></div>':'')+
  (reports.length?'<details><summary>🤖 Báo cáo nháp Agent ('+reports.length+')</summary>'+
  reports.map(run=>'<div class="company-run"><strong>'+h(run.agentTitle||run.agentId)+
@@ -174,6 +184,8 @@ const tasksHtml=filter=>{
  (canReview()&&activePlan&&t.hierarchyStage==='ceo'&&
   !['done','cancelled'].includes(t.status)?
   btn('⛔ Dừng toàn bộ cây phân phối','hierarchy_stop',t.id):'')+
+ (canWrite()&&view().meetingsAvailable&&!['cancelled','done'].includes(t.status)?
+   btn('📅 Mở họp liên bộ môn','meeting_create',t.id):'')+
  taskWithdrawControl(t)+
  (canOperate&&!blocked&&specialist&&['todo','working'].includes(t.status)?
   '<button type="button" class="btn primary small" data-agent-run-task="'+h(t.id)+'" data-agent-run-id="'+h(specialist.id)+'" data-agent-run-project="'+h(t.projectId)+'">🤖 Chạy Agent '+h(specialist.id)+'</button>':'')+
@@ -368,7 +380,7 @@ export function bindCloudPage(root,section){
    return;
   }
   if(op==='project_create'&&role()!=='admin')return;
-  if(['task_create','task_assign','task_withdraw','task_start','task_submit','hierarchy_propose'].includes(op)&&!canWrite())return;
+  if(['task_create','task_assign','task_withdraw','task_start','task_submit','hierarchy_propose','meeting_create'].includes(op)&&!canWrite())return;
   if(['org_roles','hierarchy_review','hierarchy_stop'].includes(op)&&!canReview())return;
   if(op==='task_review'){
    const selected=(view().tasks||[]).find(t=>t.id===b.dataset.workspaceTask);
