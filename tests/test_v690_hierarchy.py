@@ -233,5 +233,40 @@ class HierarchyFlowTests(unittest.TestCase):
         self.assertEqual(next(t for t in self.state()["tasks"] if t["id"] == self.root_id)
                          ["status"], "todo")
 
+    def test_admin_can_stop_whole_hierarchy_without_erasing_approved_children(self):
+        self.dispatch()
+        expert = self.node("expert")
+        self.ws.start_task(self.engineer, project_id=PROJECT, task_id=expert["id"])
+        self.ws.submit_task(self.engineer, project_id=PROJECT, task_id=expert["id"],
+                            summary="Báo cáo chuyên gia đã kiểm tra phần mẫu")
+        self.ws.review_task(self.lead, project_id=PROJECT,
+                            task_id=expert["id"], decision="approve")
+        with self.assertRaises(PermissionError):
+            self.ws.stop_hierarchy(self.editor, project_id=PROJECT,
+                                   task_id=self.root_id,
+                                   reason="Nhân viên không được dừng cây")
+        with self.assertRaises(ValueError):
+            self.ws.stop_hierarchy(self.admin, project_id=PROJECT,
+                                   task_id=self.root_id, reason="Sai")
+        original_count = len(self.ws.events())
+        self.ws.stop_hierarchy(self.admin, project_id=PROJECT,
+                               task_id=self.root_id,
+                               reason="Giám đốc dừng dự án do thay đổi phạm vi")
+        state = self.state()
+        self.assertEqual(state["hierarchyPlans"][0]["status"], "stopped")
+        self.assertEqual(next(t for t in state["tasks"] if t["id"] == expert["id"])
+                         ["status"], "done")
+        unfinished = [t for t in state["tasks"] if t["id"] != expert["id"]]
+        self.assertTrue(all(t["status"] == "cancelled" for t in unfinished))
+        self.assertEqual(len(self.ws.events()), original_count + 1)
+        self.assertTrue(any(e["action"] == "hierarchy.stopped" for e in self.ws.events()))
+        with self.assertRaises(PermissionError):
+            self.ws.start_task(self.qa, project_id=PROJECT,
+                               task_id=self.node("qa")["id"])
+        with self.assertRaises(ValueError):
+            self.ws.stop_hierarchy(self.admin, project_id=PROJECT,
+                                   task_id=self.root_id,
+                                   reason="Cây đã được dừng trước đó")
+
 if __name__ == "__main__":
     unittest.main()
