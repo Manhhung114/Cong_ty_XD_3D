@@ -32,11 +32,11 @@ function agentCards(){
  const profiles=s.agentsCatalog||[];
  return '<section class="panel padded company-suite">'+
  '<div class="panel-heading"><div><h2>18 Agent theo 16 phòng/khối nghiệp vụ</h2>'+
- '<p>Định rõ chuyên môn, kỹ năng, đầu ra và người phối hợp; chỉ chạy theo công việc được giao.</p></div>'+
+ '<p>Định rõ chuyên môn và kết quả. Chỉ hiện Đã chạy khi có sự kiện Agent hoàn thành và lưu báo cáo.</p></div>'+
  '<span class="mini-label">'+profiles.length+' AGENT</span></div>'+
  '<div class="company-notice">'+(configured?
- 'Đã kết nối mô hình <strong>'+h(s.aiStatus.provider+' / '+s.aiStatus.model)+'</strong> trên máy chủ. Khi chạy AI, yêu cầu sự đồng ý gửi metadata dự án ra nhà cung cấp.':
- 'Chưa cấu hình AI máy chủ. <strong>Kiểm tra checklist đầu vào</strong> vẫn chạy thật; chưa có phân tích từ mô hình AI. Admin cần đặt [ai] trong Streamlit Secrets.')+
+ 'Đã cấu hình AI dùng chung trên máy chủ: <strong>'+h(s.aiStatus.provider+' / '+s.aiStatus.model)+'</strong> trên máy chủ. Khi chạy AI, yêu cầu sự đồng ý gửi metadata dự án ra nhà cung cấp.':
+ 'Chưa cấu hình AI máy chủ. <strong>Kiểm tra checklist đầu vào</strong> vẫn chạy thật; chưa có phân tích từ mô hình AI. Admin vào Cài đặt → API dùng chung để lưu khóa mã hóa một lần cho cả công ty.')+
  '<br>V6.4–6.6: đã có bộ đọc mẫu PDF/XLSX/CSV/DXF/IFC và kiểm tra BOQ/công thức có nguồn; <strong>DWG/RVT, IFC clash hình học và file trên 8 MB vẫn cần worker</strong>. Mọi báo cáo cần kỹ sư thẩm tra.</div>'+
  '<div class="company-agent-grid">'+profiles.map(a=>{
  const isCoordinator=['CEO','PM','DOC','QAC'].includes(a.id);
