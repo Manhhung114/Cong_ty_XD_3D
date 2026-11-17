@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {renderCloudPage} from '../src/core/cloud_workspace.js';
+import {renderCloudPage,bindCloudPage} from '../src/core/cloud_workspace.js';
 import {renderCompanySuite,bindCompanySuite} from '../src/core/company_suite.js';
 
 const project='project-folder-000001';
@@ -78,4 +78,31 @@ test('meeting approval sends only a scoped authenticated workspace command',()=>
  assert.equal(messages[0].projectId,project);
  assert.equal(messages[0].nonce,'n'.repeat(32));
  assert.equal(messages[0].kind,'workspace');
+});
+
+test('mobile-friendly task focus filters only change local view and not signed data',()=>{
+ setup('admin',true,'scheduled');
+ window.__xdCloud.meetings[0].taskIds=[task];
+ const makeControl=mode=>({
+   dataset:{taskFocus:mode},attrs:{},addEventListener:(name,handler)=>{assert.equal(name,'click');controlHandlers[mode]=handler},
+   setAttribute(key,val){this.attrs[key]=val}
+ });
+ const controlHandlers={};
+ const tabs=['all','mine','cross'].map(makeControl);
+ const card={dataset:{taskId:task},hidden:false};
+ const empty={hidden:true};
+ const root={
+   querySelector:selector=>selector==='[data-task-focus-empty]'?empty:null,
+   querySelectorAll:selector=>selector==='[data-task-focus]'?tabs:
+     selector==='.portal-task[data-task-id]'?[card]:[],
+ };
+ bindCloudPage(root,'tasks');
+ controlHandlers.mine();
+ assert.equal(card.hidden,true);
+ assert.equal(empty.hidden,false);
+ controlHandlers.cross();
+ assert.equal(card.hidden,false);
+ assert.equal(empty.hidden,true);
+ assert.equal(tabs[2].attrs['aria-pressed'],'true');
+ assert.equal(window.__xdCloud.tasks.length,1);
 });
