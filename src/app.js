@@ -28,7 +28,7 @@ const NAV=[
 {id:'documents',icon:'▤',name:'Kho tài liệu'},
 {id:'boq',icon:'▦',name:'BOQ / Dự toán'},
 {id:'bim',icon:'⬡',name:'BIM / Mô hình'},
-{id:'company',icon:'⇄',name:'Phối hợp liên phòng'},
+{id:'company',icon:'⇄',name:'Phối hợp & Họp'},
 {id:'monitor',icon:'▥',name:'Giám sát Agent'},
 {id:'reports',icon:'◫',name:'Báo cáo & Thống kê'},
 {id:'legal',icon:'§',name:'Pháp luật & tiêu chuẩn'},
@@ -225,7 +225,7 @@ const pageContent={
  '<section class="panel padded"><h2>Điều hành công ty</h2><p>Cần đăng nhập Google và kết nối dữ liệu dùng chung trên máy chủ.</p></section>',
  boq:boqPage,bim:bimPage,roadmap:roadmapPage
 };
-const subtitles={projects:'Dự án dùng chung theo quyền truy cập, đồng bộ từ máy chủ.',settings:'Cấu hình nhà cung cấp API, khóa bảo vệ và model cho từng Agent.',reviews:'Phê duyệt có tài khoản Google, lịch sử và nhật ký dùng chung.',overview:'Văn phòng 3D gồm MEP và Xây dựng; ban điều hành dùng chung.',agents:'Kỹ năng theo bộ môn, kết quả nháp và kiểm tra kỹ thuật có truy vết.',company:'Bảng điều hành liên phòng, phối hợp xử lý, rủi ro và sao lưu kiểm soát.',monitor:'Graphic hoạt động Agent, hai hệ MEP/XD và phối hợp liên hệ, cập nhật mỗi 15 giây.',reports:'Tổng hợp công việc, phòng ban và dự án được cấp quyền.',tasks:'Công việc dự án đồng bộ trên Google Drive theo phân quyền.',documents:'Sổ hồ sơ và phiên bản tập trung theo dự án trên Drive.',boq:'Nhập bảng BOQ thực tế để phân tích khối lượng.',bim:'Quản lý hồ sơ BIM; chưa có công cụ xem IFC.',legal:'Tra cứu văn bản pháp luật và tiêu chuẩn từ nguồn chính thống.',activity:'Nhật ký kiểm tra và truy vết hoạt động theo dự án.',roadmap:'Các mốc phát triển của ứng dụng.'};
+const subtitles={projects:'Dự án dùng chung theo quyền truy cập, đồng bộ từ máy chủ.',settings:'Cấu hình nhà cung cấp API, khóa bảo vệ và model cho từng Agent.',reviews:'Phê duyệt có tài khoản Google, lịch sử và nhật ký dùng chung.',overview:'Văn phòng 3D gồm MEP và Xây dựng; ban điều hành dùng chung.',agents:'Kỹ năng theo bộ môn, kết quả nháp và kiểm tra kỹ thuật có truy vết.',company:'Điều phối liên bộ môn, họp giải quyết vướng mắc, giao đầu việc sau họp và theo dõi kết quả.',monitor:'Graphic hoạt động Agent, hai hệ MEP/XD và phối hợp liên hệ, cập nhật mỗi 15 giây.',reports:'Tổng hợp công việc, phòng ban và dự án được cấp quyền.',tasks:'Công việc dự án đồng bộ trên Google Drive theo phân quyền.',documents:'Sổ hồ sơ và phiên bản tập trung theo dự án trên Drive.',boq:'Nhập bảng BOQ thực tế để phân tích khối lượng.',bim:'Quản lý hồ sơ BIM; chưa có công cụ xem IFC.',legal:'Tra cứu văn bản pháp luật và tiêu chuẩn từ nguồn chính thống.',activity:'Nhật ký kiểm tra và truy vết hoạt động theo dự án.',roadmap:'Các mốc phát triển của ứng dụng.'};
 // The Drive toolbar is scoped to each sheet; no separate upload page.
 function driveToolbar(sheet){
  const known=['projects','documents','boq','bim','tasks','reviews'];
