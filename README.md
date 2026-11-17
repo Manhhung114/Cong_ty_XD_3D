@@ -1,3 +1,13 @@
+# V6.7.1 – Giao diện mới theo hình mẫu đã duyệt
+
+**Thanh điều khiển toàn chiều rộng** có tên công ty, phiên bản, trạng thái Google Drive/gần thời gian thực, chuông cảnh báo thật, trợ giúp và tài khoản. **Menu trái** với icon SVG đồng bộ và ảnh kiến trúc công trình phía dưới; **màn hình Giám sát Agent** có KPI/biểu đồ/timeline xếp gần sát mẫu. Nền ứng dụng được đồng bộ xanh đen–cyan; màu đỏ chỉ dành cho cảnh báo (không sao chép khung đỏ đánh dấu trên ảnh).
+
+Chức năng **Báo cáo & Thống kê** là bảng dữ liệu **chỉ đọc**, phân quyền dự án trên server. Quyền Cài đặt chỉ Admin, đăng nhập Google, Google Drive, lịch sử V6.7 và các thuật toán Agent V6.6 đều được giữ nguyên. Không sử dụng dữ liệu demo của ảnh; nếu chưa có sự kiện, các graphic hiển thị trạng thái trống. Đăng xuất vẫn sử dụng nút Streamlit ngoài iframe.
+
+[Đối chiếu giao diện và checklist nghiệm thu V6.7.1](docs/V671_APPROVED_VISUAL_REDESIGN.md). **Cần nghiệm thu trình duyệt thực tế** trên desktop 1648×928, laptop 1366×768 và mobile sau khi Streamlit deploy.
+
+---
+
 # V6.7 — Graphic theo dõi Agent & phối hợp hai hệ MEP ↔ Xây dựng
 
 Đã bổ sung sheet **Giám sát Agent** theo giao diện dark navy/xanh cyan đã duyệt; toàn bộ nền sidebar, topbar và card của ứng dụng sử dụng cùng ngôn ngữ thiết kế. Dashboard gồm KPI, biểu đồ theo thời gian, trạng thái công việc, hoạt động theo phòng, Sankey, network, timeline phiếu phối hợp, Top Agent/điểm nghẽn, activity feed và cảnh báo.
