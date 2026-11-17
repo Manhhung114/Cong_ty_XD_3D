@@ -215,7 +215,7 @@ class SharedWorkspace:
                     "createdBy": event["actor"], "createdAt": event["at"],
                     "legacy": data.get("legacy", {}),
                     "parentTaskId": "", "rootTaskId": tid,
-                    "hierarchyStage": "ceo" if data.get("agent_id") == "CEO" else "",
+                    "hierarchyStage": "",
                     "delegationPlanId": "", "dependsOn": [],
                     "assignedBy": event["actor"],
                 }
@@ -298,6 +298,8 @@ class SharedWorkspace:
                         "dependsOn": list(node["depends_on"]),
                         "assignedBy": event["actor"], "legacy": {},
                     }
+                task_map[plan["rootTaskId"]]["hierarchyStage"] = "ceo"
+                task_map[plan["rootTaskId"]]["delegationPlanId"] = plan["id"]
                 plan.update({"status": "dispatched", "reviewedBy": event["actor"],
                              "reviewedAt": event["at"], "dispatchId": event["id"]})
             elif action.startswith("task."):
