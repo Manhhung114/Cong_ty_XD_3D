@@ -15,7 +15,7 @@ from drive_storage.shared_workspace import SharedWorkspace, DEPARTMENTS
 
 COMMANDS = {
     "projects": {"refresh", "select", "project_create", "project_import"},
-    "tasks": {"refresh", "select", "task_create", "task_start", "task_submit"},
+    "tasks": {"refresh", "select", "task_create", "task_assign", "task_start", "task_submit"},
     "reviews": {"refresh", "select", "task_review"},
     "documents": {"refresh", "select", "document_inventory", "document_manage"},
     "activity": {"refresh", "select"},
@@ -31,7 +31,7 @@ DEPARTMENT_NAMES = {
     "xd_planning": "Kế hoạch", "xd_site": "Hiện trường",
     "xd_safety": "An toàn XD", "xd_material": "Vật tư",
 }
-INTERACTIVE = {"project_create", "project_import", "task_create", "task_submit",
+INTERACTIVE = {"project_create", "project_import", "task_create", "task_assign", "task_submit",
                "task_review", "document_manage", "agent_run", "handoff_create",
                "handoff_resolve", "ops_audit"}
 
@@ -145,7 +145,7 @@ def handle_workspace_action(st, action: dict):
         return
     if op in {"project_create", "project_import"} and not can_admin(actor):
         raise PermissionError("Chỉ Admin được tạo dự án")
-    if op in {"task_create", "task_start", "task_submit"} and not can_upload(actor):
+    if op in {"task_create", "task_assign", "task_start", "task_submit"} and not can_upload(actor):
         raise PermissionError("Tài khoản Chỉ đọc không được cập nhật công việc")
     if op in {"agent_run", "handoff_create", "handoff_resolve"} and not can_upload(actor):
         raise PermissionError("Chỉ đọc không được chạy Agent hoặc gửi phối hợp")
@@ -156,7 +156,7 @@ def handle_workspace_action(st, action: dict):
     if op not in {"project_create", "project_import", "ops_audit"} and pid not in {p["id"] for p in current["projects"]}:
         raise PermissionError("Dự án không thuộc phạm vi")
     task_id = str(action.get("taskId") or "")
-    if op in {"task_start", "task_submit", "task_review", "agent_run"}:
+    if op in {"task_assign", "task_start", "task_submit", "task_review", "agent_run"}:
         if not any(t["id"] == task_id and t["projectId"] == pid
                    for t in current["tasks"]):
             raise PermissionError("Nhiệm vụ không thuộc dự án")
@@ -216,6 +216,7 @@ def workspace_dialog(st):
         "project_create": "V5.9 · Tạo dự án trên máy chủ",
         "project_import": "V5.9 · Nhập dữ liệu từ bản sao cục bộ",
         "task_create": "V5.9 · Giao công việc",
+        "task_assign": "V6.7.6 · Gán người phụ trách và Agent",
         "task_submit": "V6.0 · Trình báo cáo phê duyệt",
         "task_review": "V6.0 · Quyết định phê duyệt",
     }
@@ -230,7 +231,7 @@ def workspace_dialog(st):
         if op in {"project_create", "project_import", "task_review"} and not can_admin(actor):
             st.error("Không có quyền quản trị/phê duyệt")
             return
-        if op in {"task_create", "task_submit"} and not can_upload(actor):
+        if op in {"task_create", "task_assign", "task_submit"} and not can_upload(actor):
             st.error("Không có quyền cập nhật")
             return
         if st.button("Đóng", key="xd_workspace_dialog_close"):
@@ -247,7 +248,7 @@ def workspace_dialog(st):
                 return
             task = next((t for t in current["tasks"] if t["id"] == action["taskId"]
                          and t["projectId"] == pid), None)
-            if op in {"task_submit", "task_review"} and not task:
+            if op in {"task_assign", "task_submit", "task_review"} and not task:
                 st.error("Nhiệm vụ không tồn tại")
                 return
         except Exception:
@@ -321,12 +322,19 @@ def workspace_dialog(st):
                     )
 
         elif op == "task_create":
+            from drive_storage.company_agents import agents
+            catalog = agents()
             with st.form("cloud_task_create"):
                 st.caption("Dự án: " + project["code"] + " · " + project["name"])
                 title = st.text_input("Tên công việc", max_chars=240)
                 dept = st.selectbox("Bộ môn", sorted(DEPARTMENTS),
                                     format_func=lambda x: DEPARTMENT_NAMES.get(x, x))
                 assignee = st.text_input("Người phụ trách (tên hoặc email)", max_chars=160)
+                agent_id = st.selectbox(
+                    "Agent được giao (tùy chọn; phải đúng bộ môn)",
+                    ["", *catalog], format_func=lambda aid: "— Chưa giao Agent —"
+                    if not aid else catalog[aid]["title"] + " · " + aid,
+                )
                 doc_code = st.text_input("Mã hồ sơ liên quan", max_chars=80)
                 priority = st.selectbox("Mức độ ưu tiên", ["normal", "low", "high", "critical"],
                                         format_func=lambda p: {"normal": "Bình thường", "low": "Thấp",
@@ -337,18 +345,58 @@ def workspace_dialog(st):
                 try:
                     server.create_task(
                         actor, project_id=pid, title=title, dept=dept,
-                        assignee=assignee, doc_code=doc_code,
+                        assignee=assignee, agent_id=agent_id, doc_code=doc_code,
                         priority=priority,
                         due_date=deadline.isoformat() if deadline else "",
                         event_id=action["actionId"],
                     )
                     st.session_state.xd_workspace_dialog = None
-                    st.session_state.xd_workspace_feedback = "Đã giao công việc lên dữ liệu tập trung."
+                    st.session_state.xd_workspace_feedback = "Đã tạo nhiệm vụ và lưu phân công. Agent chưa chạy cho đến khi bấm Chạy Agent."
                     st.rerun()
                 except (PermissionError, ValueError) as error:
                     st.error(str(error))
                 except Exception:
                     st.error("Không tạo được công việc. Kiểm tra kết nối Drive.")
+
+        elif op == "task_assign":
+            from drive_storage.company_agents import agents
+            catalog = agents()
+            candidates = [aid for aid, profile in catalog.items()
+                          if profile["department"] == task["dept"] or
+                          aid in {"CEO", "PM", "DOC", "QAC"}]
+            with st.form("v676_task_assignment"):
+                st.markdown("**" + task["code"] + " · " + task["title"] + "**")
+                st.caption("Giao nhiệm vụ không tự chạy AI. Sau khi lưu, chọn Chạy Agent ngay trên thẻ công việc.")
+                assignee = st.text_input(
+                    "Kỹ sư/người phụ trách",
+                    value=str(task.get("assignee") or ""), max_chars=160
+                )
+                old_agent = str(task.get("assignedAgentId") or "")
+                options = ["", *candidates]
+                agent_id = st.selectbox(
+                    "Chuyên gia AI được giao",
+                    options, index=options.index(old_agent) if old_agent in options else 0,
+                    format_func=lambda aid: "— Chưa gán Agent —" if not aid
+                    else catalog[aid]["title"] + " (" + aid + ")",
+                )
+                submitted = st.form_submit_button("Lưu phân công", type="primary")
+            if submitted:
+                try:
+                    server.assign_task(
+                        actor, project_id=pid, task_id=task_id,
+                        assignee=assignee, agent_id=agent_id,
+                        event_id=action["actionId"],
+                    )
+                    st.session_state.xd_workspace_dialog = None
+                    st.session_state.xd_workspace_feedback = (
+                        "Đã lưu người phụ trách và Agent vào dữ liệu dùng chung. "
+                        "Để xử lý, bấm Chạy Agent trên thẻ công việc."
+                    )
+                    st.rerun()
+                except (PermissionError, ValueError) as exc:
+                    st.error(str(exc))
+                except Exception:
+                    st.error("Không lưu được phân công. Dữ liệu cũ vẫn giữ nguyên.")
 
         elif op == "task_submit":
             st.markdown("**Công việc:** " + task["title"])

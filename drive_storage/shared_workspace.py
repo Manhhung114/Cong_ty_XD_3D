@@ -29,7 +29,7 @@ DEPARTMENTS = {
 }
 ACTIONS = {
     "project.created", "task.created", "task.started",
-    "task.submitted", "task.approved", "task.returned", "document.registered",
+    "task.submitted", "task.approved", "task.returned", "task.assigned", "document.registered",
     "document.metadata_updated", "document.submitted", "document.approved",
     "document.returned", "document.archived",
     "agent.completed", "handoff.requested", "handoff.resolved",
@@ -199,7 +199,8 @@ class SharedWorkspace:
                 task_map[tid] = {
                     "id": tid, "projectId": pid, "code": "CV-" + tid[:8].upper(),
                     "title": data["title"], "dept": data["dept"],
-                    "assignee": data.get("assignee", ""), "docCode": data.get("docCode", ""),
+                    "assignee": data.get("assignee", ""), "assignedAgentId": data.get("agent_id", ""),
+                    "docCode": data.get("docCode", ""),
                     "dueDate": data.get("dueDate", ""), "status": "todo",
                     "priority": data.get("priority", "normal"),
                     "report": "", "findings": "", "reviewHistory": [],
@@ -210,7 +211,10 @@ class SharedWorkspace:
                 task = task_map.get(data.get("task_id"))
                 if task is None or task["projectId"] != pid:
                     raise ValueError("Nhật ký có nhiệm vụ không hợp lệ")
-                if action == "task.started":
+                if action == "task.assigned":
+                    task["assignee"] = data.get("assignee", "")
+                    task["assignedAgentId"] = data.get("agent_id", "")
+                elif action == "task.started":
                     if task["status"] == "todo":
                         task["status"] = "working"
                 elif action == "task.submitted":
@@ -386,7 +390,7 @@ class SharedWorkspace:
         return project_id
 
     def create_task(self, identity, *, project_id, title, dept, assignee="",
-                    doc_code="", due_date="", priority="normal", event_id=None):
+                    doc_code="", due_date="", priority="normal", agent_id="", event_id=None):
         pid = self._check_project(identity, project_id, True)
         if dept not in DEPARTMENTS:
             raise ValueError("Bộ môn không hợp lệ")
@@ -394,11 +398,38 @@ class SharedWorkspace:
             raise ValueError("Độ ưu tiên không hợp lệ")
         if due_date and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", due_date):
             raise ValueError("Ngày hạn không hợp lệ")
+        self._validate_task_agent(dept, agent_id)
         return self._append(
             identity=identity, project_id=pid, action="task.created",
             data={"title": _clean_text(title, 240, True), "dept": dept,
-                  "assignee": _clean_text(assignee, 160), "docCode": _clean_text(doc_code, 80),
+                  "assignee": _clean_text(assignee, 160), "agent_id": agent_id,
+                  "docCode": _clean_text(doc_code, 80),
                   "dueDate": due_date, "priority": priority}, event_id=event_id,
+        )
+
+    @staticmethod
+    def _validate_task_agent(dept, agent_id):
+        if not agent_id:
+            return
+        from drive_storage.company_agents import agents
+        profile = agents().get(agent_id)
+        if not profile:
+            raise ValueError("Agent được giao không tồn tại")
+        if profile["department"] != dept and agent_id not in {"CEO", "PM", "DOC", "QAC"}:
+            raise ValueError("Agent không thuộc bộ môn được giao")
+
+    def assign_task(self, identity, *, project_id, task_id, assignee="",
+                    agent_id="", event_id=None):
+        pid, task = self._current_task(identity, project_id, task_id)
+        if task["status"] not in {"todo", "working"}:
+            raise ValueError("Chỉ điều chỉnh phân công khi nhiệm vụ chưa trình duyệt")
+        self._validate_task_agent(task["dept"], agent_id)
+        assignee = _clean_text(assignee, 160)
+        agent_id = _clean_text(agent_id, 20)
+        return self._append(
+            identity=identity, project_id=pid, action="task.assigned",
+            data={"task_id": task_id, "assignee": assignee,
+                  "agent_id": agent_id}, event_id=event_id,
         )
 
     def _current_task(self, identity, project_id, task_id):

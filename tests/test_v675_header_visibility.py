@@ -49,7 +49,7 @@ class HeaderVisibilityFixTests(unittest.TestCase):
         self.assertIn("--xd-visible-header",html)
         self.assertIn("data:image/svg+xml;base64,",html)
         self.assertNotIn('./assets/premium_header_visible_v675.svg',html)
-        self.assertIn("V6.7.5",html)
+        self.assertIn("V6.7.6",html)
         app=(BASE/"streamlit_app.py").read_text(encoding="utf8")
         self.assertLess(app.index("role = require_login(st)"),app.index("st.iframe(page"))
         js=(BASE/"src/app.js").read_text(encoding="utf8")

@@ -16,18 +16,21 @@ from drive_storage.company_agents import (
 from drive_storage.workspace_ui import service_for, DEPARTMENT_NAMES
 from drive_storage.expert_orchestrator import run_expert
 from drive_storage.expert_tools import SUPPORTED, NOT_SUPPORTED
+from drive_storage.ai_vault import effective_config
 
 OPS = {"agent_run", "handoff_create", "handoff_resolve", "ops_audit"}
 
 
 def ai_status(st):
-    """Only expose the configured state, never an API key or URL."""
-    config = dict(st.secrets.get("ai", {}))
-    provider = str(config.get("provider") or "").lower()
-    model = str(config.get("model") or "")
-    configured = provider in {"openai", "gemini"} and bool(config.get("api_key")) and bool(model)
-    return {"configured": configured, "provider": provider if configured else "none",
-            "model": model[:100] if configured else "", "mode": "server_only_optional"}
+    """Expose only non-secret status; a corrupt shared vault disables AI."""
+    from drive_storage.ai_vault import safe_status
+    try:
+        return safe_status(st)
+    except Exception:
+        # The dashboard stays usable even if the secret vault needs recovery.
+        # Any real AI run will fail closed when resolving its credentials.
+        return {"configured": False, "provider": "none", "model": "",
+                "shared": False, "mode": "server_only", "error": "vault_unavailable"}
 
 
 def company_dialog(st, action):
@@ -141,7 +144,7 @@ def company_dialog(st, action):
                 )
             if not configured["configured"]:
                 st.caption("Chưa kích hoạt nhà cung cấp AI trên máy chủ. "
-                           "Admin cấu hình [ai] provider/api_key/model trong Streamlit Secrets. "
+                           "Admin vào Cài đặt → API dùng chung để lưu khóa trên Drive. "
                            "Checklist vẫn hoạt động độc lập.")
             if submit:
                 try:
@@ -154,7 +157,7 @@ def company_dialog(st, action):
                             server, identity, project_id=pid, task_id=task_id,
                             agent_id=agent_id, file_id=selected["id"], mode=mode,
                             note=note, consent=consent,
-                            ai_config=dict(st.secrets.get("ai", {})),
+                            ai_config=effective_config(st, agent_id),
                             event_id=action["actionId"],
                         )
                     else:

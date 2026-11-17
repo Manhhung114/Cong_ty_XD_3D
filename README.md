@@ -1,3 +1,15 @@
+# V6.7.6 – Giao việc cho Agent và API chung toàn công ty
+
+**Kiểm tra phát hiện:** Nhiệm vụ hiển thị `electrical · Chưa giao` nhưng có trạng thái `Đang thực hiện` chỉ là công việc đã bắt đầu; không chứng minh Agent đang hoạt động. API cũ trong Settings là local/browser, trong khi Agent server dùng Streamlit Secrets — không chia sẻ key với nhân viên khác.
+
+**Khắc phục:** Admin vào **Cài đặt → API & 18 Agent**, cấu hình key/model **một lần** trong dialog trên server. Kho dùng chung được mã hóa **AES-256-GCM trên Google Drive**, khóa giải mã giữ hoàn toàn ở Streamlit server. Các tài khoản đã cấp quyền dùng cùng provider/model mà **không bao giờ thấy key**. Trong sheet **Công việc**, có nút **Gán / Sửa phân công** (kỹ sư + Agent), **🤖 Chạy Agent** và chỉ báo **Agent chưa chạy / Đã có báo cáo nháp**. Mọi phân công và kết quả được ghi nhật ký có chữ ký, không giả lập hoàn thành.
+
+**Không tự chạy nền** khi gán Agent; mỗi lượt cần người dùng chọn chạy và, nếu dùng LLM, xác nhận gửi dữ liệu tới nhà cung cấp. Đây không phải worker/job queue tự động; kết quả vẫn cần kỹ sư thẩm tra. Dữ liệu cũ, OAuth, phân quyền Admin và Google Drive được giữ nguyên.
+
+[Quy trình thiết lập một lần và checklist nghiệm thu V6.7.6](docs/V676_SHARED_AI_AGENT_ASSIGNMENT.md).
+
+---
+
 # V6.7.5 – Header Visibility Fix
 
 Đã khắc phục hiện tượng **chỉ thấy mái tòa nhà** ở header: thay ảnh SVG 3200×420 bị crop trong thanh cao 64px bằng **panorama vector mới 3200×120** có đủ mái, tầng kính, cửa chính và cảnh quan. Giảm lớp phủ tối ở trung tâm, giữ vùng chữ và nút Google Drive rõ nét; vẫn trải ngang trên desktop và mobile. Không đổi mã nguồn điều khiển nghiệp vụ, OAuth, quyền Admin hay dữ liệu Drive.
