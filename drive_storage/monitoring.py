@@ -165,7 +165,8 @@ def build_monitor_packet(identity, snapshot: dict, signed_events: list[dict],
         "priority": t.get("priority", "normal"),
     } for t in tasks]
     return {
-        "schema": "XD_MEP_MONITOR_V70",
+        "schema": "XD_MEP_MONITOR_V67",
+        "featuresVersion": "V7.0.0",
         "readOnly": True, "authorizedProjects": len(allowed),
         "asOf": now.isoformat(), "pollSeconds": 15,
         "windowDays": WINDOW_DAYS, "events": limited,
