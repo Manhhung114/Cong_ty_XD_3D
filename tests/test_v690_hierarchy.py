@@ -260,7 +260,7 @@ class HierarchyFlowTests(unittest.TestCase):
         self.assertTrue(all(t["status"] == "cancelled" for t in unfinished))
         self.assertEqual(len(self.ws.events()), original_count + 1)
         self.assertTrue(any(e["action"] == "hierarchy.stopped" for e in self.ws.events()))
-        with self.assertRaises(PermissionError):
+        with self.assertRaises(ValueError):
             self.ws.start_task(self.qa, project_id=PROJECT,
                                task_id=self.node("qa")["id"])
         with self.assertRaises(ValueError):
