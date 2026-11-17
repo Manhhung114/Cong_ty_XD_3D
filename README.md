@@ -1,3 +1,13 @@
+# V6.9.0 — Hệ thống phân phối công việc AI theo cấp bậc (17/11/2026)
+
+Từ sheet **Công việc**, tạo việc cấp Giám đốc (`director + CEO`) → bấm **Giám đốc AI lập phương án** → Admin **Duyệt phân phối** → sinh tự động cây **PM → trưởng bộ môn → chuyên gia + QA/QC** (có mã CV-, quan hệ cha–con, danh bạ nhân sự và tiến độ). Người quản lý trực tiếp được duyệt đầu ra cấp dưới; QA độc lập và CEO cuối cùng do Admin duyệt. Toàn bộ phân công ghi trên nhật ký HMAC Google Drive, không xóa hồ sơ cũ.
+
+Trước khi phân việc, Admin vào **⚙ Cơ cấu tổ chức** để gán email chức danh cho từng dự án. Việc này **không tự cấp quyền đăng nhập**: phải phân quyền Google OIDC `Cập nhật` riêng. Cấp dưới chỉ được làm việc sau khi tiền nhiệm hoàn thành; không tự chạy model AI. Hệ thống gợi ý bộ môn từ từ khóa và phân việc theo quy tắc đã duyệt, **không phải LLM CEO tự lập kế hoạch**, không có worker chạy nền. Báo cáo vẫn là nháp kỹ thuật cần người thẩm tra, không chứng nhận TCVN/QCVN. Cần nghiệm thu trực tiếp trước khi coi là production.
+
+Chi tiết: [V6.9.0 Hierarchical AI Task Orchestrator](docs/V690_HIERARCHICAL_AI_TASK_ORCHESTRATOR.md).
+
+---
+
 # V6.8.0 — Phản hồi Agent, đóng hộp thoại và xử lý công việc không chấp thuận (17/11/2026)
 
 **Nguồn kiểm tra:** video ứng dụng 16:11 ngày 17/11 và báo cáo Agent Kỹ sư Điện AI (DXF có SHA-256). V6.6 đã tạo báo cáo nháp kỹ thuật có nguồn; chỉ lấy mẫu 300 records; không xác nhận bản vẽ đạt quy chuẩn hoặc đã tính toán đầy đủ.
