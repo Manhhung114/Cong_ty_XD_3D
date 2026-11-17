@@ -198,6 +198,12 @@ def unfinished_children(task: dict, tasks: list[dict]) -> list[dict]:
 
 
 def require_operator(identity: dict, task: dict, operation: str = "run"):
+    # Tasks created by signed meeting approval belong to the named assignee,
+    # unlike old flat tasks. This does not retroactively change old projects.
+    if task.get("meetingId") and identity.get("role") != "admin":
+        expected = str(task.get("assignee") or "").strip().casefold()
+        if not expected or clean_email(identity.get("email", "")) != expected:
+            raise PermissionError("Đầu việc sau họp chỉ người được giao hoặc Admin được thực hiện")
     if task.get("dept") == "xd_qc":
         from drive_storage.v75_rollout import qcx_enabled
         if not qcx_enabled(task["projectId"]):
