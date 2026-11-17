@@ -61,7 +61,7 @@ test('Assigned does not mean finished; signed report creates visible draft only'
  }};
  const html=renderCloudPage('tasks');
  assert.match(html,/Đã tạo 1 báo cáo nháp/);
- assert.match(html,/cần kỹ sư kiểm chứng/);
+ assert.match(html,/chờ kỹ sư kiểm chứng/);
  assert.match(html,/Chưa giao/);
 });
 test('Bridge, secure role and same source/static modules retained',()=>{
