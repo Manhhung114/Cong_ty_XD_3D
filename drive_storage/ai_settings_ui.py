@@ -132,7 +132,7 @@ def ai_settings_dialog(st):
             confirm = st.checkbox("Xác nhận thu hồi API dùng chung", key="v676_revoke_confirm")
             if st.button("Thu hồi khóa AI khỏi Drive", disabled=not confirm):
                 try:
-                    revoke_shared(storage, identity)
+                    revoke_shared(storage, identity, secret)
                     st.session_state.drive_in_app_action = None
                     st.toast("Đã thu hồi API dùng chung.")
                     st.rerun()
