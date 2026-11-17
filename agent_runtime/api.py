@@ -13,7 +13,7 @@ from sqlalchemy import select
 from .models import AgentJob
 from .queue import factory, enqueue, public, mark, request_cancel
 from .security import verify_request, validate_request, GOOGLE_ID
-from .standards import query_refs
+from .standards import query_refs, ingest_reference
 
 
 class Submission(BaseModel):
@@ -45,6 +45,18 @@ class StandardsQuery(BaseModel):
     identity: dict
 
 
+class StandardsIngest(BaseModel):
+    projectId: str
+    identity: dict
+    sourceId: str = Field(min_length=2,max_length=160)
+    version: str = Field(min_length=1,max_length=100)
+    title: str = Field(min_length=2,max_length=260)
+    citation: str = Field(min_length=2,max_length=300)
+    effectiveDate: str = Field(default="",max_length=30)
+    text: str = Field(min_length=2,max_length=200000)
+    copyrightPermitted: bool = False
+
+
 def create_runtime_app(db_url=None, dispatcher=None):
     app = FastAPI(title="XD MEP Agent Runtime (private)", version="7.4.0",
                   docs_url=None, redoc_url=None)
@@ -62,13 +74,13 @@ def create_runtime_app(db_url=None, dispatcher=None):
             raise HTTPException(413, "Yêu cầu quá lớn")
         return body
 
-    def authorized(body):
+    def authorized(body, *, write=True):
         identity = body.get("identity") if isinstance(body, dict) else None
         project = str(body.get("projectId", "")) if isinstance(body, dict) else ""
         if not GOOGLE_ID.fullmatch(project) or not isinstance(identity, dict):
             raise HTTPException(403, "Dự án hoặc tài khoản không hợp lệ")
         if (identity.get("role") not in {"admin", "update", "read"}
-                or identity.get("role") == "read"
+                or (write and identity.get("role") == "read")
                 or (identity.get("role") != "admin"
                     and project not in identity.get("projects", [])
                     and "*" not in identity.get("projects", []))):
@@ -126,7 +138,7 @@ def create_runtime_app(db_url=None, dispatcher=None):
         raw = await signed(req)
         try:
             b = JobQuery.model_validate_json(raw)
-            authorized(b.model_dump())
+            authorized(b.model_dump(),write=False)
         except Exception:
             raise HTTPException(403, "Không thể đọc tác vụ ngoài phạm vi")
         with dbmaker() as db:
@@ -158,12 +170,33 @@ def create_runtime_app(db_url=None, dispatcher=None):
         raw = await signed(req)
         try:
             b = StandardsQuery.model_validate_json(raw)
-            authorized(b.model_dump())
+            authorized(b.model_dump(),write=False)
         except Exception:
             raise HTTPException(403, "Không có quyền tra cứu")
         with dbmaker() as db:
             return {"references": query_refs(db, b.projectId, b.text),
                     "note": "Tài liệu chỉ là nguồn đối chiếu, chưa xác nhận TCVN/QCVN"}
+
+    @app.post("/api/runtime/standards/ingest")
+    async def add_standard(req: Request):
+        raw = await signed(req)
+        try:
+            b = StandardsIngest.model_validate_json(raw)
+            actor = authorized(b.model_dump())
+            if actor.get("role") != "admin":
+                raise PermissionError("Chỉ Admin được nhập tài liệu tham chiếu")
+            if not b.copyrightPermitted:
+                raise PermissionError("Chưa có quyền sử dụng văn bản nguồn")
+        except Exception:
+            raise HTTPException(403, "Chưa đủ quyền nhập tiêu chuẩn/tài liệu")
+        with dbmaker() as db:
+            doc=ingest_reference(db,project_id=b.projectId,source_id=b.sourceId,
+                 version=b.version,title=b.title,citation=b.citation,
+                 text=b.text,copyright_permitted=b.copyrightPermitted,
+                 effective_date=b.effectiveDate)
+            db.commit()
+            return {"id":doc.id,"sourceId":doc.source_id,"version":doc.source_version,
+                    "sha256":doc.sha256,"complianceVerified":False}
 
     return app
 
