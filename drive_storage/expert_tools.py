@@ -10,6 +10,9 @@ from collections import Counter
 from datetime import datetime, timezone
 from hashlib import sha256, md5
 from io import BytesIO, StringIO
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from zipfile import BadZipFile, ZipFile
 from pathlib import PurePath
 from typing import Any
 import csv
@@ -17,7 +20,13 @@ import re
 
 from drive_storage.shared_workspace import _require_id
 
-MAX_BYTES = 8 * 1024 * 1024
+# Input-file limit, not the volume of content evaluated or an upload limit.
+# Parsing remains sampled/bounded; high-complexity files may need a worker.
+MAX_BYTES = 50 * 1024 * 1024
+MAX_XLSX_UNCOMPRESSED = 160 * 1024 * 1024
+MAX_XLSX_MEMBERS = 2500
+MAX_XLSX_MEMBER = 80 * 1024 * 1024
+STREAM_DXF_BYTES = 8 * 1024 * 1024
 MAX_TEXT = 9000
 MAX_RECORDS = 300
 MAX_PDF_PAGES = 12
@@ -96,6 +105,17 @@ def _spreadsheet(data: bytes):
         from openpyxl.utils import get_column_letter
     except ImportError as exc:
         raise RuntimeError("Chưa cài đặt openpyxl trên máy chủ") from exc
+    # ZIP size metadata is checked before openpyxl expands XML in memory.
+    # The 50 MiB input limit must not become an unlimited decompression budget.
+    try:
+        with ZipFile(BytesIO(data)) as archive:
+            members = archive.infolist()
+            if (len(members) > MAX_XLSX_MEMBERS
+                    or any(item.file_size > MAX_XLSX_MEMBER for item in members)
+                    or sum(item.file_size for item in members) > MAX_XLSX_UNCOMPRESSED):
+                raise ValueError("XLSX có nội dung giải nén quá lớn; cần worker chuyên dụng")
+    except BadZipFile as exc:
+        raise ValueError("File Excel không phải XLSX hợp lệ") from exc
     wb = load_workbook(BytesIO(data), read_only=True, data_only=True, keep_links=False)
     records, warnings, numbers, header_tables = [], [], [], []
     try:
@@ -174,12 +194,30 @@ def _dxf(data: bytes):
         raise RuntimeError("Chưa cài đặt ezdxf trên máy chủ") from exc
     if b"AutoCAD Binary DXF" in data[:50]:
         raise ValueError("DXF nhị phân: cần chuyển sang ASCII DXF trên worker")
+    # ezdxf.read(StringIO(...)) creates a full in-memory CAD DOM. Stream large
+    # ASCII DXF by entity instead, bounded to a verified sample of modelspace.
+    # This is read-only and writes only a temporary file, never to Drive.
+    if len(data) >= STREAM_DXF_BYTES:
+        from ezdxf.addons import iterdxf
+        with TemporaryDirectory(prefix="xd_mep_dxf_") as folder:
+            path = Path(folder) / "source.dxf"
+            path.write_bytes(data)
+            drawing = iterdxf.opendxf(path)
+            try:
+                return _dxf_entities(drawing.modelspace(), streaming=True)
+            finally:
+                drawing.close()
     decoded = data.decode("utf-8-sig", errors="replace")
     drawing = ezdxf.read(StringIO(decoded))
-    model = drawing.modelspace()
+    return _dxf_entities(drawing.modelspace(), streaming=False)
+
+
+def _dxf_entities(entities, *, streaming: bool):
     counter, layers, records = Counter(), Counter(), []
-    for index, entity in enumerate(model):
+    limit_reached = False
+    for index, entity in enumerate(entities):
         if index >= MAX_DXF_ENTITIES:
+            limit_reached = True
             break
         kind = entity.dxftype()
         layer = _text(entity.dxf.get("layer", "0"), 80)
@@ -196,10 +234,18 @@ def _dxf(data: bytes):
         records.append(_row(f"DXF:handle:{handle or index}", "entity", desc,
                             {"entity": kind, "layer": layer, "handle": handle}))
     total = sum(counter.values())
-    return {"type": "dxf", "records": records[:MAX_RECORDS], "warnings": [
+    warnings = [
         "DXF chỉ kiểm kê đối tượng / layer; chưa chứng minh xung đột hoặc độ chính xác hình học"
-    ], "stats": {"entities_checked": total, "types": dict(counter.most_common(30)),
-                 "layers": dict(layers.most_common(30))}}
+    ]
+    if streaming:
+        warnings.append("DXF lớn: đọc modelspace theo luồng, chỉ kiểm tra mẫu đối tượng")
+    if limit_reached:
+        warnings.append(f"Chỉ kiểm tra tối đa {MAX_DXF_ENTITIES} đối tượng đầu, không quét toàn bản vẽ")
+    return {"type": "dxf", "records": records[:MAX_RECORDS], "warnings": warnings,
+            "stats": {"entities_checked": total, "types": dict(counter.most_common(30)),
+                      "layers": dict(layers.most_common(30)),
+                      "sample_limited": limit_reached}}
+
 
 
 def _ifc(data: bytes):
@@ -242,7 +288,7 @@ def parse_bytes(filename: str, data: bytes):
     if ext not in SUPPORTED:
         raise ValueError("Định dạng chưa có bộ đọc kỹ thuật có kiểm chứng")
     if not data or len(data) > MAX_BYTES:
-        raise ValueError("Chỉ xử lý file 1 byte đến 8 MB trên Streamlit; file lớn cần worker")
+        raise ValueError("Chỉ xử lý file đầu vào từ 1 byte đến tối đa 50 MB; file lớn hơn cần worker")
     parsed = PARSERS[ext](data)
     parsed["extension"] = ext
     parsed["hashes"] = _digest(data)
@@ -267,7 +313,7 @@ def extract_registered(workspace, identity, *, project_id: str, file_id: str):
         raise PermissionError("File không còn trong thư mục Drive của dự án")
     size = int(matching.get("size") or 0)
     if size > MAX_BYTES:
-        raise ValueError("File lớn hơn 8 MB: cần worker xử lý chuyên dụng, không tải vào Streamlit")
+        raise ValueError("File lớn hơn 50 MB: cần worker xử lý chuyên dụng, không tải vào Streamlit")
     original_md5 = str(registered.get("md5Checksum") or "")
     current_md5 = str(matching.get("md5Checksum") or "")
     if original_md5 and current_md5 and original_md5.lower() != current_md5.lower():

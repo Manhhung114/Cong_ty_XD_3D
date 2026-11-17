@@ -1,7 +1,7 @@
 {
   "project": "Công ty Xây dựng & MEP AI 3D",
-  "artifact_version": "0.6.7.6-shared-ai-assignments",
-  "release_date": "2026-11-16",
+  "artifact_version": "0.6.7.9-agent-50mb-input",
+  "release_date": "2026-11-17",
   "modules": [
     {
       "label": "V1.0",
@@ -182,6 +182,12 @@
       "area": "Central encrypted company AI provider key, Admin-only server dialog; signed task assignment and explicit per-task expert Agent run",
       "entry": "drive_storage/ai_vault.py",
       "status": "implemented_ci_and_live_acceptance_pending"
+    },
+    {
+      "label": "V6.7.9",
+      "area": "Registered Drive PDF/XLSX/CSV/DXF/IFC Agent input limit 50 MiB, streaming large DXF and bounded ZIP expansion",
+      "entry": "drive_storage/expert_tools.py",
+      "status": "implemented_requires_live_large_file_qa"
     }
   ],
   "data_categories": {
@@ -206,7 +212,7 @@
     "agent_execution": "optional_verified_google_user_triggered_openai_or_gemini_server_only_if_configured",
     "company_orchestration": "signed_task_handoffs_department_workload_raci",
     "audit_backup": "admin_only_signed_ledger_metadata_sha256_export",
-    "engineering_file_reader": "PDF XLSX CSV DXF IFC small registered Drive files up to 8 MiB",
+    "engineering_file_reader": "PDF XLSX CSV DXF IFC registered Drive input files up to 50 MiB, bounded sample-based parsing",
     "engineering_rules": "BOQ quantity-times-price, 3phase current, ACH, pipe velocity, gravity example",
     "expert_orchestrator": "user_triggered_specialist_doc_qac_pm_quality_gates",
     "realtime_dashboard": {
@@ -255,7 +261,7 @@
     "Agent results read only metadata and are drafts requiring engineering review, not verified physical computations, BIM geometry or legal signatures.",
     "18 agents do not have autonomous background execution; there is no production task queue/notification service.",
     "V6.3 metadata backup excludes binary Drive files and cannot be restored automatically; PostgreSQL is not deployed.",
-    "V6.4 DWG/RVT/NWD raw parsing, IFC geometry clash and >8 MB analysis require a separate worker not deployed.",
+    "V6.7.9 DWG/RVT/NWD raw parsing, IFC geometry clash and >50 MiB analysis require a separate worker; 50 MiB inputs can still exceed safe parsing complexity or Streamlit resources.",
     "V6.5 formula checks are preliminary, not certified TCVN/QCVN compliance or full engineering design.",
     "V6.6 executes deterministic quality gates, not four independently running autonomous AI agents.",
     "Streamlit parser deployment and real two-account engineering file acceptance are not yet verified.",
@@ -274,7 +280,7 @@
     "mep": "Cơ điện",
     "construction": "Xây dựng"
   },
-  "current_version": "V6.7.6 (Shared AI API + Agent Assignments)",
+  "current_version": "V6.7.9 (Agent Input 50 MiB)",
   "backend": {
     "framework": "FastAPI",
     "database": "PostgreSQL or SQLite local",

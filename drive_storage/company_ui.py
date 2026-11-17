@@ -15,7 +15,7 @@ from drive_storage.company_agents import (
 )
 from drive_storage.workspace_ui import service_for, DEPARTMENT_NAMES
 from drive_storage.expert_orchestrator import run_expert
-from drive_storage.expert_tools import SUPPORTED, NOT_SUPPORTED
+from drive_storage.expert_tools import MAX_BYTES, SUPPORTED, NOT_SUPPORTED
 from drive_storage.ai_vault import effective_config
 
 OPS = {"agent_run", "handoff_create", "handoff_resolve", "ops_audit"}
@@ -99,7 +99,7 @@ def company_dialog(st, action):
             st.write("Đầu ra dự kiến: " + profile["output"])
             st.info(
                 "V6.4 đọc có giới hạn các file PDF, Excel (.xlsx), CSV, DXF và "
-                "phần tử IFC đã ghi sổ trên Drive (tối đa 8 MB). "
+                "phần tử IFC đã ghi sổ trên Drive (tối đa 50 MB/file). "
                 "V6.5 kiểm tra công thức với nguồn đối chiếu; V6.6 tổ chức "
                 "chuyên gia → DOC → QA/QC → PM. DWG/RVT, IFC geometry clash "
                 "và file lớn vẫn cần bộ chuyển đổi/worker riêng. "
@@ -114,8 +114,19 @@ def company_dialog(st, action):
                 and (d["category"] in allowed_categories
                      or agent_id in {"CEO", "PM", "DOC", "QAC"})
                 and PurePath(d["filename"]).suffix.lower() in SUPPORTED
+                and (not d.get("sizeBytes") or int(d["sizeBytes"]) <= MAX_BYTES)
                 and d.get("status") not in {"archived"}
             ]
+            if not file_docs:
+                st.warning(
+                    "Không có file kỹ thuật phù hợp để Agent đọc. Hãy kiểm tra đúng dự án, "
+                    "đã ghi sổ hồ sơ, nhóm tài liệu của Agent, định dạng PDF/XLSX/CSV/DXF/IFC "
+                    "và dung lượng tối đa 50 MB. DWG/RVT chưa được đọc trực tiếp."
+                )
+            else:
+                st.caption(f"Đã tìm thấy {len(file_docs)} file phù hợp trong sổ hồ sơ "
+                           "của dự án. Giới hạn 50 MB/file; Agent chỉ trích xuất mẫu "
+                           "theo giới hạn an toàn, không xác nhận đã đọc toàn bộ file.")
             with st.form("v61_agent_run_form"):
                 choices = ["preflight", "expert"]
                 if configured["configured"]:
