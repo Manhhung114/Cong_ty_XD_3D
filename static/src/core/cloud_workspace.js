@@ -45,7 +45,9 @@ const header=()=>{
  return '<section class="panel padded"><div class="panel-heading"><div><h3>☁️ V5.9 / V6.0 · Dữ liệu dùng chung</h3><p>Google Drive bảo vệ dự án, công việc và phê duyệt • '+h(s.actor||'')+'</p></div><span class="mini-label">'+(s.role==='admin'?'ADMIN':s.role==='update'?'CẬP NHẬT':'CHỈ ĐỌC')+'</span></div>'+
  '<div class="portal-project-picker"><label>Dự án đang làm việc<select id="cloudProjectSelect"><option value="">— Chọn dự án —</option>'+
  (s.projects||[]).map(x=>'<option value="'+h(x.id)+'" '+(p&&p.id===x.id?'selected':'')+'>'+h(x.code)+' · '+h(x.name)+'</option>').join('')+
- '</select></label><div class="drive-sheet-actions">'+btn('↻ Làm mới dữ liệu','refresh')+'</div></div></section>';
+ '</select></label><div class="drive-sheet-actions">'+btn('↻ Làm mới dữ liệu','refresh')+'</div></div>'+
+ (s.lastActionNotice?'<p class="portal-success-note" role="status">✓ '+h(s.lastActionNotice)+'</p>':'')+
+ '</section>';
 };
 const selectedTasks=()=>{
  const p=current();return p?(view().tasks||[]).filter(t=>t.projectId===p.id):[];
