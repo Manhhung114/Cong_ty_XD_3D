@@ -205,6 +205,9 @@ class SharedWorkspace:
                     "dueDate": data.get("dueDate", ""), "status": "todo",
                     "priority": data.get("priority", "normal"),
                     "report": "", "findings": "", "reviewHistory": [],
+                    "lastReviewDecision": "", "lastReviewNote": "",
+                    "lastReviewer": "", "lastReviewedAt": "",
+                    "lastSubmittedAt": "", "lastSubmittedBy": "",
                     "withdrawnAt": "", "withdrawnBy": "", "withdrawReason": "",
                     "cancelledAt": "", "cancelledBy": "", "cancelReason": "",
                     "createdBy": event["actor"], "createdAt": event["at"],
@@ -248,11 +251,19 @@ class SharedWorkspace:
                 elif action == "task.submitted":
                     if task["status"] in {"todo", "working"}:
                         task.update({"status": "review", "report": data["summary"],
-                                     "findings": data.get("findings", "")})
+                                     "findings": data.get("findings", ""),
+                                     "lastReviewDecision": "submitted",
+                                     "lastSubmittedAt": event["at"],
+                                     "lastSubmittedBy": event["actor"]})
                         task["reviewHistory"].append({"at": event["at"], "actor": event["actor"],
                                                       "decision": "submitted", "note": data["summary"]})
                 elif action in {"task.approved", "task.returned"} and task["status"] == "review":
-                    task["status"] = "done" if action == "task.approved" else "working"
+                    decision = "approve" if action == "task.approved" else "reject"
+                    task.update({"status": "done" if decision == "approve" else "working",
+                                 "lastReviewDecision": decision,
+                                 "lastReviewNote": data.get("comment", ""),
+                                 "lastReviewer": event["actor"],
+                                 "lastReviewedAt": event["at"]})
                     task["reviewHistory"].append({"at": event["at"], "actor": event["actor"],
                                                   "decision": "approve" if action == "task.approved" else "reject",
                                                   "note": data.get("comment", "")})
