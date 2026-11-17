@@ -38,6 +38,13 @@ const canReviewTask=t=>{
 };
 const taskWithdrawControl=t=>{
  if(!canWrite())return '';
+ if(t.hierarchyStage&&!canReview()){
+  const parent=(view().tasks||[]).find(x=>x.id===t.parentTaskId);
+  const isManager=parent&&String(parent.assignee||'').toLowerCase()===
+    String(view().actor||'').toLowerCase();
+  if(!isManager)return '<button type="button" class="btn outline small" disabled '+
+   'title="Chỉ cấp quản lý trực tiếp hoặc Admin được thu hồi">↩ Thu hồi (cần cấp quản lý)</button>';
+ }
  if(['done','cancelled'].includes(t.status))
   return '<button type="button" class="btn outline small" disabled title="Công việc đã đóng và không thể hủy lại">↩ Thu hồi / Hủy giao việc</button>';
  if(canReview())return btn('↩ Thu hồi / Hủy giao việc','task_withdraw',t.id);
@@ -155,10 +162,11 @@ const tasksHtml=filter=>{
  )+'</b></p>':'')+
   '<div class="portal-review-actions">'+
  (canWrite()&&['todo','working'].includes(t.status)&&
-   (!t.parentTaskId||canDelegate)?btn('Gán / Sửa phân công','task_assign',t.id):'')+
+   (!t.hierarchyStage||canDelegate)?btn('Gán / Sửa phân công','task_assign',t.id):'')+
  (canWrite()&&t.assignedAgentId==='CEO'&&t.dept==='director'&&
   !t.parentTaskId&&!existingPlan&&['todo','working'].includes(t.status)&&
-  canOperate?btn('🏢 Giám đốc AI lập phương án','hierarchy_propose',t.id,'primary'):'')+
+  (canReview()||(t.assignee||'').toLowerCase()===actor)?
+  btn('🏢 Giám đốc AI lập phương án','hierarchy_propose',t.id,'primary'):'')+
  (canReview()&&plan?btn('✓ Duyệt phân phối từ CEO','hierarchy_review',t.id,'primary'):'')+
  taskWithdrawControl(t)+
  (canOperate&&!blocked&&specialist&&['todo','working'].includes(t.status)?
