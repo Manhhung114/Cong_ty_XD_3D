@@ -131,6 +131,24 @@ def meeting_dialog(st, action):
             st.caption("Bộ môn: " + " · ".join(
                 DEPARTMENT_NAMES.get(d, d) for d in meeting["departments"]))
             st.write("**Nội dung cần giải quyết:** " + meeting["agenda"])
+            # Only signed, already executed Agent reports are shown. Never
+            # synthesize fictitious contributions on behalf of an Agent.
+            evidence = [run for run in snapshot.get("agentRuns", [])
+                        if run["projectId"] == pid
+                        and run.get("taskId") in meeting["taskIds"]]
+            with st.expander("🤖 Báo cáo chuyên gia đã chạy thật (" +
+                             str(len(evidence)) + ")"):
+                if evidence:
+                    for run in evidence[:10]:
+                        st.markdown("**" + str(run.get("agentId") or "Agent") +
+                                    " · " + str(run.get("mode") or "Checklist") + "**")
+                        st.caption("Nguồn nhiệm vụ: " + str(run.get("taskId") or "")[:12] +
+                                   " · Báo cáo DRAFT chưa được thẩm tra")
+                        st.code(str(run.get("result") or "")[:2000])
+                else:
+                    st.info("Chưa có báo cáo Agent đã ký từ công việc liên quan. "
+                            "Có thể vào Công việc/Agent để chạy kiểm tra, sau đó "
+                            "quay lại họp; không phát sinh lượt AI tự động.")
             if meeting.get("revisionReason"):
                 st.warning("Yêu cầu sửa: " + meeting["revisionReason"])
             rows = st.selectbox("Số đầu việc cần giao sau họp", list(range(MAX_ACTIONS+1)),
