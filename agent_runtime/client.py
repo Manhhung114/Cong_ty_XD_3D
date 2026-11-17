@@ -12,7 +12,9 @@ class RuntimeClient:
         self.url = (url or "").rstrip("/")
         self.secret = secret
         self.opener = opener or request.urlopen
-        if not (self.url.startswith("https://") or
+        internal = os.getenv("AGENT_RUNTIME_ALLOW_DOCKER_HTTP") == "1" and (
+            self.url.startswith("http://agent-api:8082"))
+        if not (self.url.startswith("https://") or internal or
                 self.url.startswith("http://127.0.0.1:") or
                 self.url.startswith("http://localhost:")):
             raise ValueError("Runtime API cần HTTPS hoặc localhost")
@@ -48,8 +50,8 @@ class RuntimeClient:
 def configured_client(st):
     try:
         block = dict(st.secrets.get("runtime", {}))
-        url = str(block.get("api_url") or "").strip()
-        secret = str(block.get("internal_secret") or "").strip()
+        url = str(block.get("api_url") or os.getenv("XD_RUNTIME_API_URL") or "").strip()
+        secret = str(block.get("internal_secret") or os.getenv("AGENT_RUNTIME_SECRET") or "").strip()
         if not url and not secret:
             return None
         return RuntimeClient(url, secret)
