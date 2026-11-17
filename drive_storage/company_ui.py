@@ -190,6 +190,37 @@ def company_dialog(st, action):
                                         st.rerun()
                                     except (RuntimeError,PermissionError) as exc:
                                         st.error(str(exc))
+            if runtime_enabled and can_admin(identity):
+                with st.expander("📚 V7.3 · Nạp nguồn tiêu chuẩn/catalogue có bản quyền", expanded=False):
+                    st.caption("Chỉ Admin được nhập tài liệu đã có quyền sử dụng. "
+                               "Không tự tải toàn văn TCVN/QCVN, và tra cứu không phải "
+                               "chứng nhận bản vẽ đạt chuẩn.")
+                    with st.form("v743_licensed_reference_ingest"):
+                        source_id=st.text_input("Mã tài liệu tham chiếu",max_chars=160)
+                        version=st.text_input("Phiên bản / lần ban hành",max_chars=100)
+                        title=st.text_input("Tên tài liệu",max_chars=260)
+                        citation=st.text_input("Điều khoản / trang trích dẫn",max_chars=300)
+                        effective=st.text_input("Ngày hiệu lực (nếu có)",max_chars=30)
+                        excerpt=st.text_area("Đoạn được phép sử dụng",max_chars=20000,height=110)
+                        allowed=st.checkbox("Tôi xác nhận được phép lưu và phân tích tài liệu này")
+                        ingest=st.form_submit_button("Ghi nguồn tham chiếu vào PostgreSQL")
+                    if ingest:
+                        try:
+                            if not allowed:
+                                raise PermissionError("Cần quyền sử dụng văn bản")
+                            client=configured_client(st)
+                            ref=client.send("/api/runtime/standards/ingest",{
+                                "projectId":pid,"identity":identity,
+                                "sourceId":source_id,"version":version,
+                                "title":title,"citation":citation,"effectiveDate":effective,
+                                "text":excerpt,"copyrightPermitted":allowed})
+                            st.success("Đã nhập nguồn tham chiếu "+str(ref["sourceId"])+
+                                       " · SHA-256 "+str(ref["sha256"])[:12]+
+                                       ". Chưa xác nhận tuân thủ kỹ thuật.")
+                        except (PermissionError,ValueError,RuntimeError) as exc:
+                            st.error(str(exc))
+                        except Exception:
+                            st.error("Không thể lưu nguồn tham chiếu lên máy chủ")
             if not configured["configured"]:
                 st.caption("Chưa kích hoạt nhà cung cấp AI trên máy chủ. "
                            "Admin vào Cài đặt → API dùng chung để lưu khóa trên Drive. "
