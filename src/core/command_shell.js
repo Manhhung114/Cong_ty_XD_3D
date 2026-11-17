@@ -2,6 +2,9 @@
 // Exact artwork cropped from the user-approved mockup, kept as separate
 // assets so text and interactive controls are never duplicated as a screenshot.
 const HEADER_ART='./assets/user_reference_header_v672.webp';
+// V6.7.4: crisp, resolution-independent original office/skyline artwork.
+const PREMIUM_SKYLINE='./assets/premium_skyline_v674.svg';
+const PREMIUM_EMBLEM='./assets/premium_emblem_v674.svg';
 const SIDEBAR_ART='./assets/user_reference_sidebar_v672.webp';
 const OFFICE_ART='./assets/user_reference_foyer_v672.webp';
 const OFFICE_IMAGE='./assets/office_xd_mep_isometric_v5_7.webp';
@@ -30,10 +33,14 @@ export function updateCommandShell(tab,subtitle=''){
  // inline image data, so private sign-in never relies on public static hosting.
  const root=document.documentElement;
  root.style.setProperty('--xd-approved-header', 'url("'+HEADER_ART+'")');
+ root.style.setProperty('--xd-premium-skyline', 'url("'+PREMIUM_SKYLINE+'")');
+ root.style.setProperty('--xd-premium-emblem', 'url("'+PREMIUM_EMBLEM+'")');
  root.style.setProperty('--xd-approved-foyer', 'url("'+OFFICE_ART+'")');
  root.style.setProperty('--xd-approved-sidebar', 'url("'+SIDEBAR_ART+'")');
  for(const image of document.querySelectorAll('[data-brand-image]')){
-  const asset=image.closest('.sidebar-visual')?SIDEBAR_ART:HEADER_ART;
+  // Use the high-detail vector emblem for the header logo; keep the
+  // user-approved construction artwork in the lower left sidebar.
+  const asset=image.closest('.sidebar-visual')?SIDEBAR_ART:PREMIUM_EMBLEM;
   if(image.getAttribute('src')!==asset)image.setAttribute('src',asset);
  }
  const title=el('commandTitle');
