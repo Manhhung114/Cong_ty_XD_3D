@@ -85,9 +85,9 @@ class MaxFileLimitTests(unittest.TestCase):
         self.assertIn("pypdf>=6.13.3", requirements)
 
 
-class Registered50MiBDriveTests(CloudWorkflowTests):
+class Registered50MiBDriveTests(unittest.TestCase):
     def setUp(self):
-        super().setUp()
+        CloudWorkflowTests.setUp(self)
         self.fid = "drive-file-large-000001"
         self.blob = b"Code,Qty\nMEP,21\n" + b"\n" * (9 * 1024 * 1024)
         self.download_limits = []
@@ -111,7 +111,7 @@ class Registered50MiBDriveTests(CloudWorkflowTests):
                                   file_id=self.fid, code="BOQ-LARGE", task_id=task_id)
 
     def tearDown(self):
-        super().tearDown()
+        CloudWorkflowTests.tearDown(self)
 
     def test_actual_download_and_provenance_for_registered_9mb(self):
         evidence = extract_registered(self.ws, self.editor,
