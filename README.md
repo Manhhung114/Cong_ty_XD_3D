@@ -1,3 +1,13 @@
+# V6.7.4 — Premium Header Upgrade
+
+Đã thay ảnh header cắt 350×90px bị vỡ/méo bằng **ảnh thành phố và công trình dạng SVG vector sắc nét theo mọi độ phân giải**, thêm logo kiến trúc vector 512×512 riêng biệt; dàn skyline toàn chiều ngang bằng `background-size:cover`, tinh chỉnh ánh sáng cyan, tên công ty, tiêu đề sheet, trạng thái Google Drive và nút tài khoản.
+
+**Không thay đổi** khả năng giám sát Agent gần thời gian thực, hai hệ MEP ↔ XD, Google OAuth, quyền Admin, kho Drive, dữ liệu đã lưu hoặc luồng phê duyệt. Giao diện giữ full-width từ V6.7.3.
+
+[Chi tiết V6.7.4 và checklist nghiệm thu](docs/V674_PREMIUM_HEADER_UPGRADE.md). Bản đồ họa mới là **vector có độ nét không phụ thuộc DPI**, nên không cần xuất hai bản WebP 1×/2× từ ảnh nguồn chất lượng thấp. Chưa nghiệm thu trực tiếp trình duyệt đăng nhập trên hệ thống thật.
+
+---
+
 # V6.7.2 — Mở toàn màn hình, ảnh nền đúng theo mẫu
 
 Đã thay đổi **khung Streamlit** để nội dung dùng 100% chiều rộng thay vì chừa hai dải đen do padding mặc định; iframe chính theo chiều cao trình duyệt và không thay đổi iframe cầu nối Google Drive. Các sheet không còn bị bó vào `max-width:1600px`.
