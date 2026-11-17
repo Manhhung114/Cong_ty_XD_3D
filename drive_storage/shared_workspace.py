@@ -855,7 +855,11 @@ class SharedWorkspace:
                             event_id=event_id)
 
     def _hierarchy_guard(self, identity, task, *, submit=False):
-        # Legacy tasks keep the existing lightweight path and business rules.
+        # New meeting actions are restricted to the exact assignee/Admin,
+        # while all old non-hierarchical tasks retain their historic behavior.
+        if task.get("meetingId"):
+            from drive_storage.hierarchy import require_operator
+            require_operator(identity, task)
         if not task.get("hierarchyStage"):
             return
         from drive_storage.hierarchy import (
