@@ -465,8 +465,12 @@ class SharedWorkspace:
         pid, task = self._current_task(identity, project_id, task_id)
         if task["status"] not in {"todo", "working"}:
             raise ValueError("Chỉ thu hồi phân công trước khi trình duyệt")
-        if not task.get("assignee") and not task.get("assignedAgentId"):
-            raise ValueError("Công việc chưa giao cho người hoặc Agent; hãy dùng Hủy công việc")
+        if (not task.get("assignee") and not task.get("assignedAgentId")
+                and task["status"] != "working"):
+            raise ValueError("Công việc đang Chờ xử lý và chưa giao; chỉ Admin được hủy công việc")
+        # A task may have been started without an assignee (legacy workflows).
+        # Editors may reset that working task to todo without being allowed to
+        # permanently cancel it. This is auditable, not deletion.
         reason = _clean_text(reason, 600, True)
         if len(reason) < 5:
             raise ValueError("Lý do thu hồi phải có ít nhất 5 ký tự")
