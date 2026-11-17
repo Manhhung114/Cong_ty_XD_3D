@@ -81,6 +81,9 @@ def build_monitor_packet(identity, snapshot: dict, signed_events: list[dict],
     if len(handoffs) > MAX_MONITOR_HANDOFFS:
         raise RuntimeError("Trên 300 phiếu phối hợp; cần phân trang từ máy chủ")
     task_dept = {t["id"]: t.get("dept", "") for t in tasks}
+    handoff_by_id = {h["id"]: h for h in handoffs}
+    doc_by_id = {d["id"]: d for d in snapshot.get("documents", [])
+                 if d.get("projectId") in allowed}
     from drive_storage.company_agents import agents
     agent_dept = {key: profile["department"] for key, profile in agents().items()}
     events = []
@@ -101,12 +104,27 @@ def build_monitor_packet(identity, snapshot: dict, signed_events: list[dict],
         task_id = str(data.get("task_id") or "")
         source = str(data.get("source_dept") or "")
         target = str(data.get("target_dept") or "")
+        if action == "handoff.resolved":
+            original = handoff_by_id.get(str(data.get("handoff_id") or ""), {})
+            source = original.get("sourceDept", "")
+            target = original.get("targetDept", "")
         dept = (
             agent_dept.get(agent_id, "")
             or source
             or str(data.get("dept") or "")
             or task_dept.get(task_id, "")
         )
+        system = system_for(dept)
+        if agent_id in {"CEO", "PM", "DOC"}:
+            system = "shared"
+        if action.startswith("document.") and not dept:
+            doc = doc_by_id.get(str(data.get("file_id") or ""), {})
+            category = str(data.get("category") or doc.get("category") or "").lower()
+            system = ("xd" if category.endswith("_xd") or category in
+                      {"drawings_xd", "bim_xd", "boq_xd", "reports_xd"}
+                      else "mep" if category.endswith("_mep") or category in
+                      {"fire", "boq_mep", "drawings_mep", "bim_mep", "reports_mep"}
+                      else "shared")
         # Preserve only display metadata. Reports, passwords, document bytes,
         # untrusted raw event payloads, and OAuth tokens NEVER enter the client.
         events.append({
@@ -114,7 +132,7 @@ def build_monitor_packet(identity, snapshot: dict, signed_events: list[dict],
             "actor": str(raw.get("actor") or "")[:254],
             "projectId": pid, "action": action,
             "agentId": agent_id[:16], "taskId": task_id[:160],
-            "department": dept[:40], "system": system_for(dept),
+            "department": dept[:40], "system": system,
             "sourceDept": source[:40], "targetDept": target[:40],
             "relation": relation(source, target) if source and target else "",
         })
