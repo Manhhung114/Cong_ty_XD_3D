@@ -156,7 +156,7 @@ def handle_workspace_action(st, action: dict):
     if op not in {"project_create", "project_import", "ops_audit"} and pid not in {p["id"] for p in current["projects"]}:
         raise PermissionError("Dự án không thuộc phạm vi")
     task_id = str(action.get("taskId") or "")
-    if op in {"task_start", "task_submit", "task_review", "agent_run"}:
+    if op in {"task_assign", "task_start", "task_submit", "task_review", "agent_run"}:
         if not any(t["id"] == task_id and t["projectId"] == pid
                    for t in current["tasks"]):
             raise PermissionError("Nhiệm vụ không thuộc dự án")
