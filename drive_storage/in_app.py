@@ -93,6 +93,10 @@ def mount_bridge(st) -> dict | None:
               fileId: workspaceAction ? String(d.fileId || "").slice(0, 160) : "",
               agentId: workspaceAction ? String(d.agentId || "").slice(0, 20) : "",
               handoffId: workspaceAction ? String(d.handoffId || "").slice(0, 160) : "",
+              monitorProject: workspaceAction ? String(d.monitorProject || "all").slice(0, 160) : "",
+              monitorSystem: workspaceAction ? String(d.monitorSystem || "all").slice(0, 20) : "",
+              monitorPeriod: workspaceAction ? String(d.monitorPeriod || "today").slice(0, 20) : "",
+              monitorDepartment: workspaceAction ? String(d.monitorDepartment || "all").slice(0, 40) : "",
               actionId: workspaceAction ? String(d.actionId || "").slice(0, 32) : ""
             });
           }
@@ -120,6 +124,10 @@ def mount_bridge(st) -> dict | None:
             "fileId": str(action.get("fileId") or "")[:160],
             "agentId": str(action.get("agentId") or "")[:20],
             "handoffId": str(action.get("handoffId") or "")[:160],
+            "monitorProject": str(action.get("monitorProject") or "all")[:160],
+            "monitorSystem": str(action.get("monitorSystem") or "all")[:20],
+            "monitorPeriod": str(action.get("monitorPeriod") or "today")[:20],
+            "monitorDepartment": str(action.get("monitorDepartment") or "all")[:40],
             "actionId": str(action.get("actionId") or "")[:32],
         }
     if action.get("section") == "settings" and action.get("kind") == "access":
