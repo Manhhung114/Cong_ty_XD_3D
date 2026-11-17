@@ -155,13 +155,53 @@ def company_dialog(st, action):
                     "từ file kỹ thuật đến nhà cung cấp AI. Không gửi tệp nhị phân.",
                     value=False,
                 )
+                from agent_runtime.client import configured_client
+                runtime_enabled = configured_client(st) is not None
                 submit = st.form_submit_button(
-                    "Chạy chuyên gia và lưu báo cáo nháp", type="primary"
+                    "Chạy ngay trong Streamlit", type="secondary"
                 )
+                queued = st.form_submit_button(
+                    "🚀 Đưa Agent vào hàng đợi V7.4", type="primary",
+                    disabled=not runtime_enabled
+                )
+            if runtime_enabled:
+                st.caption("V7.4: hàng đợi Redis/Celery thực, worker cập nhật heartbeat "
+                           "và báo cáo vẫn cần người kiểm duyệt. Không tự ký/duyệt.")
+            else:
+                st.info("Hệ thống worker V7.4 chưa được kết nối. Có thể chạy trực tiếp "
+                        "với V7.0, hoặc Admin cấu hình runtime API/worker để chạy nền.")
             if not configured["configured"]:
                 st.caption("Chưa kích hoạt nhà cung cấp AI trên máy chủ. "
                            "Admin vào Cài đặt → API dùng chung để lưu khóa trên Drive. "
                            "Checklist vẫn hoạt động độc lập.")
+            if queued:
+                from agent_runtime.client import configured_client
+                try:
+                    if mode in {"llm", "expert_llm"} and not consent:
+                        raise PermissionError("Cần xác nhận truyền metadata/trích xuất cho AI")
+                    if mode in {"expert", "expert_llm"} and selected is None:
+                        raise ValueError("Cần chọn file đã ghi sổ để xử lý nền")
+                    from drive_storage.hierarchy import require_operator, dependencies_block
+                    require_operator(identity, task)
+                    if dependencies_block(task, state["tasks"]):
+                        raise PermissionError("Nhiệm vụ trước chưa được duyệt")
+                    client = configured_client(st)
+                    if not client:
+                        raise RuntimeError("Runtime chưa được kết nối")
+                    job = client.send("/api/runtime/jobs", {
+                        "jobId": action["actionId"], "projectId": pid,
+                        "taskId": task_id, "agentId": agent_id,
+                        "mode": mode, "fileId": selected["id"] if selected else "",
+                        "note": note, "consent": consent,
+                        "identity": identity,
+                    })
+                    done("Đã ghi hàng đợi Agent: " + str(job["id"])[:8] +
+                         ". Theo dõi heartbeat tại Giám sát Agent. "
+                         "Không đồng nghĩa đã hoàn thành/phê duyệt.")
+                except (PermissionError, ValueError, RuntimeError) as exc:
+                    st.error("Chưa đưa được vào hàng đợi: " + str(exc))
+                except Exception:
+                    st.error("Không thể liên hệ worker; chưa ghi nhận hoàn thành.")
             if submit:
                 started = False
                 attempt_id = action["actionId"]
