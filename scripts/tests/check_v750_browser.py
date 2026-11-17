@@ -12,13 +12,13 @@ def check():
     project = "v750-fixture-project"
     os.environ.update(XD_V75_CATALOG="1", XD_V75_CANARY_PROJECTS=project)
     snapshot = {
-        "enabled": True, "role": "admin", "selectedProjectId": project,
+        "enabled": True, "role": "update", "selectedProjectId": project,
         "projects": [{"id": project, "code": "FIXTURE", "name": "Test"}],
         "agentsCatalog": public_catalog(project), "runtimeJobs": [],
     }
     public_path = Path(__file__).resolve().parents[2] / "static"
-    hub = build(public_path, role="admin", initial_section="agents", cloud_snapshot=snapshot)
-    office = build(public_path, role="admin", initial_section="overview", cloud_snapshot=snapshot)
+    hub = build(public_path, role="update", initial_section="agents", cloud_snapshot=snapshot)
+    office = build(public_path, role="update", initial_section="overview", cloud_snapshot=snapshot)
     with sync_playwright() as playwright:
         args = ["--enable-unsafe-swiftshader", "--use-angle=swiftshader"]
         options = {"executable_path": os.environ["CHROMIUM_BIN"]} if "CHROMIUM_BIN" in os.environ else {}
@@ -41,6 +41,17 @@ def check():
                 assert page.locator(".company-agent-card").count() == 20, errors
                 assert page.locator(".company-agent-card .company-avatar").all_text_contents().count("LEG") == 1
                 page.goto("https://fixture.invalid/office")
+                assert page.locator("#metrics .metric").filter(has_text="NHÂN VIÊN AI").locator("strong").inner_text() == "20"
+                if width < 750:
+                    page.locator("#menuBtn").click()
+                    assert page.get_by_role("button", name="Nhân viên AI (20 Agent)").is_visible()
+                    page.get_by_role("button", name="Nhân viên AI (20 Agent)").click()
+                    assert page.locator(".company-agent-card").count() == 20
+                    page.locator("#menuBtn").click()
+                    page.locator('[data-nav="overview"]').click()
+                else:
+                    assert "Nhân viên AI (20 Agent)" in page.locator('[data-nav="agents"]').inner_text()
+                assert page.locator('[data-nav="settings"]').count() == 0
                 page.locator('[data-office-render="live"]').click()
                 if force_fallback:
                     assert page.locator("[data-svg-dept]").count() == 16
