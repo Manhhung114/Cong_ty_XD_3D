@@ -28,7 +28,7 @@ const NAV=[
 {id:'documents',icon:'▤',name:'Kho tài liệu'},
 {id:'boq',icon:'▦',name:'BOQ / Dự toán'},
 {id:'bim',icon:'⬡',name:'BIM / Mô hình'},
-{id:'company',icon:'⇄',name:'Phối hợp & Họp'},
+{id:'company',icon:'⇄',name:'Phối hợp liên phòng'},
 {id:'monitor',icon:'▥',name:'Giám sát Agent'},
 {id:'reports',icon:'◫',name:'Báo cáo & Thống kê'},
 {id:'legal',icon:'§',name:'Pháp luật & tiêu chuẩn'},
