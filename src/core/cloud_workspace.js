@@ -7,7 +7,7 @@ const labels={todo:'Chờ xử lý',working:'Đang thực hiện',review:'Chờ 
 const actionLabels={
  'project.created':'Tạo dự án', 'task.created':'Giao công việc',
  'task.started':'Bắt đầu công việc', 'task.submitted':'Trình phê duyệt',
- 'task.approved':'Chấp thuận', 'task.returned':'Trả lại',
+ 'task.approved':'Chấp thuận', 'task.returned':'Trả lại', 'task.assigned':'Phân công kỹ sư và Agent',
  'document.registered':'Đăng ký hồ sơ trên Drive',
  'document.metadata_updated':'Cập nhật sổ hồ sơ',
  'document.submitted':'Trình hồ sơ',
@@ -53,8 +53,15 @@ const tasksHtml=filter=>{
  '<div class="portal-tasks">'+tasks.map(t=>{
  const history=t.reviewHistory||[];
  const reports=(view().agentRuns||[]).filter(r=>r.taskId===t.id&&r.projectId===t.projectId);
+ const specialist=(view().agentsCatalog||[]).find(a=>a.id===t.assignedAgentId);
+ const agentLabel=specialist?specialist.title+' ('+specialist.id+')':'Chưa gán Agent';
+ const runLabel=reports.length?
+  'Đã tạo '+reports.length+' báo cáo nháp; chờ kỹ sư kiểm chứng':
+  'Agent chưa chạy cho công việc này';
  return '<article class="portal-task"><div class="portal-task-head"><div><strong>'+h(t.title)+'</strong><small>'+h(t.code)+' · '+h(t.dept)+' · '+h(t.assignee||'Chưa giao')+
  '</small></div><span class="portal-pill '+(t.status==='review'?'review':t.status==='done'?'done':'')+'">'+h(labels[t.status]||t.status)+'</span></div>'+
+ '<p class="company-secondary"><b>Chuyên gia được giao:</b> '+h(agentLabel)+
+  ' · <b>Trạng thái Agent:</b> '+h(runLabel)+'</p>'+
  (t.dueDate?'<p>Hạn: '+h(t.dueDate)+'</p>':'')+
  (t.docCode?'<p>Hồ sơ: '+h(t.docCode)+'</p>':'')+
  (t.report?'<div class="portal-report"><b>Báo cáo</b><p>'+h(t.report)+'</p><p>'+h(t.findings)+'</p></div>':'')+
@@ -68,6 +75,9 @@ const tasksHtml=filter=>{
   {low:'Thấp',high:'Cao',critical:'Khẩn cấp'}[t.priority]||t.priority
  )+'</b></p>':'')+
   '<div class="portal-review-actions">'+
+ (canWrite()&&['todo','working'].includes(t.status)?btn('Gán / Sửa phân công','task_assign',t.id):'')+
+ (canWrite()&&specialist&&['todo','working'].includes(t.status)?
+  '<button type="button" class="btn primary small" data-agent-run-task="'+h(t.id)+'" data-agent-run-id="'+h(specialist.id)+'" data-agent-run-project="'+h(t.projectId)+'">🤖 Chạy Agent '+h(specialist.id)+'</button>':'')+
  (canWrite()&&t.status==='todo'?btn('Bắt đầu','task_start',t.id):'')+
  (canWrite()&&['todo','working'].includes(t.status)?btn('Gửi báo cáo phê duyệt','task_submit',t.id,'primary'):'')+
  (canReview()&&t.status==='review'?btn('Xét duyệt / Trả lại','task_review',t.id,'primary'):'')+
@@ -229,14 +239,14 @@ export function renderCloudPage(section){
 export function requestDocumentInventory(){
  if(!Array.isArray(view().fileInventory))send('documents','document_inventory');
 }
-const send=(section,op,taskId='',projectId='',fileId='')=>{
+const send=(section,op,taskId='',projectId='',fileId='',agentId='')=>{
  const currentProject=current();
  const token=window.__xdDriveNonce;
  if(!token)return;
  const requestId=(globalThis.crypto?.randomUUID?.()||String(Date.now())+'-'+Math.random().toString().slice(2)).replace(/-/g,'').slice(0,32);
  window.parent.postMessage({
   channel:'XD_MEP_DRIVE_V1',nonce:token,kind:'workspace',section,op,
-  projectId:projectId||currentProject?.id||'',taskId:taskId||'',fileId:fileId||'',
+  projectId:projectId||currentProject?.id||'',taskId:taskId||'',fileId:fileId||'',agentId:agentId||'',
   actionId:requestId,
  },'*');
 };
@@ -257,8 +267,13 @@ export function bindCloudPage(root,section){
    return;
   }
   if(op==='project_create'&&role()!=='admin')return;
-  if(['task_create','task_start','task_submit'].includes(op)&&!canWrite())return;
+  if(['task_create','task_assign','task_start','task_submit'].includes(op)&&!canWrite())return;
   if(op==='task_review'&&!canReview())return;
   send(section,op,b.dataset.workspaceTask||'');
+ }));
+ root.querySelectorAll('[data-agent-run-task]').forEach(b=>b.addEventListener('click',()=>{
+  if(!canWrite())return;
+  send('agents','agent_run',b.dataset.agentRunTask,b.dataset.agentRunProject,'',
+       b.dataset.agentRunId);
  }));
 }
