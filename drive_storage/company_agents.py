@@ -74,12 +74,12 @@ def company_metrics(state: dict, today: str | None = None) -> dict:
     handoffs = state.get("handoffs", [])
     runs = state.get("agentRuns", [])
     overdue = [t for t in tasks if t.get("dueDate") and
-               t["dueDate"] < now and t.get("status") != "done"]
+               t["dueDate"] < now and t.get("status") not in {"done", "cancelled"}]
     unassigned = [t for t in tasks if not str(t.get("assignee", "")).strip()
-                  and t.get("status") != "done"]
+                  and t.get("status") not in {"done", "cancelled"}]
     to_review = [t for t in tasks if t.get("status") == "review"]
     priority = [t for t in tasks if t.get("priority") in {"high", "critical"}
-                and t.get("status") != "done"]
+                and t.get("status") not in {"done", "cancelled"}]
     blockers = [d for d in documents if d.get("status") in {"pending", "returned"}]
     pending_handoffs = [h for h in handoffs if h.get("status") == "open"]
     group = {}
