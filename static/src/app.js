@@ -17,13 +17,46 @@ import {MEP_SOURCE_LOCAL,MEP_SOURCE_REMOTE,MEP_SOURCE_REGISTRY,MEP_SOURCE_CANDID
 import {legalStatistics,LEGAL_KINDS,LEGAL_KIND_LABELS} from './core/legal_statistics.js';
 import {TVPL_HOME,TVPL_SEARCH,TVPL_REFRESH_WORKFLOW,getTVPLCache,checkTVPLUpdates} from './core/tvpl_sources.js';
 import {isOfficialUrl} from './core/standards.js';
-const NAV=[{id:'overview',icon:'⌂',name:'Văn phòng 3D',version:'V5.7.5'},{id:'company',icon:'▣',name:'Điều hành công ty',version:'V6.2'},{id:'agents',icon:'◎',name:'Nhân viên AI',version:'V6.1'},{id:'monitor',icon:'▥',name:'Giám sát Agent',version:'V6.7'},{id:'tasks',icon:'☷',name:'Công việc',version:'V2.0'},{id:'reviews',icon:'✓',name:'Chờ phê duyệt',version:'V5.7'},{id:'projects',icon:'▤',name:'Quản lý dự án',version:'V5.6'},{id:'settings',icon:'⚙',name:'Cài đặt',version:'V5.7.3'},{id:'documents',icon:'▤',name:'Kho tài liệu',version:'V3.0'},{id:'boq',icon:'▦',name:'BOQ / Dự toán',version:'V3.0'},{id:'bim',icon:'⬡',name:'BIM / Mô hình',version:'V3.0'},{id:'legal',icon:'§',name:'Pháp luật & tiêu chuẩn',version:'V5.7.8'},{id:'activity',icon:'◷',name:'Nhật ký hoạt động',version:'V4.0'}];
+const NAV=[
+{id:'overview',name:'Văn phòng 3D',icon:'⌂'},
+{id:'agents',name:'Nhân viên AI (18 Agent)',icon:'◎'},
+{id:'tasks',name:'Công việc',icon:'☷'},
+{id:'reviews',name:'Chờ phê duyệt',icon:'✓'},
+{id:'projects',name:'Quản lý dự án',icon:'▤'},
+{id:'documents',name:'Kho tài liệu',icon:'▤'},
+{id:'boq',name:'BOQ / Dự toán',icon:'▦'},
+{id:'bim',name:'BIM / Mô hình',icon:'⬡'},
+{id:'company',name:'Phối hợp liên phòng',icon:'⇄'},
+{id:'monitor',name:'Giám sát Agent',icon:'▥'},
+{id:'reports',name:'Báo cáo & Thống kê',icon:'◫'},
+{id:'legal',name:'Pháp luật & tiêu chuẩn',icon:'§'},
+{id:'activity',name:'Nhật ký hoạt động',icon:'◷'},
+{id:'settings',name:'Cài đặt hệ thống',icon:'⚙'}
+];
+const NAV_PATHS={
+overview:'<path d="m3 10 9-7 9 7M5 9v12h14V9M9 21v-7h6v7"/>',
+agents:'<rect x="4" y="7" width="16" height="13" rx="4"/><path d="M12 3v4M2 12h2M20 12h2"/><circle cx="9" cy="13" r="1"/><circle cx="15" cy="13" r="1"/><path d="M9 17h6"/>',
+tasks:'<path d="M8 6h13M8 12h13M8 18h13M3 6h1M3 12h1M3 18h1"/>',
+reviews:'<path d="m3 12 6 6L21 5"/>',
+projects:'<path d="M3 7h8l2 3h8v10H3zM3 7V5h7"/>',
+documents:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M9 11h6M9 15h4"/>',
+boq:'<rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 10h16M10 4v16M15 10v10"/>',
+bim:'<path d="m12 2 9 5v10l-9 5-9-5V7zM3 7l9 5 9-5M12 12v10"/>',
+company:'<circle cx="12" cy="4" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><path d="m11 6-5 11M13 6l5 11M7 19h10"/>',
+monitor:'<path d="M4 20V12h4v8M10 20V5h4v15M16 20V9h4v11M3 22h18"/>',
+reports:'<path d="M4 20V4h16v16zM8 16l3-4 3 2 3-6"/>',
+legal:'<path d="M10 3 8 21M15 3l-2 18M5 8h14M4 17h14"/>',
+activity:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l4 2"/>',
+settings:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>'
+};
+const navSvg=id=>'<svg class="command-nav-svg" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+(NAV_PATHS[id]||NAV_PATHS.overview)+'</svg>';
+const OFFICE_THUMB='./assets/office_xd_mep_isometric_v5_7.webp';
 // The Streamlit server determines the role; this is visibility only.
 // Server-side Drive and app access are checked separately for every request.
 const visibleNav=()=>NAV.filter(n=>!(window.__xdAuthRole!=='admin'&&n.id==='settings'));
 const state=loadState();let language=getLanguage();
 const portal=new LocalProjectPortal({getLanguage:()=>language,getLegacyState:()=>state,onChange:()=>{if(['projects','reviews','tasks','documents','activity'].includes(tab))render();},notify:(msg,err)=>notice(msg,err)});
-const apiSettings=new APISettings({getLanguage:()=>language,onChange:()=>{if(tab==='settings')render();},notify:(msg,err)=>notice(msg,err)});let legalBaseRecords=[],legalVerifiedRecords=[],legalMEPSeedRecords=[],legalRecords=[];let legalUpdatedAt='2026-11-15';let legalField='all',legalSearch='',legalType='all',legalCandidates=[],legalSourceSites=[],tvplCandidates=getTVPLCache()?.candidates||[],tvplCheckedAt=getTVPLCache()?.generatedAt||'';let docs=[],tab=(['overview','company','agents','monitor','projects','documents','boq','bim','tasks','reviews','activity','settings'].includes(window.__xdInitialSheet)&&(window.__xdInitialSheet!=='settings'||window.__xdAuthRole==='admin')?window.__xdInitialSheet:'overview'),office=null,selectedAgent=null,boqRows=[],constructionBOQRows=[],boqDivision='mep',docFilter='all';
+const apiSettings=new APISettings({getLanguage:()=>language,onChange:()=>{if(tab==='settings')render();},notify:(msg,err)=>notice(msg,err)});let legalBaseRecords=[],legalVerifiedRecords=[],legalMEPSeedRecords=[],legalRecords=[];let legalUpdatedAt='2026-11-15';let legalField='all',legalSearch='',legalType='all',legalCandidates=[],legalSourceSites=[],tvplCandidates=getTVPLCache()?.candidates||[],tvplCheckedAt=getTVPLCache()?.generatedAt||'';let docs=[],tab=(['overview','company','agents','monitor','reports','projects','documents','boq','bim','tasks','reviews','activity','settings'].includes(window.__xdInitialSheet)&&(window.__xdInitialSheet!=='settings'||window.__xdAuthRole==='admin')?window.__xdInitialSheet:'overview'),office=null,selectedAgent=null,boqRows=[],constructionBOQRows=[],boqDivision='mep',docFilter='all';
 const $=id=>document.getElementById(id);
 const h=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const department=id=>DEPARTMENTS.find(d=>d.id===id)||DEPARTMENTS[0];
@@ -122,11 +155,12 @@ const pageContent={
  agents:()=>window.__xdCloud?.enabled?renderCompanySuite('agents'):agentsPage(),
  monitor:()=>window.__xdCloud?.enabled?renderMonitorDashboard():
  '<section class="panel padded"><h2>Giám sát Agent V6.7</h2><p>Cần đăng nhập Google để truy xuất nhật ký sự kiện theo quyền dự án.</p></section>',
+ reports:()=>window.__xdCloud?.enabled?renderCompanySuite('company'):'<section class="panel padded">Cần đăng nhập Google để xem báo cáo.</section>',
  company:()=>window.__xdCloud?.enabled?renderCompanySuite('company'):
  '<section class="panel padded"><h2>Điều hành công ty</h2><p>Cần đăng nhập Google và kết nối dữ liệu dùng chung trên máy chủ.</p></section>',
  boq:boqPage,bim:bimPage,roadmap:roadmapPage
 };
-const subtitles={projects:'Dự án dùng chung theo quyền truy cập, đồng bộ từ máy chủ.',settings:'Cấu hình nhà cung cấp API, khóa bảo vệ và model cho từng Agent.',reviews:'Phê duyệt có tài khoản Google, lịch sử và nhật ký dùng chung.',overview:'Văn phòng 3D gồm MEP và Xây dựng; ban điều hành dùng chung.',agents:'18 Agent theo bộ môn: kỹ năng, kết quả nháp và kiểm tra kỹ thuật có truy vết.',company:'Bảng điều hành liên phòng, phối hợp xử lý, rủi ro và sao lưu kiểm soát.',monitor:'Graphic hoạt động Agent, hai hệ MEP/XD và phối hợp liên hệ, cập nhật mỗi 15 giây.',tasks:'Công việc dự án đồng bộ trên Google Drive theo phân quyền.',documents:'Sổ hồ sơ và phiên bản tập trung theo dự án trên Drive.',boq:'Nhập bảng BOQ thực tế để phân tích khối lượng.',bim:'Quản lý hồ sơ BIM; chưa có công cụ xem IFC.',legal:'Tra cứu văn bản pháp luật và tiêu chuẩn từ nguồn chính thống.',activity:'Nhật ký kiểm tra và truy vết hoạt động theo dự án.',roadmap:'Các mốc phát triển của ứng dụng.'};
+const subtitles={projects:'Dự án dùng chung theo quyền truy cập, đồng bộ từ máy chủ.',settings:'Cấu hình nhà cung cấp API, khóa bảo vệ và model cho từng Agent.',reviews:'Phê duyệt có tài khoản Google, lịch sử và nhật ký dùng chung.',overview:'Văn phòng 3D gồm MEP và Xây dựng; ban điều hành dùng chung.',agents:'18 Agent theo bộ môn: kỹ năng, kết quả nháp và kiểm tra kỹ thuật có truy vết.',company:'Bảng điều hành liên phòng, phối hợp xử lý, rủi ro và sao lưu kiểm soát.',monitor:'Graphic hoạt động Agent, hai hệ MEP/XD và phối hợp liên hệ, cập nhật mỗi 15 giây.',reports:'Tổng hợp công việc, phòng ban và dự án được cấp quyền.',tasks:'Công việc dự án đồng bộ trên Google Drive theo phân quyền.',documents:'Sổ hồ sơ và phiên bản tập trung theo dự án trên Drive.',boq:'Nhập bảng BOQ thực tế để phân tích khối lượng.',bim:'Quản lý hồ sơ BIM; chưa có công cụ xem IFC.',legal:'Tra cứu văn bản pháp luật và tiêu chuẩn từ nguồn chính thống.',activity:'Nhật ký kiểm tra và truy vết hoạt động theo dự án.',roadmap:'Các mốc phát triển của ứng dụng.'};
 // The Drive toolbar is scoped to each sheet; no separate upload page.
 function driveToolbar(sheet){
  const known=['projects','documents','boq','bim','tasks','reviews'];
@@ -193,7 +227,7 @@ function switchTab(next){
  if(next==='documents'&&window.__xdCloud?.enabled)requestDocumentInventory();
  if(next==='monitor'&&window.__xdCloud?.enabled)requestMonitorSnapshot();
  window.scrollTo({top:0,behavior:'instant'});}
-function render(){office?.destroy();office=null;document.getElementById('app')?.classList.toggle('v67-mode',tab==='monitor');const nav=visibleNav().find(n=>n.id===tab)||visibleNav()[0];document.querySelectorAll('[data-dock]').forEach(b=>{const selected=b.dataset.dock===tab;b.classList.toggle('active',selected);b.setAttribute('aria-current',selected?'page':'false');});$('nav').innerHTML=visibleNav().map(n=>`<button class="nav-item ${n.id===tab?'active':''}" data-nav="${n.id}"><span class="nav-icon">${n.icon}</span><span>${n.name}</span></button>`).join('');document.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>switchTab(b.dataset.nav));$('crumb').textContent=nav.name;$('pageTitle').textContent=tab==='overview'?'Công ty Xây dựng & MEP 3D':nav.name;$('pageSubtitle').textContent=subtitles[tab];const showMetrics=['overview','tasks','reviews'].includes(tab);$('metrics').hidden=!showMetrics;if(showMetrics)metricCards();else $('metrics').innerHTML='';const projectPill=document.querySelector('.project-pill');if(projectPill){const compact=window.matchMedia?.('(max-width:750px)')?.matches;const cp=window.__xdCloud?.enabled?(window.__xdCloud.projects||[]).find(p=>p.id===window.__xdCloud.selectedProjectId):portal.currentProject;
+function render(){office?.destroy();office=null;document.getElementById('app')?.classList.toggle('v67-mode',tab==='monitor');const nav=visibleNav().find(n=>n.id===tab)||visibleNav()[0];document.querySelectorAll('[data-dock]').forEach(b=>{const selected=b.dataset.dock===tab;b.classList.toggle('active',selected);b.setAttribute('aria-current',selected?'page':'false');});$('nav').innerHTML=visibleNav().map(n=>`<button class="nav-item ${n.id===tab?'active':''}" data-nav="${n.id}"><span class="nav-icon">${navSvg(n.id)}</span><span>${n.name}</span></button>`).join('');document.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>switchTab(b.dataset.nav));$('crumb').textContent=nav.name;$('pageTitle').textContent=tab==='overview'?'Công ty Xây dựng & MEP 3D':nav.name;$('pageSubtitle').textContent=subtitles[tab];const showMetrics=['overview','tasks','reviews'].includes(tab);$('metrics').hidden=!showMetrics;if(showMetrics)metricCards();else $('metrics').innerHTML='';const projectPill=document.querySelector('.project-pill');if(projectPill){const compact=window.matchMedia?.('(max-width:750px)')?.matches;const cp=window.__xdCloud?.enabled?(window.__xdCloud.projects||[]).find(p=>p.id===window.__xdCloud.selectedProjectId):portal.currentProject;
  projectPill.textContent=cp?(compact?'● '+cp.code:'● '+cp.code+' · '+cp.name):(window.__xdCloud?.enabled?'● ☁ CHƯA CÓ DỰ ÁN':(compact?'● CỤC BỘ':'● LƯU CỤC BỘ · CHƯA CÓ DỰ ÁN'));}let pageRendered=true;try{$('body').innerHTML=driveToolbar(tab)+pageContent[tab]();}catch(err){console.error('Unable to render '+tab,err);if(tab==='legal'){try{$('body').innerHTML=legalRecoveryPage(err);pageRendered=true;}catch(recoveryError){pageRendered=false;console.error('Legal recovery error',recoveryError);}}else pageRendered=false;if(!pageRendered)$('body').innerHTML='<section class="panel padded"><h3>Không tải được nội dung trang</h3><p>Vui lòng thử mở lại hoặc tải mới trang.</p><button id="retryPage" class="btn primary" type="button">Thử lại</button></section>';}bindGlobal();if(pageRendered)bindPage();else $('retryPage').onclick=()=>render();translateDom(document.getElementById('app'),language);document.title=language==='en'?'Construction & MEP AI 3D | Command Center':'Công ty XD & MEP AI 3D | Văn phòng số';document.documentElement.lang=language;}
 function refresh(){render();}
 function modal(inner){$('modalRoot').innerHTML=`<div class="modal-backdrop" id="modalBackdrop"><div class="modal">${inner}</div></div>`;$('modalBackdrop').addEventListener('mousedown',e=>{if(e.target.id==='modalBackdrop')closeModal();});$('closeModal')?.addEventListener('click',closeModal);translateDom($('modalRoot'),language);}
