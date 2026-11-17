@@ -93,7 +93,15 @@ class CoordinationTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             close_meeting(self.ws, self.admin, project_id=P, meeting_id=meeting)
         for task in children:
-            self.ws.submit_task(self.editor, project_id=P, task_id=task["id"],
+            with self.assertRaises(PermissionError):
+                self.ws.submit_task(
+                    self.editor, project_id=P, task_id=task["id"],
+                    summary="Người không được giao không được tự trình báo cáo.")
+            with self.assertRaises(PermissionError):
+                self.ws.assign_task(self.editor, project_id=P, task_id=task["id"],
+                                    assignee=self.editor["email"], agent_id=task["assignedAgentId"])
+            owner = {"email": task["assignee"], "role": "update", "projects": [P]}
+            self.ws.submit_task(owner, project_id=P, task_id=task["id"],
                                 summary="Đã xử lý và gửi tài liệu sửa đổi để kiểm tra.")
             self.ws.review_task(self.admin, project_id=P, task_id=task["id"],
                                 decision="approve", comment="Đã kiểm tra")
