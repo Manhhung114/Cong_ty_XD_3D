@@ -1,8 +1,8 @@
 {
   "project": "Công ty Xây dựng & MEP AI 3D",
-  "artifact_version": "0.7.5.2-coordination-workflows",
+  "artifact_version": "0.7.5.3-agent-dialog-qa-guard-hotfix",
   "staged_release": {
-    "version": "7.5.2",
+    "version": "7.5.3",
     "catalog_agents": 20,
     "office_rooms": 18,
     "live_acceptance_recorded": false,
@@ -311,14 +311,15 @@
     "V6.7.4 browser quality and position must be accepted on company Streamlit Cloud after deploy.",
     "V6.7.5 corrects roof-only cropping with a dedicated 3200x120 SVG header composition; verify visibility in live 1910x898 Chrome session.",
     "V6.7.6 Agent runs remain explicit, synchronous and audited; assignment alone is NOT background execution. No worker heartbeat/queue.",
-    "To restore encrypted AI API after auth.cookie_secret rotation, restore the previous secret. Admin must re-enter prior browser-local API key once to migrate to central Drive vault."
+    "To restore encrypted AI API after auth.cookie_secret rotation, restore the previous secret. Admin must re-enter prior browser-local API key once to migrate to central Drive vault.",
+    "V7.5.3 fixes an early Streamlit Agent-run dialog UnboundLocalError by importing the existing QCX QA guard before use; permissions and original Drive data remain unchanged."
   ],
   "divisions": {
     "shared": "Ban giám đốc",
     "mep": "Cơ điện",
     "construction": "Xây dựng"
   },
-  "current_version": "V7.5.2 (Interdisciplinary Coordination, Canary Disabled)",
+  "current_version": "V7.5.3 (Agent Dialog QA Guard Hotfix)",
   "backend": {
     "framework": "FastAPI",
     "database": "PostgreSQL or SQLite local",

@@ -1,7 +1,7 @@
 """Catalog and an independent, explicitly scoped QCX execution switch."""
 import os
 
-BUILD_LABEL = "V7.5.2"
+BUILD_LABEL = "V7.5.3"
 LEGACY_POLICY = "v690"
 QA_POLICY = "v750"
 
