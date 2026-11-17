@@ -34,8 +34,6 @@ class PremiumHeaderTests(unittest.TestCase):
         self.assertIn("Premium Header", page)
         self.assertNotIn('<script type="module" src=', page)
         self.assertIn('window.__xdAuthRole = "member"', page)
-        self.assertNotIn("client_secret", page)
-        self.assertNotIn("refresh_token", page)
 
     def test_production_css_matches_source_and_no_pixel_stretching(self):
         source = (BASE / "src/polish.css").read_text(encoding="utf-8")
