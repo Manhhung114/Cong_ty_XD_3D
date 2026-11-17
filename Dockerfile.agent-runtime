@@ -1,12 +1,20 @@
-# V7.1–V7.4: shared image for Streamlit + private API + Celery workers.
-# Build once; split into separate services via docker compose.
+# V7.4: strict public-code allowlist so private OAuth files never enter image.
 FROM python:3.11-slim
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1
 WORKDIR /app
 COPY requirements.txt ./requirements.txt
 COPY agent_runtime/requirements.txt ./agent_runtime/requirements.txt
 RUN pip install --disable-pip-version-check -r requirements.txt -r agent_runtime/requirements.txt
-COPY . /app
+COPY streamlit_app.py VERSION_MANIFEST.json ./
+COPY drive_storage ./drive_storage
+COPY agent_runtime ./agent_runtime
+COPY scripts ./scripts
+COPY static ./static
+COPY src ./src
+COPY assets ./assets
+COPY data ./data
+COPY project_templates ./project_templates
+COPY .streamlit/config.toml ./.streamlit/config.toml
 RUN useradd --uid 10001 --create-home agent && chown -R agent:agent /app
 USER agent
 EXPOSE 8501 8082
