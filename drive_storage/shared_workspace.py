@@ -34,7 +34,7 @@ ACTIONS = {
     "document.metadata_updated", "document.submitted", "document.approved",
     "document.returned", "document.archived",
     "agent.completed", "handoff.requested", "handoff.resolved",
-    "org.role_set", "hierarchy.proposed", "hierarchy.approved", "hierarchy.rejected",
+    "org.role_set", "hierarchy.proposed", "hierarchy.approved", "hierarchy.rejected", "hierarchy.stopped",
 }
 ID = re.compile(r"^[A-Za-z0-9_-]{12,160}$")
 EVENT_ID = re.compile(r"^[0-9a-f]{32}$")
@@ -255,6 +255,39 @@ class SharedWorkspace:
                 if not plan or plan["projectId"] != pid or plan["status"] != "pending":
                     raise ValueError("Đề xuất phân phối không còn chờ duyệt")
                 plan.update({"status": "rejected", "reviewedBy": event["actor"],
+                             "reviewedAt": event["at"], "reason": data["reason"]})
+            elif action == "hierarchy.stopped":
+                plan = hierarchy_plans.get(data["proposal_id"])
+                if not plan or plan["projectId"] != pid or plan["status"] != "dispatched":
+                    raise ValueError("Luồng phân phối không còn hoạt động")
+                root_id = plan["rootTaskId"]
+                def belongs_to_tree(task):
+                    cursor = task
+                    for _ in range(6):
+                        if cursor["id"] == root_id:
+                            return True
+                        parent_id = cursor.get("parentTaskId")
+                        if not parent_id:
+                            return False
+                        cursor = task_map.get(parent_id)
+                        if not cursor:
+                            return False
+                    return False
+                for item in list(task_map.values()):
+                    if item["projectId"] != pid or not belongs_to_tree(item):
+                        continue
+                    if item["status"] == "done":
+                        continue  # Preserve already signed and approved results.
+                    item.update({
+                        "status": "cancelled", "assignee": "", "assignedAgentId": "",
+                        "cancelledAt": event["at"], "cancelledBy": event["actor"],
+                        "cancelReason": data["reason"],
+                    })
+                    item["reviewHistory"].append({
+                        "at": event["at"], "actor": event["actor"],
+                        "decision": "stop_hierarchy", "note": data["reason"],
+                    })
+                plan.update({"status": "stopped", "reviewedBy": event["actor"],
                              "reviewedAt": event["at"], "reason": data["reason"]})
             elif action == "hierarchy.approved":
                 from drive_storage.hierarchy import STAGES
@@ -590,6 +623,26 @@ class SharedWorkspace:
                             action="hierarchy.approved",
                             data={"proposal_id": proposal_id, "children": nodes},
                             event_id=dispatch_id)
+
+    def stop_hierarchy(self, identity, *, project_id, task_id, reason, event_id=None):
+        """One signed, explicit Admin action stops all unfinished descendants."""
+        if not can_admin(identity):
+            raise PermissionError("Chỉ Admin được dừng toàn bộ cây phân phối")
+        pid, root = self._current_task(identity, project_id, task_id)
+        if root["hierarchyStage"] != "ceo" or root["status"] == "done":
+            raise ValueError("Cây phân phối không còn ở trạng thái được dừng")
+        state = self.snapshot(identity)
+        plan = next((p for p in state["hierarchyPlans"]
+                     if p["rootTaskId"] == task_id and p["status"] == "dispatched"), None)
+        if not plan:
+            raise ValueError("Không có cây phân phối đang hoạt động")
+        reason = _clean_text(reason, 600, True)
+        if len(reason) < 5:
+            raise ValueError("Cần ghi rõ lý do dừng cây công việc")
+        return self._append(identity=identity, project_id=pid,
+                            action="hierarchy.stopped",
+                            data={"proposal_id": plan["id"], "reason": reason},
+                            event_id=event_id)
 
     def _hierarchy_guard(self, identity, task, *, submit=False):
         # Legacy tasks keep the existing lightweight path and business rules.
