@@ -1,4 +1,9 @@
 /* High-contrast command bar. All alerts are derived from authenticated server data. */
+// Exact artwork cropped from the user-approved mockup, kept as separate
+// assets so text and interactive controls are never duplicated as a screenshot.
+const HEADER_ART='./assets/user_reference_header_v672.webp';
+const SIDEBAR_ART='./assets/user_reference_sidebar_v672.webp';
+const OFFICE_ART='./assets/user_reference_foyer_v672.webp';
 const OFFICE_IMAGE='./assets/office_xd_mep_isometric_v5_7.webp';
 const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const el=id=>document.getElementById(id);
@@ -21,8 +26,15 @@ export function updateCommandShell(tab,subtitle=''){
  const cloud=window.__xdCloud||{};
  const alerts=cloud.companyMetrics?.alerts||[];
  const monitor=tab==='monitor';
+ // The Streamlit bundler rewrites these whitelisted local assets into
+ // inline image data, so private sign-in never relies on public static hosting.
+ const root=document.documentElement;
+ root.style.setProperty('--xd-approved-header', 'url("'+HEADER_ART+'")');
+ root.style.setProperty('--xd-approved-foyer', 'url("'+OFFICE_ART+'")');
+ root.style.setProperty('--xd-approved-sidebar', 'url("'+SIDEBAR_ART+'")');
  for(const image of document.querySelectorAll('[data-brand-image]')){
-  if(!image.getAttribute('src'))image.setAttribute('src',OFFICE_IMAGE);
+  const asset=image.closest('.sidebar-visual')?SIDEBAR_ART:HEADER_ART;
+  if(image.getAttribute('src')!==asset)image.setAttribute('src',asset);
  }
  const title=el('commandTitle');
  if(title)title.textContent=monitor?
