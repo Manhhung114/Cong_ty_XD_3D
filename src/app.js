@@ -19,20 +19,20 @@ import {legalStatistics,LEGAL_KINDS,LEGAL_KIND_LABELS} from './core/legal_statis
 import {TVPL_HOME,TVPL_SEARCH,TVPL_REFRESH_WORKFLOW,getTVPLCache,checkTVPLUpdates} from './core/tvpl_sources.js';
 import {isOfficialUrl} from './core/standards.js';
 const NAV=[
-{id:'overview',name:'Văn phòng 3D',icon:'⌂'},
-{id:'agents',name:'Nhân viên AI (18 Agent)',icon:'◎'},
-{id:'tasks',name:'Công việc',icon:'☷'},
-{id:'reviews',name:'Chờ phê duyệt',icon:'✓'},
-{id:'projects',name:'Quản lý dự án',icon:'▤'},
-{id:'documents',name:'Kho tài liệu',icon:'▤'},
-{id:'boq',name:'BOQ / Dự toán',icon:'▦'},
-{id:'bim',name:'BIM / Mô hình',icon:'⬡'},
-{id:'company',name:'Phối hợp liên phòng',icon:'⇄'},
-{id:'monitor',name:'Giám sát Agent',icon:'▥'},
-{id:'reports',name:'Báo cáo & Thống kê',icon:'◫'},
-{id:'legal',name:'Pháp luật & tiêu chuẩn',icon:'§'},
-{id:'activity',name:'Nhật ký hoạt động',icon:'◷'},
-{id:'settings',name:'Cài đặt hệ thống',icon:'⚙'}
+{id:'overview',icon:'⌂',name:'Văn phòng 3D'},
+{id:'agents',icon:'◎',name:'Nhân viên AI (18 Agent)'},
+{id:'tasks',icon:'☷',name:'Công việc'},
+{id:'reviews',icon:'✓',name:'Chờ phê duyệt'},
+{id:'projects',icon:'▤',name:'Quản lý dự án'},
+{id:'documents',icon:'▤',name:'Kho tài liệu'},
+{id:'boq',icon:'▦',name:'BOQ / Dự toán'},
+{id:'bim',icon:'⬡',name:'BIM / Mô hình'},
+{id:'company',icon:'⇄',name:'Phối hợp liên phòng'},
+{id:'monitor',icon:'▥',name:'Giám sát Agent'},
+{id:'reports',icon:'◫',name:'Báo cáo & Thống kê'},
+{id:'legal',icon:'§',name:'Pháp luật & tiêu chuẩn'},
+{id:'activity',icon:'◷',name:'Nhật ký hoạt động'},
+{id:'settings',icon:'⚙',name:'Cài đặt hệ thống'}
 ];
 const NAV_PATHS={
 overview:'<path d="m3 10 9-7 9 7M5 9v12h14V9M9 21v-7h6v7"/>',
