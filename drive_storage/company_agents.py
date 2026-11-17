@@ -338,6 +338,11 @@ def run_agent(workspace, identity, *, project_id: str, task_id: str,
     _require_id(task_id, "Mã công việc")
     state = workspace.snapshot(identity)
     agent, task, project, docs = _task_context(state, pid, task_id, agent_id)
+    from drive_storage.hierarchy import require_operator, dependencies_block
+    require_operator(identity, task)
+    blocked = dependencies_block(task, state["tasks"])
+    if blocked:
+        raise PermissionError("Agent cần đợi các nhiệm vụ phụ thuộc được phê duyệt")
     if mode not in {"preflight", "llm"}:
         raise ValueError("Chế độ Agent không hợp lệ")
     note = _clean_text(note, MAX_NOTE)

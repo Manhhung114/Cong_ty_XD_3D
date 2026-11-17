@@ -9,6 +9,10 @@ const actionLabels={
  'task.started':'Bắt đầu công việc', 'task.submitted':'Trình phê duyệt',
  'task.approved':'Chấp thuận', 'task.returned':'Trả lại', 'task.assigned':'Phân công kỹ sư và Agent',
  'task.unassigned':'Thu hồi phân công', 'task.cancelled':'Hủy công việc',
+ 'org.role_set':'Bổ nhiệm vị trí nhân sự', 'hierarchy.proposed':'CEO đề xuất phân việc',
+ 'hierarchy.approved':'Admin duyệt và giao việc các cấp',
+ 'hierarchy.rejected':'Admin trả lại phương án CEO',
+ 'hierarchy.stopped':'Admin dừng toàn bộ cây phân phối',
  'document.registered':'Đăng ký hồ sơ trên Drive',
  'document.metadata_updated':'Cập nhật sổ hồ sơ',
  'document.submitted':'Trình hồ sơ',
@@ -25,8 +29,23 @@ const btn=(label,op,task='',other='outline')=>'<button type="button" class="btn 
 const role=()=>view().role||'read';
 const canWrite=()=>['update','admin'].includes(role());
 const canReview=()=>role()==='admin';
+const canReviewTask=t=>{
+ if(canReview())return true;
+ if(role()!=='update'||!t.parentTaskId||t.hierarchyStage==='qa')return false;
+ const parent=(view().tasks||[]).find(x=>x.id===t.parentTaskId);
+ const actor=(view().actor||'').toLowerCase();
+ return !!(parent&&(parent.assignee||'').toLowerCase()===actor&&
+  (t.assignee||'').toLowerCase()!==actor);
+};
 const taskWithdrawControl=t=>{
  if(!canWrite())return '';
+ if(t.hierarchyStage&&!canReview()){
+  const parent=(view().tasks||[]).find(x=>x.id===t.parentTaskId);
+  const isManager=parent&&String(parent.assignee||'').toLowerCase()===
+    String(view().actor||'').toLowerCase();
+  if(!isManager)return '<button type="button" class="btn outline small" disabled '+
+   'title="Chỉ cấp quản lý trực tiếp hoặc Admin được thu hồi">↩ Thu hồi (cần cấp quản lý)</button>';
+ }
  if(['done','cancelled'].includes(t.status))
   return '<button type="button" class="btn outline small" disabled title="Công việc đã đóng và không thể hủy lại">↩ Thu hồi / Hủy giao việc</button>';
  if(canReview())return btn('↩ Thu hồi / Hủy giao việc','task_withdraw',t.id);
@@ -64,10 +83,26 @@ const projectCards=()=>{
  (canReview()?'<div class="portal-review-actions">'+btn('＋ Tạo dự án mới','project_create','','primary')+btn('Sao lưu dữ liệu cũ trên thiết bị','legacy_backup')+btn('↑ Nhập bản sao dữ liệu cũ','project_import')+'</div>':'')+
  '<p class="footnote">Dự án cũ trong trình duyệt được giữ nguyên để đối chiếu. Không tự xóa hoặc tự chuyển dữ liệu.</p></section>';
 };
+const hierarchyStages={ceo:'Giám đốc',pm:'PM · Quản lý dự án',lead:'Trưởng bộ môn',expert:'Chuyên gia',qa:'QA/QC'};
 const tasksHtml=filter=>{
- const tasks=selectedTasks().filter(t=>!filter||t.status===filter);
+ const all=selectedTasks();
+ const order=[],visited=new Set();
+ const walk=(task,depth=0)=>{
+  if(visited.has(task.id)||depth>5)return;
+  visited.add(task.id);
+  order.push(task);
+  all.filter(t=>t.parentTaskId===task.id).forEach(t=>walk(t,depth+1));
+ };
+ all.filter(t=>!t.parentTaskId||!all.some(x=>x.id===t.parentTaskId)).forEach(t=>walk(t));
+ all.forEach(t=>walk(t));
+ const tasks=order.filter(t=>!filter||t.status===filter);
+ const pendingPlans=(view().hierarchyPlans||[]).filter(p=>
+  p.projectId===current()?.id&&p.status==='pending');
  return '<section class="panel padded"><div class="panel-heading"><h3>'+(filter?'Hồ sơ chờ phê duyệt':'Công việc dự án')+'</h3><span class="mini-label">'+tasks.length+' CÔNG VIỆC</span></div>'+
- (canWrite()&&!filter?'<div class="portal-review-actions">'+btn('＋ Tạo công việc','task_create','','primary')+'</div>':'')+
+ (canWrite()&&!filter?'<div class="portal-review-actions">'+btn('＋ Tạo công việc','task_create','','primary')+
+  (canReview()?btn('⚙ Cơ cấu tổ chức','org_roles'):'')+
+  (canReview()&&pendingPlans.length?btn('✓ Duyệt phương án CEO ('+pendingPlans.length+')','hierarchy_review','','primary'):'')+
+  '</div>':'')+
  '<div class="portal-tasks">'+tasks.map(t=>{
  const history=t.reviewHistory||[];
  const reports=(view().agentRuns||[]).filter(r=>r.taskId===t.id&&r.projectId===t.projectId);
@@ -77,9 +112,31 @@ const tasksHtml=filter=>{
   reports.length?'Đã tạo '+reports.length+' báo cáo nháp; chờ kỹ sư kiểm chứng':
   'Agent chưa chạy cho công việc này';
  const returned=t.status==='working'&&t.lastReviewDecision==='reject';
+ const p=all.find(x=>x.id===t.parentTaskId);
+ const plan=(view().hierarchyPlans||[]).find(x=>x.rootTaskId===t.id&&x.status==='pending');
+ const activePlan=(view().hierarchyPlans||[]).find(x=>
+  x.rootTaskId===t.id&&x.status==='dispatched');
+ const existingPlan=(view().hierarchyPlans||[]).some(x=>
+  x.rootTaskId===t.id&&['pending','dispatched'].includes(x.status));
+ const progress=t.hierarchyProgress||{total:0,done:0,blockedBy:[]};
+ const blocked=(progress.blockedBy||[]).length>0;
+ const actor=(view().actor||'').toLowerCase();
+ const canOperate=canWrite()&&(!t.hierarchyStage||canReview()||
+  (t.assignee||'').toLowerCase()===actor);
+ const supervisor=p&&((p.assignee||'').toLowerCase()===actor);
+ const canDelegate=canReview()||!!supervisor;
  const statusLabel=returned?'Yêu cầu sửa':(labels[t.status]||t.status);
- return '<article class="portal-task"><div class="portal-task-head"><div><strong>'+h(t.title)+'</strong><small>'+h(t.code)+' · '+h(t.dept)+' · '+h(t.assignee||'Chưa giao')+
+ return '<article class="portal-task portal-hierarchy-'+h(t.hierarchyStage||'none')+'" data-parent-task="'+h(t.parentTaskId||'')+'"><div class="portal-task-head"><div><strong>'+h(t.title)+'</strong><small>'+h(t.code)+' · '+h(t.dept)+' · '+h(t.assignee||'Chưa giao')+
  '</small></div><span class="portal-pill '+(t.status==='review'?'review':t.status==='done'?'done':t.status==='cancelled'?'cancelled':returned?'returned':'')+'">'+h(statusLabel)+'</span></div>'+
+ (t.hierarchyStage?'<p class="company-secondary"><b>Tuyến phân cấp:</b> '+
+  h(hierarchyStages[t.hierarchyStage]||t.hierarchyStage)+
+  (p?' · Cấp trên: '+h(p.code):' · Công việc gốc')+
+  (t.assignedBy?' · Được giao bởi: '+h(t.assignedBy):'')+'</p>':'')+
+ (progress.total?'<p class="company-secondary" role="status"><b>Tiến độ cấp dưới:</b> '+
+  progress.done+'/'+progress.total+' nhiệm vụ con đã được duyệt</p>':'')+
+ (blocked?'<p class="portal-hierarchy-block" role="status">🔒 Chưa được xử lý: còn '+
+  progress.blockedBy.length+' nhiệm vụ tiền nhiệm chưa được duyệt.</p>':'')+
+ (plan?'<p class="portal-hierarchy-block" role="status">CEO đã gửi phương án; chờ Admin phê duyệt phân phối.</p>':'')+
  '<p class="company-secondary"><b>Chuyên gia được giao:</b> '+h(agentLabel)+
   ' · <b>Trạng thái Agent:</b> '+h(runLabel)+'</p>'+
  (t.status==='cancelled'?'<p class="company-secondary"><b>Đã hủy:</b> '+h(t.cancelReason||'')+
@@ -107,13 +164,24 @@ const tasksHtml=filter=>{
   {low:'Thấp',high:'Cao',critical:'Khẩn cấp'}[t.priority]||t.priority
  )+'</b></p>':'')+
   '<div class="portal-review-actions">'+
- (canWrite()&&['todo','working'].includes(t.status)?btn('Gán / Sửa phân công','task_assign',t.id):'')+
+ (canWrite()&&['todo','working'].includes(t.status)&&
+   (!t.hierarchyStage||canDelegate)?btn('Gán / Sửa phân công','task_assign',t.id):'')+
+ (canWrite()&&t.assignedAgentId==='CEO'&&t.dept==='director'&&
+  !t.parentTaskId&&!existingPlan&&['todo','working'].includes(t.status)&&
+  (canReview()||(t.assignee||'').toLowerCase()===actor)?
+  btn('🏢 Giám đốc AI lập phương án','hierarchy_propose',t.id,'primary'):'')+
+ (canReview()&&plan?btn('✓ Duyệt phân phối từ CEO','hierarchy_review',t.id,'primary'):'')+
+ (canReview()&&activePlan&&t.hierarchyStage==='ceo'&&
+  !['done','cancelled'].includes(t.status)?
+  btn('⛔ Dừng toàn bộ cây phân phối','hierarchy_stop',t.id):'')+
  taskWithdrawControl(t)+
- (canWrite()&&specialist&&['todo','working'].includes(t.status)?
+ (canOperate&&!blocked&&specialist&&['todo','working'].includes(t.status)?
   '<button type="button" class="btn primary small" data-agent-run-task="'+h(t.id)+'" data-agent-run-id="'+h(specialist.id)+'" data-agent-run-project="'+h(t.projectId)+'">🤖 Chạy Agent '+h(specialist.id)+'</button>':'')+
- (canWrite()&&t.status==='todo'?btn('Bắt đầu','task_start',t.id):'')+
- (canWrite()&&['todo','working'].includes(t.status)?btn(returned?'Gửi lại báo cáo sau sửa':'Gửi báo cáo phê duyệt','task_submit',t.id,'primary'):'')+
- (canReview()&&t.status==='review'?btn('Xét duyệt / Trả lại','task_review',t.id,'primary'):'')+
+ (canOperate&&!blocked&&t.status==='todo'?btn('Bắt đầu','task_start',t.id):'')+
+ (canOperate&&!blocked&&(!progress.total||progress.done===progress.total)&&
+  ['todo','working'].includes(t.status)?
+  btn(returned?'Gửi lại báo cáo sau sửa':'Gửi báo cáo phê duyệt','task_submit',t.id,'primary'):'')+
+ (canReviewTask(t)&&t.status==='review'?btn('Xét duyệt / Trả lại','task_review',t.id,'primary'):'')+
  '</div>'+
  (history.length?'<details><summary>Lịch sử xử lý ('+history.length+')</summary>'+history.map(x=>'<p>'+h(x.at)+' · '+h(x.actor)+' · '+h(({withdraw:'Thu hồi phân công',cancel:'Hủy công việc',submitted:'Trình duyệt',approve:'Phê duyệt',reject:'Trả lại'})[x.decision]||x.decision)+' · '+h(x.note)+'</p>').join('')+'</details>':'')+
  '</article>';
@@ -300,8 +368,12 @@ export function bindCloudPage(root,section){
    return;
   }
   if(op==='project_create'&&role()!=='admin')return;
-  if(['task_create','task_assign','task_withdraw','task_start','task_submit'].includes(op)&&!canWrite())return;
-  if(op==='task_review'&&!canReview())return;
+  if(['task_create','task_assign','task_withdraw','task_start','task_submit','hierarchy_propose'].includes(op)&&!canWrite())return;
+  if(['org_roles','hierarchy_review','hierarchy_stop'].includes(op)&&!canReview())return;
+  if(op==='task_review'){
+   const selected=(view().tasks||[]).find(t=>t.id===b.dataset.workspaceTask);
+   if(!selected||!canReviewTask(selected))return;
+  }
   send(section,op,b.dataset.workspaceTask||'');
  }));
  root.querySelectorAll('[data-agent-run-task]').forEach(b=>b.addEventListener('click',()=>{

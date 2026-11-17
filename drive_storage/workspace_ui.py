@@ -15,7 +15,8 @@ from drive_storage.shared_workspace import SharedWorkspace, DEPARTMENTS
 
 COMMANDS = {
     "projects": {"refresh", "select", "project_create", "project_import"},
-    "tasks": {"refresh", "select", "task_create", "task_assign", "task_withdraw", "task_start", "task_submit"},
+    "tasks": {"refresh", "select", "task_create", "task_assign", "task_withdraw", "task_start", "task_submit",
+              "org_roles", "hierarchy_propose", "hierarchy_review", "hierarchy_stop"},
     "reviews": {"refresh", "select", "task_review"},
     "documents": {"refresh", "select", "document_inventory", "document_manage"},
     "activity": {"refresh", "select"},
@@ -32,6 +33,7 @@ DEPARTMENT_NAMES = {
     "xd_safety": "An toàn XD", "xd_material": "Vật tư",
 }
 INTERACTIVE = {"project_create", "project_import", "task_create", "task_assign", "task_withdraw", "task_submit",
+               "org_roles", "hierarchy_propose", "hierarchy_review", "hierarchy_stop",
                "task_review", "document_manage", "agent_run", "handoff_create",
                "handoff_resolve", "ops_audit"}
 
@@ -143,23 +145,28 @@ def handle_workspace_action(st, action: dict):
         st.session_state.xd_selected_cloud_project = pid
         st.session_state.xd_last_workspace_request = request_id
         return
-    if op in {"project_create", "project_import"} and not can_admin(actor):
+    if op in {"project_create", "project_import", "org_roles", "hierarchy_review", "hierarchy_stop"} and not can_admin(actor):
         raise PermissionError("Chỉ Admin được tạo dự án")
-    if op in {"task_create", "task_assign", "task_withdraw", "task_start", "task_submit"} and not can_upload(actor):
+    if op in {"task_create", "task_assign", "task_withdraw", "task_start", "task_submit", "hierarchy_propose"} and not can_upload(actor):
         raise PermissionError("Tài khoản Chỉ đọc không được cập nhật công việc")
     if op in {"agent_run", "handoff_create", "handoff_resolve"} and not can_upload(actor):
         raise PermissionError("Chỉ đọc không được chạy Agent hoặc gửi phối hợp")
     if op == "ops_audit" and not can_admin(actor):
         raise PermissionError("Chỉ Admin được kiểm soát và sao lưu hệ thống")
-    if op == "task_review" and not can_admin(actor):
-        raise PermissionError("Chỉ Admin có quyền duyệt")
+
     if op not in {"project_create", "project_import", "ops_audit"} and pid not in {p["id"] for p in current["projects"]}:
         raise PermissionError("Dự án không thuộc phạm vi")
     task_id = str(action.get("taskId") or "")
-    if op in {"task_assign", "task_withdraw", "task_start", "task_submit", "task_review", "agent_run"}:
+    if op in {"task_assign", "task_withdraw", "task_start", "task_submit", "task_review", "agent_run", "hierarchy_propose", "hierarchy_stop"}:
         if not any(t["id"] == task_id and t["projectId"] == pid
                    for t in current["tasks"]):
             raise PermissionError("Nhiệm vụ không thuộc dự án")
+    if op == "task_review":
+        from drive_storage.hierarchy import can_review_node
+        task = next((t for t in current["tasks"]
+                     if t["id"] == task_id and t["projectId"] == pid), None)
+        if not task or not can_review_node(actor, task, current["tasks"]):
+            raise PermissionError("Chỉ cấp quản lý trực tiếp hoặc Admin được xét duyệt")
     if op == "agent_run":
         from drive_storage.company_agents import agents
         profile = agents().get(str(action.get("agentId") or ""))
@@ -204,6 +211,10 @@ def workspace_dialog(st):
     action = st.session_state.get("xd_workspace_dialog")
     if not isinstance(action, dict) or action.get("op") not in INTERACTIVE:
         return
+    if action.get("op") in {"org_roles", "hierarchy_propose", "hierarchy_review", "hierarchy_stop"}:
+        from drive_storage.hierarchy_ui import hierarchy_dialog
+        hierarchy_dialog(st, action)
+        return
     if action.get("op") in {"agent_run", "handoff_create", "handoff_resolve", "ops_audit"}:
         from drive_storage.company_ui import company_dialog
         company_dialog(st, action)
@@ -230,7 +241,7 @@ def workspace_dialog(st):
             st.error("Phiên đăng nhập không hợp lệ")
             return
         op = action["op"]
-        if op in {"project_create", "project_import", "task_review"} and not can_admin(actor):
+        if op in {"project_create", "project_import"} and not can_admin(actor):
             st.error("Không có quyền quản trị/phê duyệt")
             return
         if op in {"task_create", "task_assign", "task_withdraw", "task_submit"} and not can_upload(actor):
@@ -253,6 +264,12 @@ def workspace_dialog(st):
             if op in {"task_assign", "task_withdraw", "task_submit", "task_review"} and not task:
                 st.error("Nhiệm vụ không tồn tại")
                 return
+            if op == "task_review":
+                from drive_storage.hierarchy import can_review_node
+                if not can_review_node(actor, task, current["tasks"]):
+                    st.error("Chỉ cấp quản lý trực tiếp được duyệt nhiệm vụ cấp dưới; "
+                             "QA độc lập và công việc gốc cần Admin.")
+                    return
         except Exception:
             st.error("Không đọc được dữ liệu dùng chung. Thử lại sau khi kiểm tra Drive.")
             return
@@ -328,6 +345,9 @@ def workspace_dialog(st):
             catalog = agents()
             with st.form("cloud_task_create"):
                 st.caption("Dự án: " + project["code"] + " · " + project["name"])
+                st.info("Muốn Giám đốc AI phân phối xuống các cấp: chọn Bộ môn "
+                        "Ban giám đốc và Agent CEO, giao cho Giám đốc. "
+                        "Sau khi lưu, dùng nút CEO lập phương án ngay trên thẻ.")
                 title = st.text_input("Tên công việc", max_chars=240)
                 dept = st.selectbox("Bộ môn", sorted(DEPARTMENTS),
                                     format_func=lambda x: DEPARTMENT_NAMES.get(x, x))
@@ -514,7 +534,7 @@ def workspace_dialog(st):
             st.markdown("**Công việc:** " + task["title"])
             st.write("Báo cáo: " + task.get("report", ""))
             st.write("Phát hiện: " + task.get("findings", ""))
-            st.info("Đây là quyết định phê duyệt công việc, KHÔNG phải xác nhận "
+            st.info("Đây là quyết định cấp quản lý/QA phê duyệt công việc, KHÔNG phải xác nhận "
                     "tất cả tính toán, bản vẽ CAD hoặc TCVN/QCVN đã được Agent kiểm chứng. "
                     "Admin cần thẩm tra trước khi quyết định.")
             with st.form("cloud_task_review"):

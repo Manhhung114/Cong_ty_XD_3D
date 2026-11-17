@@ -102,6 +102,10 @@ def run_expert(workspace, identity, *, project_id, task_id, agent_id,
                     "reviewRequired": True}
     state = workspace.snapshot(identity)
     profile, task, project, docs = _task_context(state, pid, task_id, agent_id)
+    from drive_storage.hierarchy import require_operator, dependencies_block
+    require_operator(identity, task)
+    if dependencies_block(task, state["tasks"]):
+        raise PermissionError("Chưa thể chạy Agent: nhiệm vụ trước trong luồng phân cấp chưa được duyệt")
     registered = next((d for d in state["documents"]
                        if d["id"] == fid and d["projectId"] == pid), None)
     if registered is None:
