@@ -564,6 +564,15 @@ class SharedWorkspace:
         for e in self.events():
             if e["id"] == attempt_id and e["action"] == "agent.completed":
                 return {"existing": True, "completed": True}
+            if e["id"] == execution_event_id(attempt_id, "started"):
+                if (e["action"] != "agent.started" or e["project_id"] != pid
+                        or e["actor"] != identity["email"]
+                        or e["data"].get("task_id") != task_id
+                        or e["data"].get("agent_id") != agent_id):
+                    raise PermissionError("Mã thực thi đã được dùng cho lượt khác")
+                # No duplicate provider charge, even if an earlier attempt is
+                # now stale. The user must open a NEW action for a NEW attempt.
+                return {"existing": True, "completed": False}
         return self._append(
             identity=identity, project_id=pid, action="agent.started",
             data={"task_id": task_id, "agent_id": agent_id, "mode": mode,
