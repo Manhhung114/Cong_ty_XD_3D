@@ -160,6 +160,7 @@ export class Office3D{
   const rooms=[...this.rooms].sort((a,b)=>a.floor-b.floor||(a.position[0]+a.position[1])-(b.position[0]+b.position[1]));
   let markup=`<svg class="office-svg-fallback" viewBox="0 0 1000 700" role="img" aria-label="Văn phòng công ty MEP và Xây dựng dạng phối cảnh isometric. Chạm vào phòng để xem công việc."><defs><radialGradient id="bgSVG"><stop stop-color="#1c4254"/><stop offset="1" stop-color="#0b1c2b"/></radialGradient><filter id="glowSVG"><feGaussianBlur stdDeviation="4" /></filter></defs><rect width="1000" height="700" fill="url(#bgSVG)"/><g transform="translate(500 300) scale(${this.svgZoom}) translate(-500 -300)">`;
   for(const {floor,center,width} of [...this.floorSpans].sort((a,b)=>a.floor-b.floor))markup+=block(center,0,floor*FLOOR_HEIGHT-.72,width-.3,14.6,.32,'#d3edf8','#7daec7','#b0d5e7');
+  const roomLabels=[];
   for(const d of rooms){const [x,z]=d.position,y=d.floor*FLOOR_HEIGHT;const active=d.id===this.selected;
     markup+=`<g class="svg-room" data-svg-dept="${d.id}" tabindex="0" role="button" aria-label="${esc(d.name)}">`;
     markup+=block(x,z,y-.3,5.8,6.1,.22,active?'#b9ecf0':'#e5f2fb','#77b4cc','#a6d5e6');
@@ -177,13 +178,17 @@ export class Office3D{
     });
     markup+=block(x+2,z-2.35,y,.75,.60,.90,'#aac5d5','#719ab2','#6288a3');
     const [tx,ty]=P(x,z-2.8,y+2.10);
-    markup+=`<rect x="${tx-39}" y="${ty-12}" width="78" height="23" rx="5" fill="${active?'#113c41':'#102a38'}" stroke="${d.color}" stroke-width="1.4"/><circle cx="${tx-27}" cy="${ty-.5}" r="3" fill="${d.color}"/><text x="${tx+3}" y="${ty+4}" fill="#e8fbff" font-size="11" font-weight="700" text-anchor="middle">${esc(d.short)}</text>`;
+    roomLabels.push(`<g data-svg-room-label="${d.id}" aria-hidden="true" cursor="pointer"><rect x="${tx-39}" y="${ty-12}" width="78" height="23" rx="5" fill="${active?'#113c41':'#102a38'}" stroke="${d.color}" stroke-width="1.4"/><circle cx="${tx-27}" cy="${ty-.5}" r="3" fill="${d.color}"/><text x="${tx+3}" y="${ty+4}" fill="#e8fbff" font-size="11" font-weight="700" text-anchor="middle">${esc(d.short)}</text></g>`);
     markup+=`</g>`;
   }
+  markup+=roomLabels.join('');
   markup+=`</g><text x="28" y="676" fill="#83a9b8" font-size="12" letter-spacing=".6">SVG ISOMETRIC FALLBACK · CHỌN PHÒNG ĐỂ XEM NHIỆM VỤ</text></svg>`;
   let target=this.container.querySelector('.office-svg-fallback');
   if(target)target.outerHTML=markup;else this.container.insertAdjacentHTML('beforeend',markup);
   this.container.querySelectorAll('[data-svg-dept]').forEach(g=>{g.addEventListener('click',()=>this.select(g.getAttribute('data-svg-dept')));g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();this.select(g.getAttribute('data-svg-dept'));}});});
+  this.container.querySelectorAll('[data-svg-room-label]').forEach(label=>{
+    label.addEventListener('click',()=>this.select(label.getAttribute('data-svg-room-label')));
+  });
   const hint=this.container.querySelector('.office-hint');if(hint)hint.textContent='Chế độ phối cảnh 3D dự phòng · Chạm chọn từng phòng';
   if(!this.fallbackWheelBound){this.container.addEventListener('wheel',e=>{if(!this.failed)return;e.preventDefault();this.svgZoom=Math.max(.75,Math.min(1.4,(this.svgZoom||1)+Math.sign(-e.deltaY)*.10));this.fallbackRender();},{passive:false});this.fallbackWheelBound=true;}
  }

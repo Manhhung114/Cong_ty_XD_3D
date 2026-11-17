@@ -26,6 +26,7 @@ def check():
         for width in (390, 820, 1440):
             for force_fallback in (False, True):
                 page = browser.new_page(viewport={"width": width, "height": 900})
+                page.set_default_timeout(9000)
                 errors = []
                 page.on("pageerror", lambda error: errors.append(str(error)))
                 if force_fallback:
@@ -71,7 +72,7 @@ def check():
                     assert page.locator(".office-svg-fallback").count() == 0
                 for room, heading, specialist in (("legal", "Pháp chế & Hợp đồng", "LEG"),
                                                   ("xd_qc", "QA/QC Xây dựng", "QCX")):
-                    control = (page.locator(f'[data-svg-dept="{room}"] text') if force_fallback else
+                    control = (page.locator(f'[data-svg-room-label="{room}"] text') if force_fallback else
                                page.locator(f'.world-label[data-office-room="{room}"]'))
                     control.click()
                     assert page.locator("#inspector h3").inner_text() == heading
