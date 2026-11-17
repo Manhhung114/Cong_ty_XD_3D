@@ -216,6 +216,7 @@ def workspace_dialog(st):
         "project_create": "V5.9 · Tạo dự án trên máy chủ",
         "project_import": "V5.9 · Nhập dữ liệu từ bản sao cục bộ",
         "task_create": "V5.9 · Giao công việc",
+        "task_assign": "V6.7.6 · Gán người phụ trách và Agent",
         "task_submit": "V6.0 · Trình báo cáo phê duyệt",
         "task_review": "V6.0 · Quyết định phê duyệt",
     }
@@ -230,7 +231,7 @@ def workspace_dialog(st):
         if op in {"project_create", "project_import", "task_review"} and not can_admin(actor):
             st.error("Không có quyền quản trị/phê duyệt")
             return
-        if op in {"task_create", "task_submit"} and not can_upload(actor):
+        if op in {"task_create", "task_assign", "task_submit"} and not can_upload(actor):
             st.error("Không có quyền cập nhật")
             return
         if st.button("Đóng", key="xd_workspace_dialog_close"):
@@ -247,7 +248,7 @@ def workspace_dialog(st):
                 return
             task = next((t for t in current["tasks"] if t["id"] == action["taskId"]
                          and t["projectId"] == pid), None)
-            if op in {"task_submit", "task_review"} and not task:
+            if op in {"task_assign", "task_submit", "task_review"} and not task:
                 st.error("Nhiệm vụ không tồn tại")
                 return
         except Exception:
