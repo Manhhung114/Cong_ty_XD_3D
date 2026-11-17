@@ -14,8 +14,12 @@ from drive_storage.shared_workspace import (
     DEPARTMENTS, CANARY_LEDGER_LIMIT, _clean_text, _require_id,
 )
 
-def meetings_enabled():
-    return os.environ.get("XD_V752_MEETINGS", "0") == "1"
+def meetings_enabled(project_id=None):
+    if os.environ.get("XD_V752_MEETINGS", "0") != "1":
+        return False
+    allowed = {p.strip() for p in os.environ.get(
+        "XD_V752_MEETING_PROJECTS", "").split(",") if p.strip()}
+    return bool(project_id and project_id in allowed)
 
 
 MAX_MEETING_TEAMS = 8
@@ -34,9 +38,9 @@ def _meeting(workspace, identity, project_id, meeting_id):
     return pid, meeting
 
 
-def _capacity(workspace):
-    if not meetings_enabled():
-        raise PermissionError("Họp phối hợp V7.5.2 đang tắt; chờ kiểm thử dữ liệu cũ")
+def _capacity(workspace, project_id):
+    if not meetings_enabled(project_id):
+        raise PermissionError("Họp V7.5.2 chưa được bật cho dự án thí điểm này")
     # The ledger currently has a hard 2500-event limit.
     if len(workspace._records()) >= CANARY_LEDGER_LIMIT:
         raise PermissionError("Nhật ký gần đầy; tạm ngừng tạo luồng mới để bảo toàn dữ liệu")
@@ -70,7 +74,7 @@ def schedule_meeting(workspace, identity, *, project_id, title, agenda, task_ids
         raise ValueError("Ngày giờ cuộc họp không hợp lệ") from exc
     if scheduled.tzinfo is None:
         raise ValueError("Phải ghi rõ múi giờ cuộc họp")
-    _capacity(workspace)
+    _capacity(workspace, pid)
     return workspace._append(
         identity=identity, project_id=pid, action="meeting.created",
         data={"title": title, "agenda": agenda, "tasks": unique_tasks,
@@ -127,7 +131,7 @@ def record_minutes(workspace, identity, *, project_id, meeting_id, minutes,
     if len(minutes) < 25 or len(decisions) < 12:
         raise ValueError("Cần ghi diễn biến và kết luận họp rõ ràng")
     parsed = _actions(actions, meeting["departments"])
-    _capacity(workspace)
+    _capacity(workspace, pid)
     return workspace._append(
         identity=identity, project_id=pid, action="meeting.minutes",
         data={"meeting_id": meeting_id, "minutes": minutes,
@@ -152,7 +156,7 @@ def decide_meeting(workspace, identity, *, project_id, meeting_id, approve,
             raise ValueError("Cần ghi lý do trả biên bản")
         action = "meeting.revision_requested"
         data = {"meeting_id": meeting_id, "reason": reason}
-    _capacity(workspace)
+    _capacity(workspace, pid)
     return workspace._append(identity=identity, project_id=pid, action=action,
                              data=data, event_id=event_id)
 
@@ -163,7 +167,7 @@ def close_meeting(workspace, identity, *, project_id, meeting_id, event_id=None)
     pid, meeting = _meeting(workspace, identity, project_id, meeting_id)
     if meeting["status"] != "in_progress" or not meeting["readyToClose"]:
         raise ValueError("Chưa hoàn thành và duyệt hết các đầu việc sau họp")
-    _capacity(workspace)
+    _capacity(workspace, pid)
     return workspace._append(
         identity=identity, project_id=pid, action="meeting.closed",
         data={"meeting_id": meeting_id}, event_id=event_id,
