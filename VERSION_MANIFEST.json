@@ -1,6 +1,6 @@
 {
   "project": "Công ty Xây dựng & MEP AI 3D",
-  "artifact_version": "0.6.7-realtime-dual-system-monitor",
+  "artifact_version": "0.6.7.4-premium-vector-header",
   "release_date": "2026-11-16",
   "modules": [
     {
@@ -164,6 +164,12 @@
       "area": "Full-width dashboard masthead, sidebar architecture image, functional user/alert/help controls, compact graphic proportions, report summary",
       "entry": "static/index.html",
       "status": "implemented_built_in_ci_pending_actual_browser_qa"
+    },
+    {
+      "label": "V6.7.4",
+      "area": "Premium full-width skyline, resolution-independent vector art, dedicated crisp company emblem, accessible high-contrast header & 3 responsive sizes",
+      "entry": "static/assets/premium_skyline_v674.svg",
+      "status": "implemented_ci_and_real_browser_acceptance_pending"
     }
   ],
   "data_categories": {
@@ -244,14 +250,16 @@
     "V6.7 is 15-second polling over Google Drive signed event journal, not a WebSocket or true Agent RUNNING heartbeat.",
     "V6.7 inline monitoring limits include 900 recent 7-day events; truncated event windows are flagged.",
     "V6.7 runtime Google OAuth, two-account, graph responsiveness and Google Drive load must be verified on the deployed Streamlit site.",
-    "V6.7.1 UI reference uses original owned app building artwork rather than reusing red-annotated screenshot; visual QA on target 1648px browser not yet completed."
+    "V6.7.1 UI reference uses original owned app building artwork rather than reusing red-annotated screenshot; visual QA on target 1648px browser not yet completed.",
+    "V6.7.4 uses resolution-independent original vector SVG skyline/emblem rather than stretching 350x90 WebP; no raster 2x is needed for sharpness.",
+    "V6.7.4 browser quality and position must be accepted on company Streamlit Cloud after deploy."
   ],
   "divisions": {
     "shared": "Ban giám đốc",
     "mep": "Cơ điện",
     "construction": "Xây dựng"
   },
-  "current_version": "V6.7 (Giám sát Agent MEP ↔ XD)",
+  "current_version": "V6.7.4 (Premium Header Upgrade)",
   "backend": {
     "framework": "FastAPI",
     "database": "PostgreSQL or SQLite local",
