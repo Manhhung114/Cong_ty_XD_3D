@@ -1,3 +1,13 @@
+# V6.7.2 — Mở toàn màn hình, ảnh nền đúng theo mẫu
+
+Đã thay đổi **khung Streamlit** để nội dung dùng 100% chiều rộng thay vì chừa hai dải đen do padding mặc định; iframe chính theo chiều cao trình duyệt và không thay đổi iframe cầu nối Google Drive. Các sheet không còn bị bó vào `max-width:1600px`.
+
+Hình mẫu do người dùng cung cấp được cắt **chỉ lấy ảnh công trình** và nén thành 3 tài nguyên WEBP: ảnh skyline trên thanh tiêu đề, ảnh tòa nhà ở cuối sidebar, ảnh văn phòng dùng làm lớp nền nhẹ sau các sheet. Nút bấm và dữ liệu vẫn là thành phần thật, không dùng nguyên screenshot để giả giao diện. Giữ nguyên login/OAuth/Google Drive/phân quyền Admin/MEP-XD và mọi dữ liệu.
+
+Chi tiết: [V672_FULL_WIDTH_USER_REFERENCE_ART.md](docs/V672_FULL_WIDTH_USER_REFERENCE_ART.md). Trạng thái: kiểm thử mã tự động; cần nghiệm thu trực quan trên desktop/mobile sau khi Streamlit Cloud cập nhật.
+
+---
+
 # V6.7.1 – Giao diện mới theo hình mẫu đã duyệt
 
 **Thanh điều khiển toàn chiều rộng** có tên công ty, phiên bản, trạng thái Google Drive/gần thời gian thực, chuông cảnh báo thật, trợ giúp và tài khoản. **Menu trái** với icon SVG đồng bộ và ảnh kiến trúc công trình phía dưới; **màn hình Giám sát Agent** có KPI/biểu đồ/timeline xếp gần sát mẫu. Nền ứng dụng được đồng bộ xanh đen–cyan; màu đỏ chỉ dành cho cảnh báo (không sao chép khung đỏ đánh dấu trên ảnh).
