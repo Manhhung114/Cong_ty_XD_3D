@@ -16,7 +16,7 @@ export const FAILURE_LABELS={
  resource:'Giới hạn tài nguyên',internal:'Lỗi máy chủ',
 };
 export function agentEvidence(cloud,agentId,projectId='',clock=Date.now()){
- const selected=projectId||cloud?.selectedProjectId||'';
+ const selected=projectId==='all'?'':(projectId||cloud?.selectedProjectId||'');
  const items=(cloud?.agentActivity||[]).filter(a=>
    a.agentId===agentId&&(!selected||a.projectId===selected));
  const record=items.sort((a,b)=>safeDate(b.at)-safeDate(a.at))[0];
@@ -33,7 +33,7 @@ export function agentEvidence(cloud,agentId,projectId='',clock=Date.now()){
     state==='stale'?'Không có sự kiện hoàn thành/lỗi và không có heartbeat':record.mode||''};
 }
 export function agentEvidenceSummary(cloud,projectId=''){
- const selected=projectId||cloud?.selectedProjectId||'';
+ const selected=projectId==='all'?'':(projectId||cloud?.selectedProjectId||'');
  const rows=(cloud?.agentActivity||[]).filter(a=>!selected||a.projectId===selected);
  const counts={started_unconfirmed:0,stale:0,completed:0,failed:0};
  for(const r of rows){
@@ -43,7 +43,7 @@ export function agentEvidenceSummary(cloud,projectId=''){
  return counts;
 }
 export function selectedAgentTask(cloud,agentId,projectId=''){
- const selected=projectId||cloud?.selectedProjectId||'';
+ const selected=projectId==='all'?'':(projectId||cloud?.selectedProjectId||'');
  const items=(cloud?.tasks||[]).filter(t=>
   (!selected||t.projectId===selected)&&t.assignedAgentId===agentId&&
   !['done','cancelled'].includes(t.status));
