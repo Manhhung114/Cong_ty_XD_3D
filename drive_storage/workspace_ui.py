@@ -74,6 +74,12 @@ def load_snapshot(st) -> dict:
     snapshot["companyMetrics"] = company_metrics(snapshot)
     snapshot["agentsCatalog"] = public_catalog()
     snapshot["aiStatus"] = ai_status(st)
+    from agent_runtime.client import public_jobs
+    runtime = public_jobs(st, actor, selected) if selected else {
+        "enabled": False, "jobs": [], "message": "Chưa chọn dự án"}
+    snapshot["runtimeEnabled"] = runtime["enabled"]
+    snapshot["runtimeJobs"] = runtime["jobs"][:100]
+    snapshot["runtimeMessage"] = runtime["message"]
     # Keep the iframe payload bounded. Full signed history remains on Drive.
     snapshot["agentRuns"] = snapshot.get("agentRuns", [])[:18]
     snapshot["handoffs"] = snapshot.get("handoffs", [])[:100]
