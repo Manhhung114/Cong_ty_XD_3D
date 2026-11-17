@@ -41,7 +41,9 @@ function agentCards(){
  '<br>V6.4–6.6: đã có bộ đọc mẫu PDF/XLSX/CSV/DXF/IFC và kiểm tra BOQ/công thức có nguồn; <strong>DWG/RVT, IFC clash hình học và file trên 50 MB vẫn cần worker</strong>. Mọi báo cáo cần kỹ sư thẩm tra.</div>'+
  '<div class="company-agent-grid">'+profiles.map(a=>{
  const isCoordinator=['CEO','PM','DOC','QAC'].includes(a.id);
- const compatible=tasks.filter(t=>t.dept===a.department||(isCoordinator&&t.dept!=='xd_qc'));
+ const compatible=tasks.filter(t=>
+   (!t.meetingId||s.role==='admin'||(t.assignee||'').toLowerCase()===(s.actor||'').toLowerCase())&&
+   (t.dept===a.department||(isCoordinator&&t.dept!=='xd_qc')));
  const histories=runs.filter(r=>r.agentId===a.id);
  const l=histories[0];
  return '<article class="company-agent-card"><div class="company-agent-head"><span class="company-avatar">'+h(a.id)+'</span><div>'+
