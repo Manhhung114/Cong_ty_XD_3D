@@ -164,3 +164,23 @@ def describe_progress(task: dict, tasks: list[dict]) -> dict:
         "blockedBy": dependencies_block(task, tasks),
         "allChildrenDone": bool(children) and finished == len(children),
     }
+
+
+def can_review_node(identity: dict, task: dict, tasks: list[dict]) -> bool:
+    """Hierarchical manager may review own direct subordinate only.
+
+    Root and independent QA still require Admin. An operator cannot approve
+    their own assigned work, even if they also hold a manager position.
+    """
+    if identity.get("role") == "admin":
+        return True
+    if identity.get("role") != "update":
+        return False
+    parent_id = task.get("parentTaskId")
+    if not parent_id or task.get("hierarchyStage") == "qa":
+        return False
+    parent = next((x for x in tasks if x["id"] == parent_id), None)
+    expected = str(parent.get("assignee") or "").lower() if parent else ""
+    assignee = str(task.get("assignee") or "").lower()
+    actor = clean_email(identity.get("email", ""))
+    return bool(expected and expected == actor and assignee != actor)
