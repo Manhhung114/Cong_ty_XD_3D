@@ -39,4 +39,4 @@ Quay lui bằng cách tắt các cờ trên **cùng bản ứng viên** để gi
 - `python -m unittest discover -s agent_runtime/tests -p 'test_*.py'`
 - `npm test`
 - `python -m compileall -q drive_storage agent_runtime streamlit_app.py`
-- CI **Verify V7.5 Canary** dựng Redis và PostgreSQL riêng, khởi động Celery thật và chạy Playwright trên bundle Streamlit đã xác thực giả lập. Bộ thử dùng tài khoản, tệp và khóa tổng hợp. Không gọi provider AI hoặc Google.
+- CI **Verify V7.1-V7.4 Agent Runtime** gọi **Verify V7.5 Canary** để dựng Redis và PostgreSQL riêng, khởi động Celery thật và chạy Playwright trên bundle Streamlit đã xác thực giả lập. Bộ thử dùng tài khoản, tệp và khóa tổng hợp. Không gọi provider AI hoặc Google.

@@ -39,7 +39,7 @@ def check():
                     content_type="text/html", body=hub if route.request.url.endswith("/agents") else office))
                 page.goto("https://fixture.invalid/agents")
                 assert page.locator(".company-agent-card").count() == 20, errors
-                assert page.locator(".company-agent-card .company-avatar").get_by_text("LEG", exact=True).count() == 1
+                assert page.locator(".company-agent-card .company-avatar").all_text_contents().count("LEG") == 1
                 page.goto("https://fixture.invalid/office")
                 page.locator('[data-office-render="live"]').click()
                 if force_fallback:

@@ -180,6 +180,12 @@ def require_qc_role(identity, task, state):
                and row.get("department") == "xd_qc" and row.get("role") == "qa"
                and row.get("active") for row in state.get("orgRoles", [])):
         raise PermissionError("Quyền QA/QC xây dựng của người phụ trách không còn hiệu lực")
+    predecessors = set(task.get("dependsOn", []))
+    for row in state.get("tasks", []):
+        if row["id"] in predecessors and actor in {
+                str(row.get("assignee") or "").casefold(),
+                str(row.get("lastSubmittedBy") or "").casefold()}:
+            raise PermissionError("Người đã thực hiện hồ sơ không được kiểm tra QCX độc lập")
 
 
 def describe_progress(task: dict, tasks: list[dict]) -> dict:

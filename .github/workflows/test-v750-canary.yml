@@ -1,15 +1,6 @@
 name: Verify V7.5 Canary
 on:
-  pull_request:
-    paths:
-      - ".github/workflows/test-v750-canary.yml"
-      - "agent_runtime/**"
-      - "data/agents_v75.json"
-      - "drive_storage/**"
-      - "scripts/tests/check_v750_browser.py"
-      - "src/**"
-      - "static/src/**"
-      - "tests/**"
+  workflow_call:
   workflow_dispatch:
 permissions:
   contents: read

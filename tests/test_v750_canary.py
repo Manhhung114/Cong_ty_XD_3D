@@ -1,13 +1,15 @@
 """V7.5 compatibility, staged access and independent numeric fixtures."""
+from hashlib import md5, sha256
 import os
 import unittest
 from unittest.mock import patch
 
 import test_v59_v60_cloud_workflow as fixtures
 from drive_storage.company_agents import agents, public_catalog, v75_agents, _task_context
+from drive_storage.document_control import submit_document, review_document
 from drive_storage.expert_orchestrator import run_expert
 from drive_storage.expert_tools import _csv
-from drive_storage.hierarchy import can_review_node
+from drive_storage.hierarchy import can_review_node, require_qc_role
 from drive_storage.v75_checks import checks
 
 
@@ -123,6 +125,54 @@ class SignedCanaryFlow(unittest.TestCase):
         self.assertEqual(signed_before, {k: self.storage.media[k] for k in signed_before})
         with self.assertRaises(PermissionError):
             _task_context(staged, project, qc["id"], "QCX")
+
+    def test_qcx_approved_revision_runs_and_revocation_stops_new_run(self):
+        project = fixtures.PROJECT
+        env = {"XD_V75_CATALOG": "1", "XD_V75_QCX": "1", "XD_V75_CANARY_PROJECTS": project}
+        with patch.dict(os.environ, env, clear=True):
+            self.ws.set_org_role(self.admin, project_id=project, email=self.reviewer["email"],
+                                 role="qa", department="xd_qc")
+            self.approve(self.propose())
+            state = self.ws.snapshot(self.admin)
+            qc, = [task for task in state["tasks"] if task["assignedAgentId"] == "QCX"]
+            task, = qc["dependsOn"]
+            self.ws.submit_task(self.admin, project_id=project, task_id=task,
+                                summary="Đã lập bảng kiểm mẫu ITP.")
+            self.ws.review_task({**self.admin, "email": "independent@example.com"},
+                                project_id=project, task_id=task, decision="approve")
+            fid = "itp-file-v750-fixture"
+            blob = (b"work_package,drawing_revision,sample_id,test_report,ncr_id,closure_evidence\n"
+                    b"WP-01,R03,S-01,T-01,NCR-04,\n")
+            self.storage.list_category_files = lambda **kwargs: [
+                {"id": fid, "name": "ITP_R03.csv", "size": str(len(blob)),
+                 "md5Checksum": md5(blob).hexdigest()}
+            ] if kwargs == {"project_id": project, "category": "reports_xd"} else []
+            self.storage.download_small_file = lambda **kwargs: blob
+            self.ws.register_document(self.admin, project_id=project, category="reports_xd",
+                                      file_id=fid, task_id=task)
+            run = {"project_id": project, "task_id": qc["id"], "agent_id": "QCX", "file_id": fid}
+            with self.assertRaises(PermissionError):
+                run_expert(self.ws, self.reviewer, **run)
+            submit_document(self.ws, self.admin, project_id=project, file_id=fid)
+            review_document(self.ws, self.admin, project_id=project, file_id=fid, decision="approve")
+            result = run_expert(self.ws, self.reviewer, **run)
+            self.assertTrue(result["reviewRequired"])
+            self.assertIn("itp_register_sample", result["draft"])
+            self.assertIn("NCR", result["draft"])
+            self.assertEqual(result["evidence"]["provenance"]["sha256"], sha256(blob).hexdigest())
+            with self.assertRaises(PermissionError):
+                run_expert(self.ws, self.reviewer, **run, mode="expert_llm", consent=True)
+            conflicting = self.ws.snapshot(self.admin)
+            next(row for row in conflicting["tasks"] if row["id"] == task)["lastSubmittedBy"] = self.reviewer["email"]
+            with self.assertRaises(PermissionError):
+                require_qc_role(self.reviewer, qc, conflicting)
+            self.ws.set_org_role(self.admin, project_id=project, email=self.reviewer["email"],
+                                 role="none", department="xd_qc")
+            with self.assertRaisesRegex(PermissionError, "không còn hiệu lực"):
+                run_expert(self.ws, self.reviewer, **run)
+        runs = self.ws.snapshot(self.admin)["agentRuns"]
+        self.assertEqual([row["agentId"] for row in runs], ["QCX"])
+        self.assertTrue(runs[0]["reviewRequired"])
 
     def test_journal_near_cap_blocks_new_canary(self):
         with patch.dict(os.environ, {"XD_V75_CATALOG": "1", "XD_V75_QCX": "1",
