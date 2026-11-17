@@ -51,7 +51,8 @@ def document_control_dialog(st, action):
     if action.get("op") != "document_manage" or action.get("section") != "documents":
         return
 
-    @st.dialog("📚 Kho tài liệu · Kiểm kê & kiểm soát hồ sơ", width="large")
+    @st.dialog("📚 Kho tài liệu · Kiểm kê & kiểm soát hồ sơ", width="large",
+               on_dismiss=lambda: st.session_state.pop("xd_workspace_dialog", None))
     def render():
         actor = identity_for(st)
         if not actor:
@@ -271,7 +272,8 @@ def document_control_dialog(st, action):
                         raise PermissionError("Phải xác nhận đã kiểm tra tệp trước khi duyệt")
                     review_document(server, actor, project_id=pid, file_id=selected["id"],
                                     decision=decision, comment=comment)
-                    feedback("Đã lưu quyết định xét duyệt hồ sơ cùng tài khoản Admin.")
+                    feedback("Hồ sơ đã được phê duyệt." if decision == "approve" else
+                             "Hồ sơ không được chấp thuận: đã trả lại để bổ sung. Xem lý do trong Kho tài liệu.")
                 except (ValueError, PermissionError) as exc:
                     st.error(str(exc))
                 except Exception:

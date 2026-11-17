@@ -113,6 +113,8 @@ with right:
 # Bridge listening for in-sheet actions ("Tải lên" and "Tải xuống").
 action = mount_bridge(st)
 if action:
+    # Never display a successful *previous* action as feedback for a new one.
+    st.session_state.pop("xd_last_action_notice", None)
     if action.get("kind") == "workspace":
         # A previously dismissed Settings dialog must not reopen on task click.
         # Streamlit native dialogs are controlled by session state, not by
@@ -137,9 +139,22 @@ if action:
 
 feedback = st.session_state.pop("xd_workspace_feedback", "")
 if feedback:
+    st.session_state.xd_last_action_notice = feedback
     st.toast(feedback)
+
+notice = str(st.session_state.get("xd_last_action_notice") or "")[:500]
+if notice:
+    with st.container():
+        col_msg, col_close = st.columns([9, 1], vertical_alignment="center")
+        with col_msg:
+            st.success("✓ " + notice)
+        with col_close:
+            if st.button("Ẩn", key="xd_dismiss_action_success"):
+                st.session_state.pop("xd_last_action_notice", None)
+                st.rerun()
 try:
     shared_state = load_snapshot(st)
+    shared_state["lastActionNotice"] = notice
 except Exception:
     st.error("Không đọc được dữ liệu dự án dùng chung từ Drive. Ứng dụng tạm chặn thao tác để bảo vệ dữ liệu. Kiểm tra Manage app → Logs và kết nối Drive.")
     st.stop()

@@ -1,3 +1,21 @@
+# V6.8.0 — Phản hồi Agent, đóng hộp thoại và xử lý công việc không chấp thuận (17/11/2026)
+
+**Nguồn kiểm tra:** video ứng dụng 16:11 ngày 17/11 và báo cáo Agent Kỹ sư Điện AI (DXF có SHA-256). V6.6 đã tạo báo cáo nháp kỹ thuật có nguồn; chỉ lấy mẫu 300 records; không xác nhận bản vẽ đạt quy chuẩn hoặc đã tính toán đầy đủ.
+
+**Thay đổi giao diện và nghiệp vụ**:
+
+- Khi **Agent / hồ sơ / công việc / bàn giao** lưu thành công, cửa sổ native Streamlit được đóng, hiển thị thông báo thành công **có thể ẩn** ở trên app và trong sheet đang mở, đồng thời cập nhật trạng thái thẻ công việc. Đóng bằng X/Escape/click ngoài cũng dọn trạng thái dialog, không mở lại bất ngờ.
+- Sau khi Agent tạo bản nháp, hiện rõ: **đã có báo cáo nháp, chưa phê duyệt**, hướng dẫn người phụ trách kiểm chứng rồi **Gửi báo cáo phê duyệt**. Không tự nhận công việc hoàn thành.
+- Admin chọn **Chấp thuận / Hoàn thành** hoặc **Không chấp thuận / Yêu cầu sửa**, xác nhận bằng checkbox. Khi không chấp thuận phải ghi **lý do ≥5 ký tự**. Hệ thống ghi sự kiện HMAC `task.returned`, đưa nhiệm vụ về **working**, trên thẻ hiển thị **Yêu cầu sửa**, lý do, người trả, thời điểm và nút **Gửi lại báo cáo sau sửa**. Không xóa báo cáo Agent, hồ sơ, lịch sử cũ; khi gửi lại chờ Admin xét duyệt.
+- Khi chấp thuận, thẻ hiển thị **Đã phê duyệt**, người duyệt và thời điểm. Tài khoản Cập nhật/Chỉ đọc không thể tự phê duyệt; xét duyệt công việc không thay thế nghiệm thu kỹ thuật TCVN/QCVN.
+- Báo cáo Agent thể hiện đúng chế độ chạy (`Chuyên gia đọc file`, `AI + đọc mẫu file`, `AI metadata`, `Checklist`) thay vì luôn ghi Checklist.
+- Khi Gemini/OpenAI trả lỗi HTTP 401/403/404/429 hoặc lỗi mạng, đưa ra thông báo tiếng Việt có hướng xử lý, không lộ token hoặc raw body; **không ghi kết quả giả**, giữ hộp thoại cho người dùng sửa/thử lại. Đặc biệt HTTP 429 không tự chạy lại hàng loạt.
+- Không thay đổi Google OAuth, vault dùng chung, giới hạn file 50 MiB, upload 500 MB, bản ghi Drive cũ hoặc phân quyền Admin.
+
+**Giới hạn:** Các bài thử CI dùng mô phỏng provider/Drive. Cần thử trực tiếp thao tác duyệt/trả lại, hai tài khoản, rate-limit Gemini và việc đóng dialog trên Streamlit thật.
+
+---
+
 # V6.7.9 — Agent đọc file Google Drive đến 50 MB (17/11/2026)
 
 Nâng giới hạn **kích thước file đầu vào** cho **Chuyên gia phân tích file thật / AI + trích xuất file** từ **8 MiB lên 50 MiB (52.428.800 byte)**. Áp dụng tệp đã ghi sổ, thuộc đúng dự án/bộ môn: **PDF, XLSX, CSV, DXF, IFC**. Máy chủ kiểm tra dung lượng, vị trí Google Drive, quyền dự án, checksum/MD5 và mã hồ sơ trước khi tải và phân tích. Tệp 50 MiB đúng ngưỡng được chấp nhận; lớn hơn ngưỡng bị từ chối trước khi tải.

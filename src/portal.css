@@ -93,3 +93,11 @@
 .company-handoff p{color:#b8d5e1;font-size:13px;overflow-wrap:anywhere}
 @media(max-width:1000px){.company-kpi-grid{grid-template-columns:repeat(2,minmax(120px,1fr))}}
 @media(max-width:570px){.company-agent-grid{grid-template-columns:1fr}.company-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.company-suite h2{font-size:19px}.company-kpi{padding:12px}.company-kpi strong{font-size:23px}}
+
+/* V6.8.0: response and human review status is distinct from Agent draft evidence. */
+.portal-pill.returned{color:#ffdfaa;background:#69401f;border:1px solid #b97836}
+.portal-return-note{margin:10px 0;padding:12px 14px;border:1px solid #ba8546;background:#3d3022;border-radius:10px;color:#fce6be;overflow-wrap:anywhere}
+.portal-return-note p{margin:6px 0;color:#fff1d2}
+.portal-return-note small{color:#ffddb0}
+
+.portal-success-note{margin:12px 0 0;padding:10px 13px;color:#aff6d9;background:#153d33;border:1px solid #398d75;border-radius:9px;font-size:13px;overflow-wrap:anywhere}

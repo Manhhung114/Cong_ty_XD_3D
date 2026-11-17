@@ -1,6 +1,6 @@
 {
   "project": "Công ty Xây dựng & MEP AI 3D",
-  "artifact_version": "0.6.7.9-agent-50mb-input",
+  "artifact_version": "0.6.8.0-workflow-feedback-review",
   "release_date": "2026-11-17",
   "modules": [
     {
@@ -188,6 +188,12 @@
       "area": "Registered Drive PDF/XLSX/CSV/DXF/IFC Agent input limit 50 MiB, streaming large DXF and bounded ZIP expansion",
       "entry": "drive_storage/expert_tools.py",
       "status": "implemented_requires_live_large_file_qa"
+    },
+    {
+      "label": "V6.8.0",
+      "area": "Durable task review status, approve/return with reasons, modal dismissal and success feedback, clearer provider failures",
+      "entry": "drive_storage/workspace_ui.py",
+      "status": "implemented_regression_tested_live_admin_acceptance_pending"
     }
   ],
   "data_categories": {
@@ -280,7 +286,7 @@
     "mep": "Cơ điện",
     "construction": "Xây dựng"
   },
-  "current_version": "V6.7.9 (Agent Input 50 MiB)",
+  "current_version": "V6.8.0 (Task Review Feedback)",
   "backend": {
     "framework": "FastAPI",
     "database": "PostgreSQL or SQLite local",

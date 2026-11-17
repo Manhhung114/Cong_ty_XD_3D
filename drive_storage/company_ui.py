@@ -44,7 +44,8 @@ def company_dialog(st, action):
         "ops_audit": "V6.3 · Kiểm soát vận hành & sao lưu dữ liệu",
     }
 
-    @st.dialog(titles[op], width="large")
+    @st.dialog(titles[op], width="large",
+               on_dismiss=lambda: st.session_state.pop("xd_workspace_dialog", None))
     def render():
         identity = identity_for(st)
         if not identity:
@@ -182,12 +183,19 @@ def company_dialog(st, action):
                             ai_config=effective_config(st, agent_id) if mode == "llm" else {},
                             event_id=action["actionId"],
                         )
-                    done("Đã lưu báo cáo chuyên gia kèm bằng chứng và luồng QA. "
-                         "Kỹ sư vẫn phải thẩm tra trước khi phê duyệt.")
+                    done("Agent đã chạy và lưu báo cáo nháp có nguồn. "
+                         "Công việc chưa được duyệt. Kỹ sư cần kiểm chứng, "
+                         "sau đó bấm Gửi báo cáo phê duyệt trên thẻ công việc.")
                 except (PermissionError, ValueError, RuntimeError) as exc:
-                    st.error(str(exc))
+                    st.error("Chưa lưu báo cáo Agent: " + str(exc))
+                    st.info("Cửa sổ vẫn mở để bạn sửa lựa chọn rồi thử lại. "
+                            "Nếu Gemini bị giới hạn lượt gọi, có thể chọn "
+                            "'Chuyên gia phân tích file thật' để phân tích "
+                            "không dùng API. Không tạo báo cáo giả.")
                 except Exception:
-                    st.error("Không thực hiện được Agent. Không ghi một kết quả giả vào lịch sử.")
+                    st.error("Agent chưa hoàn thành, không lưu kết quả mới. "
+                             "Kiểm tra tình trạng Google Drive, giới hạn máy chủ "
+                             "và nhật ký ứng dụng trước khi thử lại.")
         elif op == "handoff_create":
             tasks = [task for task in tasks if task.get("status") != "cancelled"]
             if not tasks:

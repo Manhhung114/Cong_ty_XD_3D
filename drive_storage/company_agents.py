@@ -230,8 +230,25 @@ def _request_json(url, headers, payload, *, timeout=TIMEOUT_SECONDS, opener=None
     try:
         with transport(req, timeout=timeout) as response:
             raw = response.read(64 * 1024)
-    except (error.HTTPError, error.URLError, TimeoutError) as exc:
-        raise RuntimeError("Không thể gọi nhà cung cấp AI; kiểm tra quyền API, model hoặc giới hạn sử dụng") from exc
+    except error.HTTPError as exc:
+        # Never echo the upstream response body, URL or API credential. Expose
+        # only the status and a safe user action.
+        code = int(exc.code)
+        notices = {
+            400: "Yêu cầu AI bị từ chối (HTTP 400); kiểm tra model và dữ liệu gửi.",
+            401: "Khóa API sai hoặc hết hiệu lực (HTTP 401); Admin kiểm tra cấu hình dùng chung.",
+            403: "API chưa được cấp quyền (HTTP 403); Admin kiểm tra dịch vụ/model.",
+            404: "Không tìm thấy model AI đã chọn (HTTP 404); Admin kiểm tra tên model.",
+            429: "Gemini/OpenAI đang giới hạn lượt gọi hoặc hạn mức (HTTP 429). "
+                 "Không tạo báo cáo; thử lại sau hoặc chọn Chuyên gia phân tích file thật.",
+        }
+        notice = notices.get(
+            code, "Nhà cung cấp AI trả lỗi HTTP " + str(code) +
+            "; chưa có kết quả được lưu. Kiểm tra dịch vụ và thử lại.")
+        raise RuntimeError(notice) from None
+    except (error.URLError, TimeoutError, OSError):
+        raise RuntimeError("Không kết nối được nhà cung cấp AI; kiểm tra mạng và thử lại. "
+                           "Không tạo báo cáo giả.") from None
     try:
         obj = json.loads(raw.decode("utf8"))
     except (ValueError, UnicodeError) as exc:

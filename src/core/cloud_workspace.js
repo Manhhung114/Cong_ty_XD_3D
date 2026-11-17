@@ -45,7 +45,9 @@ const header=()=>{
  return '<section class="panel padded"><div class="panel-heading"><div><h3>☁️ V5.9 / V6.0 · Dữ liệu dùng chung</h3><p>Google Drive bảo vệ dự án, công việc và phê duyệt • '+h(s.actor||'')+'</p></div><span class="mini-label">'+(s.role==='admin'?'ADMIN':s.role==='update'?'CẬP NHẬT':'CHỈ ĐỌC')+'</span></div>'+
  '<div class="portal-project-picker"><label>Dự án đang làm việc<select id="cloudProjectSelect"><option value="">— Chọn dự án —</option>'+
  (s.projects||[]).map(x=>'<option value="'+h(x.id)+'" '+(p&&p.id===x.id?'selected':'')+'>'+h(x.code)+' · '+h(x.name)+'</option>').join('')+
- '</select></label><div class="drive-sheet-actions">'+btn('↻ Làm mới dữ liệu','refresh')+'</div></div></section>';
+ '</select></label><div class="drive-sheet-actions">'+btn('↻ Làm mới dữ liệu','refresh')+'</div></div>'+
+ (s.lastActionNotice?'<p class="portal-success-note" role="status">✓ '+h(s.lastActionNotice)+'</p>':'')+
+ '</section>';
 };
 const selectedTasks=()=>{
  const p=current();return p?(view().tasks||[]).filter(t=>t.projectId===p.id):[];
@@ -71,23 +73,33 @@ const tasksHtml=filter=>{
  const reports=(view().agentRuns||[]).filter(r=>r.taskId===t.id&&r.projectId===t.projectId);
  const specialist=(view().agentsCatalog||[]).find(a=>a.id===t.assignedAgentId);
  const agentLabel=specialist?specialist.title+' ('+specialist.id+')':'Chưa gán Agent';
- const runLabel=reports.length?
-  'Đã tạo '+reports.length+' báo cáo nháp; chờ kỹ sư kiểm chứng':
-  t.status==='cancelled'?'Không chạy — công việc đã hủy':'Agent chưa chạy cho công việc này';
+ const runLabel=t.status==='cancelled'?'Không chạy — công việc đã hủy':
+  reports.length?'Đã tạo '+reports.length+' báo cáo nháp; chờ kỹ sư kiểm chứng':
+  'Agent chưa chạy cho công việc này';
+ const returned=t.status==='working'&&t.lastReviewDecision==='reject';
+ const statusLabel=returned?'Yêu cầu sửa':(labels[t.status]||t.status);
  return '<article class="portal-task"><div class="portal-task-head"><div><strong>'+h(t.title)+'</strong><small>'+h(t.code)+' · '+h(t.dept)+' · '+h(t.assignee||'Chưa giao')+
- '</small></div><span class="portal-pill '+(t.status==='review'?'review':t.status==='done'?'done':t.status==='cancelled'?'cancelled':'')+'">'+h(labels[t.status]||t.status)+'</span></div>'+
+ '</small></div><span class="portal-pill '+(t.status==='review'?'review':t.status==='done'?'done':t.status==='cancelled'?'cancelled':returned?'returned':'')+'">'+h(statusLabel)+'</span></div>'+
  '<p class="company-secondary"><b>Chuyên gia được giao:</b> '+h(agentLabel)+
   ' · <b>Trạng thái Agent:</b> '+h(runLabel)+'</p>'+
  (t.status==='cancelled'?'<p class="company-secondary"><b>Đã hủy:</b> '+h(t.cancelReason||'')+
   ' · '+h(t.cancelledBy||'')+' · '+h(t.cancelledAt||'')+'</p>':
   (!t.assignee&&!t.assignedAgentId&&t.withdrawnAt?'<p class="company-secondary"><b>Đã thu hồi:</b> '+
    h(t.withdrawReason||'')+' · '+h(t.withdrawnBy||'')+'</p>':''))+
+ (returned?'<div class="portal-return-note" role="status"><b>↩ Admin trả lại — cần sửa và trình lại</b>'+
+  '<p>'+h(t.lastReviewNote||'Chưa có lý do')+'</p><small>Người trả: '+h(t.lastReviewer||'')+
+  ' · '+h(t.lastReviewedAt||'')+'</small></div>':
+  t.status==='done'&&t.lastReviewDecision==='approve'?
+  '<p class="company-secondary" role="status"><b>✓ Đã phê duyệt:</b> '+h(t.lastReviewer||'')+
+  ' · '+h(t.lastReviewedAt||'')+(t.lastReviewNote?' · '+h(t.lastReviewNote):'')+'</p>':
+  t.status==='review'?'<p class="company-secondary" role="status"><b>Đã trình, đang chờ Admin xét duyệt</b>'+
+  ' · '+h(t.lastSubmittedAt||'')+'</p>':'')+
  (t.dueDate?'<p>Hạn: '+h(t.dueDate)+'</p>':'')+
  (t.docCode?'<p>Hồ sơ: '+h(t.docCode)+'</p>':'')+
  (t.report?'<div class="portal-report"><b>Báo cáo</b><p>'+h(t.report)+'</p><p>'+h(t.findings)+'</p></div>':'')+
  (reports.length?'<details><summary>🤖 Báo cáo nháp Agent ('+reports.length+')</summary>'+
  reports.map(run=>'<div class="company-run"><strong>'+h(run.agentTitle||run.agentId)+
- ' · '+h(run.mode==='llm'?'AI thực':'Checklist')+'</strong><p>'+h(run.actor)+
+ ' · '+h(({llm:'AI metadata',expert_llm:'AI + đọc mẫu file',expert:'Chuyên gia đọc file',preflight:'Checklist'})[run.mode]||run.mode)+'</strong><p>'+h(run.actor)+
  ' · '+h(run.at.slice(0,16))+'</p><pre class="company-result">'+h(run.result)+'</pre>'+
  '<p class="company-secondary">Kết quả này chưa được kỹ sư kiểm chứng hoặc phê duyệt.</p></div>').join('')+
  '</details>':'')+
@@ -100,7 +112,7 @@ const tasksHtml=filter=>{
  (canWrite()&&specialist&&['todo','working'].includes(t.status)?
   '<button type="button" class="btn primary small" data-agent-run-task="'+h(t.id)+'" data-agent-run-id="'+h(specialist.id)+'" data-agent-run-project="'+h(t.projectId)+'">🤖 Chạy Agent '+h(specialist.id)+'</button>':'')+
  (canWrite()&&t.status==='todo'?btn('Bắt đầu','task_start',t.id):'')+
- (canWrite()&&['todo','working'].includes(t.status)?btn('Gửi báo cáo phê duyệt','task_submit',t.id,'primary'):'')+
+ (canWrite()&&['todo','working'].includes(t.status)?btn(returned?'Gửi lại báo cáo sau sửa':'Gửi báo cáo phê duyệt','task_submit',t.id,'primary'):'')+
  (canReview()&&t.status==='review'?btn('Xét duyệt / Trả lại','task_review',t.id,'primary'):'')+
  '</div>'+
  (history.length?'<details><summary>Lịch sử xử lý ('+history.length+')</summary>'+history.map(x=>'<p>'+h(x.at)+' · '+h(x.actor)+' · '+h(({withdraw:'Thu hồi phân công',cancel:'Hủy công việc',submitted:'Trình duyệt',approve:'Phê duyệt',reject:'Trả lại'})[x.decision]||x.decision)+' · '+h(x.note)+'</p>').join('')+'</details>':'')+

@@ -478,17 +478,32 @@ def workspace_dialog(st):
 
         elif op == "task_submit":
             st.markdown("**Công việc:** " + task["title"])
+            returned = (task.get("lastReviewDecision") == "reject"
+                        and task.get("status") == "working")
+            if returned:
+                st.warning("Admin không chấp thuận báo cáo trước: " +
+                           str(task.get("lastReviewNote") or "Chưa ghi lý do") +
+                           ". Hãy sửa báo cáo trước khi gửi lại.")
+            st.caption("Báo cáo Agent chỉ là bản nháp. Người phụ trách phải kiểm tra "
+                       "và chịu trách nhiệm về nội dung trình duyệt.")
             with st.form("cloud_task_submit"):
-                summary = st.text_area("Báo cáo kết quả", max_chars=4000, height=180)
-                findings = st.text_area("Phát hiện / kiến nghị", max_chars=2000, height=120)
-                submitted = st.form_submit_button("Gửi trình phê duyệt", type="primary")
+                summary = st.text_area(
+                    "Báo cáo kết quả", value=str(task.get("report") or ""),
+                    max_chars=4000, height=180)
+                findings = st.text_area(
+                    "Phát hiện / kiến nghị", value=str(task.get("findings") or ""),
+                    max_chars=2000, height=120)
+                submitted = st.form_submit_button(
+                    "Gửi lại báo cáo đã sửa" if returned else "Gửi trình phê duyệt",
+                    type="primary")
             if submitted:
                 try:
                     server.submit_task(actor, project_id=pid, task_id=task["id"],
                                        summary=summary, findings=findings,
                                        event_id=action["actionId"])
                     st.session_state.xd_workspace_dialog = None
-                    st.session_state.xd_workspace_feedback = "Đã trình báo cáo, chờ Admin phê duyệt."
+                    st.session_state.xd_workspace_feedback = ("Đã gửi lại báo cáo đã sửa; chờ Admin xét duyệt." if returned else
+                                                              "Đã trình báo cáo; chờ Admin phê duyệt.")
                     st.rerun()
                 except (PermissionError, ValueError) as error:
                     st.error(str(error))
@@ -499,10 +514,13 @@ def workspace_dialog(st):
             st.markdown("**Công việc:** " + task["title"])
             st.write("Báo cáo: " + task.get("report", ""))
             st.write("Phát hiện: " + task.get("findings", ""))
+            st.info("Đây là quyết định phê duyệt công việc, KHÔNG phải xác nhận "
+                    "tất cả tính toán, bản vẽ CAD hoặc TCVN/QCVN đã được Agent kiểm chứng. "
+                    "Admin cần thẩm tra trước khi quyết định.")
             with st.form("cloud_task_review"):
                 decision = st.radio("Kết quả kiểm tra",
                                     ["approve", "reject"], horizontal=True,
-                                    format_func=lambda x: "Phê duyệt" if x == "approve" else "Trả lại")
+                                    format_func=lambda x: "Chấp thuận / Hoàn thành" if x == "approve" else "Không chấp thuận / Yêu cầu sửa")
                 comment = st.text_area("Nhận xét / lý do trả lại", max_chars=2000)
                 confirmed = st.checkbox("Tôi xác nhận quyết định bằng tài khoản Admin hiện tại")
                 submitted = st.form_submit_button("Lưu quyết định", type="primary",
@@ -515,7 +533,12 @@ def workspace_dialog(st):
                                        decision=decision, comment=comment,
                                        event_id=action["actionId"])
                     st.session_state.xd_workspace_dialog = None
-                    st.session_state.xd_workspace_feedback = "Đã lưu quyết định và nhật ký người duyệt."
+                    st.session_state.xd_workspace_feedback = (
+                        "Đã chấp thuận công việc và lưu người duyệt vào lịch sử."
+                        if decision == "approve" else
+                        "Đã trả lại công việc và lưu lý do. Công việc cần sửa, "
+                        "sau đó người phụ trách gửi lại báo cáo."
+                    )
                     st.rerun()
                 except (PermissionError, ValueError) as error:
                     st.error(str(error))
