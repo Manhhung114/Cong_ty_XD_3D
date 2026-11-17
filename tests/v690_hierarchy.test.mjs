@@ -84,6 +84,16 @@ test('Role-based sign-off: assigned PM can review a lead, but QA remains Admin-o
  html=renderCloudPage('reviews');
  assert.doesNotMatch(html,/data-workspace-op="task_review"/);
 });
+test('Only Admin can stop an active signed hierarchy tree',()=>{
+ setup('admin','admin@example.com','dispatched');
+ let html=renderCloudPage('tasks');
+ assert.match(html,/Dừng toàn bộ cây phân phối/);
+ assert.match(html,/data-workspace-op="hierarchy_stop"/);
+ setup('update','director@example.com','dispatched');
+ html=renderCloudPage('tasks');
+ assert.doesNotMatch(html,/data-workspace-op="hierarchy_stop"/);
+});
+
 test('Editor assigned to PM cannot run other engineer or QA work',()=>{
  setup('update','pm@example.com','dispatched');
  const html=renderCloudPage('tasks');
