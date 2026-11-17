@@ -1,3 +1,13 @@
+# V7.5.1 — 20 Agent và phòng chuyên gia riêng (17/11/2026)
+
+**Bản mã nguồn mới nhất trên main:** V7.5.1 — danh mục 20 Agent (18 Agent cũ + QA/QC Xây dựng QCX + Pháp chế/Hợp đồng LEG), 18 phòng hiển thị; PR #23–#26 đã merge. Không đồng nghĩa 20 Agent đang chạy song song. Giao diện hiện được thiết kế cho Streamlit Community Cloud; triển khai thực tế phải đối chiếu deployed SHA và Cloud logs.
+
+**Giới hạn nghiệm thu:** QCX mặc định tắt thực thi ngoài dự án thí điểm đã được phép; LEG bị chặn xử lý hợp đồng chờ ACL theo tài liệu; PostgreSQL/Redis/Celery đã qua CI dùng Drive giả lập nhưng chưa có bằng chứng production, OAuth hai tài khoản và sao lưu/khôi phục Drive thật. Manifest hiện đánh dấu live_acceptance_recorded=false. Không thay Secrets, Google Drive, OIDC, dữ liệu cũ hoặc API vault chỉ để nâng phiên bản.
+
+**Bàn giao và tiếp tục:** [Trạng thái GitHub và hạng mục M0–M7 còn tồn tại](docs/handoffs/2026-11-17_V751_GITHUB_HANDOFF.md), [V7.5 staging acceptance](docs/V750_STAGING_ACCEPTANCE.md), [Ma trận nghiệm thu](docs/V750_20_AGENT_ACCEPTANCE_MATRIX.md), [VERSION_MANIFEST](VERSION_MANIFEST.json).
+
+---
+
 # V7.4.0 — Nâng cấp một đợt V7.1 → V7.4 (17/11/2026)
 
 **Trạng thái mã nguồn:** đã bổ sung dịch vụ runtime riêng (PostgreSQL + Redis/Celery + worker có heartbeat thật), cổng review LangGraph, tùy chọn Admin đẩy đồng loạt checklist sau khi duyệt cây CEO, tra cứu tài liệu được phép sử dụng có nguồn, xuất DXF copy sau khi kỹ sư xác nhận, adapter Anthropic/Ollama tùy chọn, Docker Compose và test. Giữ nguyên Google OIDC, Google Drive, vault AI dùng chung và giao diện 3D V7.0.
