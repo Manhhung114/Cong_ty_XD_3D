@@ -5,6 +5,7 @@ import {parseBOQCSV,formatVND,sumBOQ} from './core/boq.js';
 import {BIM_CAPABILITIES} from './core/bim.js';
 import {exportJson} from './core/export.js';
 import {Office3D} from './3d/scene.js';
+import {agentEvidence,agentEvidenceSummary,selectedAgentTask} from './core/agent_live.js';
 import {IllustratedOffice} from './3d/illustrated.js';
 import {LocalProjectPortal} from './local_portal.js';
 import {renderCloudPage,bindCloudPage,requestDocumentInventory} from './core/cloud_workspace.js';
@@ -68,6 +69,26 @@ const filteredDepartments=()=>visibleDepartments(state.officeView||'all');
 const formatDate=iso=>new Date(iso).toLocaleString(language==='en'?'en-GB':'vi-VN',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit',year:'numeric'});
 const formatSize=s=>s>1024*1024?(s/1048576).toFixed(2)+' MB':Math.max(1,s/1024).toFixed(1)+' KB';
 const shortDate=()=>new Date().toLocaleDateString(language==='en'?'en-GB':'vi-VN',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'});
+let officeTimer=null;
+function stopOfficePolling(){
+ if(officeTimer){clearInterval(officeTimer);officeTimer=null;}
+}
+function requestOfficeSnapshot(){
+ if(!window.__xdCloud?.enabled||!window.__xdDriveNonce||
+    document.visibilityState==='hidden'||tab!=='overview')return;
+ const id=(globalThis.crypto?.randomUUID?.()||Array.from({length:4},()=>
+  Math.floor(Math.random()*0x100000000).toString(16).padStart(8,'0')).join(''))
+  .replace(/-/g,'').slice(0,32);
+ window.parent.postMessage({
+  channel:'XD_MEP_DRIVE_V1',nonce:window.__xdDriveNonce,kind:'workspace',
+  section:'overview',op:'refresh',projectId:window.__xdCloud.selectedProjectId||'',
+  actionId:id,
+ },'*');
+}
+function startOfficePolling(){
+ stopOfficePolling();
+ if(window.__xdCloud?.enabled)officeTimer=setInterval(requestOfficeSnapshot,15000);
+}
 function notice(message,error=false){const el=document.createElement('div');el.className='toast'+(error?' error':'');el.textContent=translateText(message,language);$('toastRoot').append(el);setTimeout(()=>el.remove(),4100);}
 function metricCards(){
  const cloud=window.__xdCloud?.enabled;
@@ -81,15 +102,56 @@ function metricCards(){
 function deptDot(d){return `<span class="dot" style="background:${d.color}"></span>`;}
 function statusBadge(s){return `<span class="status ${s}"><i></i>${TASK_STATE_LABELS[s]||s}</span>`;}
 function agentBadge(a){
-  const runs=window.__xdCloud?.agentRuns||[];
-  const latest=runs.find(run=>run.agentId===a.id);
-  return '<span class="agent-status '+(latest?'working':'idle')+'">'+
-   (latest?(latest.mode==='llm'?'Đã có bản nháp AI':'Đã kiểm tra'):'Chưa chạy')+'</span>';
- }
+ const e=agentEvidence(window.__xdCloud,a.id);
+ const label=window.__xdCloud?.enabled?e.label:'Chưa có xác minh máy chủ';
+ return '<span class="agent-status v70-status-'+h(e.state)+'" title="'+h(label)+'">'+
+  h(label)+'</span>';
+}
 function taskRow(t,compact=false){const d=department(t.dept);return `<div class="task-row" data-go="tasks"><div class="task-num">${h(t.id)}</div><div class="task-main"><strong>${h(t.title)}</strong><div class="task-meta">${deptDot(d)} ${h(d.short)} · ${h(t.assignee)} ${t.docCode?'· '+h(t.docCode):''}</div></div><div>${statusBadge(t.status)}</div></div>`;}
-function selectedInspector(){const d=department(state.selectedDept);const members=AGENTS.filter(a=>a.dept===d.id);const tasks=currentBusinessTasks().filter(t=>t.dept===d.id);return `<div class="inspector-head"><div class="inspector-icon" style="--dcolor:${d.color}">${h(d.abbr)}</div><div><div class="eyebrow">PHÒNG ĐANG CHỌN</div><h3>${h(d.name)}</h3><p>${members.length} nhân viên AI · ${tasks.length} nhiệm vụ</p></div></div><div class="inspector-section-title">NHÂN SỰ TRONG PHÒNG</div>${members.map(a=>`<button class="agent-line ${selectedAgent===a.id?'active':''}" data-agent="${a.id}"><span class="avatar mini" style="--a:${d.color}">${a.id[0]}</span><span><strong>${h(a.name)}</strong><small>${h(a.role)}</small></span>${agentBadge(a)}</button>`).join('')}<div class="inspector-section-title">NHIỆM VỤ LIÊN QUAN</div>${tasks.length?tasks.map(t=>`<div class="tiny-task"><span>${h(t.id)}</span><p>${h(t.title)}</p>${statusBadge(t.status)}</div>`).join(''):'<div class="empty-small">Chưa có nhiệm vụ trong phòng này.</div>'}`;}
-function showInspector(){const el=$('inspector');if(!el)return;el.innerHTML=selectedInspector();el.querySelectorAll('[data-agent]').forEach(b=>b.onclick=()=>{selectedAgent=b.dataset.agent;showInspector();});translateDom(el,language);}
-function overview(){const departments=filteredDepartments();const mode=state.officeView||'all';const renderMode=state.officeRenderMode||'illustrated';const memberCount=visibleAgents(mode).length;const filteredTasks=currentBusinessTasks().filter(t=>departments.some(d=>d.id===t.dept));return `<div class="division-intro"><div><h2>MEP + Xây dựng</h2></div>${divisionToggle(mode)}</div><div class="overview-grid"><div class="office-panel"><div class="panel-top"><div><strong>${mode==='construction'?'Văn phòng Xây dựng':mode==='mep'?'Văn phòng MEP':'Trụ sở công ty Xây dựng & MEP'}</strong><span class="panel-sub">${departments.length} phòng · ${memberCount} nhân viên AI</span></div><span class="live-chip"><span class="pulse"></span> VĂN PHÒNG 3D</span></div><div class="office-display-options" role="group" aria-label="Kiểu hiển thị văn phòng"><button data-office-render="illustrated" class="${renderMode==='illustrated'?'active':''}" aria-pressed="${renderMode==='illustrated'}">✦ Phối cảnh chi tiết</button><button data-office-render="live" class="${renderMode==='live'?'active':''}" aria-pressed="${renderMode==='live'}">↻ 3D tương tác</button></div>${renderMode==='live'?`<div class="office-camera-bar" aria-label="Điều khiển camera 3D"><span>Góc nhìn</span><button data-camera="isometric">Phối cảnh</button><button data-camera="front">Mặt trước</button><button data-camera="top">Từ trên</button><button data-camera="mep">Tầng MEP</button><button data-camera="construction">Tầng XD</button><button data-zoom="in" aria-label="Phóng to 3D">＋</button><button data-zoom="out" aria-label="Thu nhỏ 3D">－</button><button data-quality="toggle" title="Thay đổi chất lượng hiển thị">HD / Tiết kiệm</button></div>`:''}<div class="office-shell" id="officeShell"><button class="reset-camera" id="resetCamera" title="Đặt lại camera">↺</button><div class="office-level-legend"><span class="level-shared">● Điều hành chung</span><span class="level-mep">● Tầng MEP</span><span class="level-xd">● Tầng Xây dựng</span></div></div><div class="office-toolbar"></div></div><aside class="inspector panel" id="inspector"></aside></div><div class="lower-grid"><section class="panel lower-panel"><div class="panel-heading"><h3>Công việc trong khối</h3><button class="text-btn" data-go="tasks">Tất cả công việc ↗</button></div><div>${filteredTasks.slice(0,5).map(t=>taskRow(t,true)).join('')||'<div class="empty-small">Chưa có nhiệm vụ.</div>'}</div></section><section class="panel lower-panel"><div class="panel-heading"><h3>Phòng ban</h3></div><div class="dept-list">${departments.map(d=>`<button data-dept="${d.id}" class="dept-list-row"><span class="dept-swatch" style="background:${d.color}"></span><strong>${h(d.name)}</strong><span>${AGENTS.filter(a=>a.dept===d.id).length} AI</span></button>`).join('')}</div></section></div>`;}
+function selectedInspector(){
+ const cloud=window.__xdCloud||{};
+ const d=department(state.selectedDept);
+ const members=AGENTS.filter(a=>a.dept===d.id);
+ const tasks=currentBusinessTasks().filter(t=>t.dept===d.id);
+ const selected=members.find(a=>a.id===selectedAgent);
+ const evidence=selected?agentEvidence(cloud,selected.id):null;
+ const assigned=selected?selectedAgentTask(cloud,selected.id):null;
+ const last=selected?(cloud.agentRuns||[]).find(r=>r.agentId===selected.id&&
+   r.projectId===cloud.selectedProjectId):null;
+ const detail=!selected?'<p class="v70-hint">Chọn Agent để xem sự kiện thực thi đã ký và công việc liên quan.</p>':
+  '<div class="v70-agent-detail" aria-live="polite"><h4>'+h(selected.name)+' · '+h(selected.id)+'</h4>'+
+  '<p><b>Trạng thái có bằng chứng:</b> '+h(evidence.label)+'</p>'+
+  (evidence.verified?'<p><b>Lúc ghi nhận:</b> '+h(formatDate(evidence.at))+'</p>':
+   '<p>Chưa có lượt thực thi trên máy chủ cho dự án này.</p>')+
+  (evidence.detail?'<p><b>Chi tiết:</b> '+h(evidence.detail)+'</p>':'')+
+  '<p><b>Công việc được giao:</b> '+h(assigned?.code||evidence.taskCode||'—')+
+  ' · '+h(assigned?.title||evidence.taskTitle||'Chưa có')+'</p>'+
+  (last?'<p><b>Báo cáo nháp mới nhất:</b> '+h(last.mode)+' · '+h(formatDate(last.at))+
+   ' · Chờ kỹ sư kiểm chứng</p>':'')+
+  '<p class="v70-hint">Trạng thái bắt đầu chưa có heartbeat không chứng minh Agent còn chạy.</p>'+
+  '<button type="button" class="btn outline small" data-go="tasks">Xem công việc & bằng chứng ↗</button></div>';
+ return '<div class="inspector-head"><div class="inspector-icon" style="--dcolor:'+d.color+'">'+
+  h(d.abbr)+'</div><div><div class="eyebrow">PHÒNG ĐANG CHỌN</div><h3>'+h(d.name)+
+  '</h3><p>'+members.length+' nhân viên AI · '+tasks.length+' nhiệm vụ</p></div></div>'+
+  '<div class="inspector-section-title">TRẠNG THÁI AGENT · NHẬT KÝ ĐÃ KÝ</div>'+
+  members.map(a=>'<button class="agent-line '+(selectedAgent===a.id?'active':'')+
+  '" data-agent="'+h(a.id)+'"><span class="avatar mini" style="--a:'+d.color+'">'+
+  h(a.id[0])+'</span><span><strong>'+h(a.name)+'</strong><small>'+h(a.role)+
+  '</small></span>'+agentBadge(a)+'</button>').join('')+detail+
+  '<div class="inspector-section-title">NHIỆM VỤ LIÊN QUAN</div>'+
+  (tasks.length?tasks.slice(0,8).map(t=>'<div class="tiny-task"><span>'+h(t.code||t.id)+
+   '</span><p>'+h(t.title)+'</p>'+statusBadge(t.status)+'</div>').join(''):
+   '<div class="empty-small">Chưa có nhiệm vụ trong phòng này.</div>');
+}
+function showInspector(){
+ const el=$('inspector');if(!el)return;el.innerHTML=selectedInspector();
+ el.querySelectorAll('[data-agent]').forEach(b=>b.onclick=()=>{
+  selectedAgent=b.dataset.agent;showInspector();
+ });
+ el.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>switchTab(b.dataset.go));
+ translateDom(el,language);
+}
+function overview(){const departments=filteredDepartments();const mode=state.officeView||'all';const renderMode=state.officeRenderMode||'illustrated';const memberCount=visibleAgents(mode).length;const filteredTasks=currentBusinessTasks().filter(t=>departments.some(d=>d.id===t.dept));const evidence=agentEvidenceSummary(window.__xdCloud);return `<div class="v70-hq-summary" role="status"><strong>V7.0 · VĂN PHÒNG AI 3D</strong><span>Đã bắt đầu · chưa heartbeat: ${evidence.started_unconfirmed} · Hoàn thành có chứng cứ: ${evidence.completed} · Lỗi: ${evidence.failed} · Chưa rõ kết quả: ${evidence.stale}</span><button type="button" data-go="monitor">Trung tâm điều phối CEO ↗</button></div><div class="division-intro"><div><h2>MEP + Xây dựng</h2></div>${divisionToggle(mode)}</div><div class="overview-grid"><div class="office-panel"><div class="panel-top"><div><strong>${mode==='construction'?'Văn phòng Xây dựng':mode==='mep'?'Văn phòng MEP':'Trụ sở công ty Xây dựng & MEP'}</strong><span class="panel-sub">${departments.length} phòng · ${memberCount} nhân viên AI</span></div><span class="live-chip"><span class="pulse"></span> 3D · BẰNG CHỨNG MÁY CHỦ</span></div><div class="office-display-options" role="group" aria-label="Kiểu hiển thị văn phòng"><button data-office-render="illustrated" class="${renderMode==='illustrated'?'active':''}" aria-pressed="${renderMode==='illustrated'}">✦ Phối cảnh chi tiết</button><button data-office-render="live" class="${renderMode==='live'?'active':''}" aria-pressed="${renderMode==='live'}">↻ 3D tương tác</button></div>${renderMode==='live'?`<div class="office-camera-bar" aria-label="Điều khiển camera 3D"><span>Góc nhìn</span><button data-camera="isometric">Phối cảnh</button><button data-camera="front">Mặt trước</button><button data-camera="top">Từ trên</button><button data-camera="mep">Tầng MEP</button><button data-camera="construction">Tầng XD</button><button data-zoom="in" aria-label="Phóng to 3D">＋</button><button data-zoom="out" aria-label="Thu nhỏ 3D">－</button><button data-quality="toggle" title="Thay đổi chất lượng hiển thị">HD / Tiết kiệm</button></div>`:''}<div class="office-shell" id="officeShell"><button class="reset-camera" id="resetCamera" title="Đặt lại camera">↺</button><div class="office-level-legend"><span class="level-shared">● Điều hành chung</span><span class="level-mep">● Tầng MEP</span><span class="level-xd">● Tầng Xây dựng</span></div></div><div class="office-toolbar"><span class="v70-hint">● Màu Agent dựa trên sự kiện thật · Không có heartbeat/worker chạy nền · Tự làm mới 15 giây</span></div></div><aside class="inspector panel" id="inspector"></aside></div><div class="lower-grid"><section class="panel lower-panel"><div class="panel-heading"><h3>Công việc trong khối</h3><button class="text-btn" data-go="tasks">Tất cả công việc ↗</button></div><div>${filteredTasks.slice(0,5).map(t=>taskRow(t,true)).join('')||'<div class="empty-small">Chưa có nhiệm vụ.</div>'}</div></section><section class="panel lower-panel"><div class="panel-heading"><h3>Phòng ban</h3></div><div class="dept-list">${departments.map(d=>`<button data-dept="${d.id}" class="dept-list-row"><span class="dept-swatch" style="background:${d.color}"></span><strong>${h(d.name)}</strong><span>${AGENTS.filter(a=>a.dept===d.id).length} AI</span></button>`).join('')}</div></section></div>`;}
 
 // Defensive catalog view: preserves access to reviewed records when an optional panel fails.
 function legalRecoveryPage(error){
@@ -209,7 +271,7 @@ function bindPage(){if(tab==='monitor'&&window.__xdCloud?.enabled){bindMonitorDa
    $('legalType')?.addEventListener('change',e=>{legalType=e.target.value;refresh();});
    $('legalSearch')?.addEventListener('input',e=>{legalSearch=e.target.value;const start=e.target.selectionStart||legalSearch.length;refresh();$('legalSearch')?.focus();$('legalSearch')?.setSelectionRange(start,start);});
  }
- if(tab==='overview'){const el=$('officeShell');office=new (state.officeRenderMode==='live'?Office3D:IllustratedOffice)(el,{getState:()=>state,view:state.officeView,onSelect:d=>{state.selectedDept=d;persistState(state);selectedAgent=null;showInspector();},onAgent:a=>{state.selectedDept=a.dept;persistState(state);selectedAgent=a.id;showInspector();}});showInspector();$('resetCamera')?.addEventListener('click',()=>office?.resetCamera());document.querySelectorAll('[data-camera]').forEach(b=>b.onclick=()=>{office?.setCameraPreset?.(b.dataset.camera);document.querySelectorAll('[data-camera]').forEach(x=>x.classList.toggle('selected',x===b));});document.querySelectorAll('[data-zoom]').forEach(b=>b.onclick=()=>office?.zoomBy?.(b.dataset.zoom==='in'?-4:4));document.querySelectorAll('[data-quality]').forEach(b=>b.onclick=()=>{const next=b.dataset.active==='high'?'low':'high';b.dataset.active=next;b.textContent=translateText(next==='high'?'Chất lượng cao':'Tiết kiệm pin',language);office?.setQuality?.(next);});document.querySelectorAll('[data-dept]').forEach(b=>b.onclick=()=>{state.selectedDept=b.dataset.dept;persistState(state);office?.select(b.dataset.dept);el.scrollIntoView({behavior:'smooth',block:'center'});});}
+ if(tab==='overview'){const el=$('officeShell');office=new (state.officeRenderMode==='live'?Office3D:IllustratedOffice)(el,{getState:()=>state,getCloud:()=>window.__xdCloud,view:state.officeView,onSelect:d=>{state.selectedDept=d;persistState(state);selectedAgent=null;showInspector();},onAgent:a=>{state.selectedDept=a.dept;persistState(state);selectedAgent=a.id;showInspector();}});showInspector();startOfficePolling();$('resetCamera')?.addEventListener('click',()=>office?.resetCamera());document.querySelectorAll('[data-camera]').forEach(b=>b.onclick=()=>{office?.setCameraPreset?.(b.dataset.camera);document.querySelectorAll('[data-camera]').forEach(x=>x.classList.toggle('selected',x===b));});document.querySelectorAll('[data-zoom]').forEach(b=>b.onclick=()=>office?.zoomBy?.(b.dataset.zoom==='in'?-4:4));document.querySelectorAll('[data-quality]').forEach(b=>b.onclick=()=>{const next=b.dataset.active==='high'?'low':'high';b.dataset.active=next;b.textContent=translateText(next==='high'?'Chất lượng cao':'Tiết kiệm pin',language);office?.setQuality?.(next);});document.querySelectorAll('[data-dept]').forEach(b=>b.onclick=()=>{state.selectedDept=b.dataset.dept;persistState(state);office?.select(b.dataset.dept);el.scrollIntoView({behavior:'smooth',block:'center'});});}
  
  document.querySelectorAll('[data-office-render]').forEach(b=>b.onclick=()=>{state.officeRenderMode=b.dataset.officeRender;persistState(state);refresh();});
  document.querySelectorAll('[data-office-view]').forEach(b=>b.onclick=()=>{state.officeView=b.dataset.officeView;const visible=visibleDepartments(state.officeView);if(!visible.some(d=>d.id===state.selectedDept))state.selectedDept=visible[0].id;persistState(state);refresh();});
@@ -219,7 +281,7 @@ function bindPage(){if(tab==='monitor'&&window.__xdCloud?.enabled){bindMonitorDa
  if(tab==='boq'){$('boqImportBtn').onclick=()=>$('boqFile').click();$('boqFile').onchange=async e=>{const f=e.target.files?.[0];if(!f)return;try{const rows=parseBOQCSV(await f.text());if(boqDivision==='mep')boqRows=rows;else constructionBOQRows=rows;render();notice('Đã đọc '+rows.length+' dòng BOQ '+branchName(boqDivision));}catch(error){notice(error.message,true);}};}
  }
 function switchTab(next){
- stopMonitorPolling();
+ stopMonitorPolling();stopOfficePolling();
  // Backward-compatible alias for older navigation links; no duplicate sidebar tab.
  if(next==='construction'){next='overview';state.officeView='construction';persistState(state);}
  if(!pageContent[next] || (next==='settings'&&window.__xdAuthRole!=='admin'))return;
@@ -228,7 +290,7 @@ function switchTab(next){
  if(next==='documents'&&window.__xdCloud?.enabled)requestDocumentInventory();
  if(next==='monitor'&&window.__xdCloud?.enabled)requestMonitorSnapshot();
  window.scrollTo({top:0,behavior:'instant'});}
-function render(){office?.destroy();office=null;document.getElementById('app')?.classList.toggle('v67-mode',tab==='monitor');const nav=visibleNav().find(n=>n.id===tab)||visibleNav()[0];document.querySelectorAll('[data-dock]').forEach(b=>{const selected=b.dataset.dock===tab;b.classList.toggle('active',selected);b.setAttribute('aria-current',selected?'page':'false');});$('nav').innerHTML=visibleNav().map(n=>`<button class="nav-item ${n.id===tab?'active':''}" data-nav="${n.id}"><span class="nav-icon">${navSvg(n.id)}</span><span>${n.name}</span></button>`).join('');document.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>switchTab(b.dataset.nav));$('crumb').textContent=nav.name;$('pageTitle').textContent=tab==='overview'?'Công ty Xây dựng & MEP 3D':nav.name;$('pageSubtitle').textContent=subtitles[tab];const showMetrics=['overview','tasks','reviews'].includes(tab);$('metrics').hidden=!showMetrics;if(showMetrics)metricCards();else $('metrics').innerHTML='';const projectPill=document.querySelector('.project-pill');if(projectPill){const compact=window.matchMedia?.('(max-width:750px)')?.matches;const cp=window.__xdCloud?.enabled?(window.__xdCloud.projects||[]).find(p=>p.id===window.__xdCloud.selectedProjectId):portal.currentProject;
+function render(){stopOfficePolling();office?.destroy();office=null;document.getElementById('app')?.classList.toggle('v67-mode',tab==='monitor');const nav=visibleNav().find(n=>n.id===tab)||visibleNav()[0];document.querySelectorAll('[data-dock]').forEach(b=>{const selected=b.dataset.dock===tab;b.classList.toggle('active',selected);b.setAttribute('aria-current',selected?'page':'false');});$('nav').innerHTML=visibleNav().map(n=>`<button class="nav-item ${n.id===tab?'active':''}" data-nav="${n.id}"><span class="nav-icon">${navSvg(n.id)}</span><span>${n.name}</span></button>`).join('');document.querySelectorAll('[data-nav]').forEach(b=>b.onclick=()=>switchTab(b.dataset.nav));$('crumb').textContent=nav.name;$('pageTitle').textContent=tab==='overview'?'Công ty Xây dựng & MEP 3D':nav.name;$('pageSubtitle').textContent=subtitles[tab];const showMetrics=['overview','tasks','reviews'].includes(tab);$('metrics').hidden=!showMetrics;if(showMetrics)metricCards();else $('metrics').innerHTML='';const projectPill=document.querySelector('.project-pill');if(projectPill){const compact=window.matchMedia?.('(max-width:750px)')?.matches;const cp=window.__xdCloud?.enabled?(window.__xdCloud.projects||[]).find(p=>p.id===window.__xdCloud.selectedProjectId):portal.currentProject;
  projectPill.textContent=cp?(compact?'● '+cp.code:'● '+cp.code+' · '+cp.name):(window.__xdCloud?.enabled?'● ☁ CHƯA CÓ DỰ ÁN':(compact?'● CỤC BỘ':'● LƯU CỤC BỘ · CHƯA CÓ DỰ ÁN'));}let pageRendered=true;try{$('body').innerHTML=driveToolbar(tab)+pageContent[tab]();}catch(err){console.error('Unable to render '+tab,err);if(tab==='legal'){try{$('body').innerHTML=legalRecoveryPage(err);pageRendered=true;}catch(recoveryError){pageRendered=false;console.error('Legal recovery error',recoveryError);}}else pageRendered=false;if(!pageRendered)$('body').innerHTML='<section class="panel padded"><h3>Không tải được nội dung trang</h3><p>Vui lòng thử mở lại hoặc tải mới trang.</p><button id="retryPage" class="btn primary" type="button">Thử lại</button></section>';}bindGlobal();if(pageRendered)bindPage();else $('retryPage').onclick=()=>render();translateDom(document.getElementById('app'),language);document.title=language==='en'?'Construction & MEP AI 3D | Command Center':'Công ty XD & MEP AI 3D | Văn phòng số';document.documentElement.lang=language;updateCommandShell(tab,nav.name);}
 function refresh(){render();}
 function modal(inner){$('modalRoot').innerHTML=`<div class="modal-backdrop" id="modalBackdrop"><div class="modal">${inner}</div></div>`;$('modalBackdrop').addEventListener('mousedown',e=>{if(e.target.id==='modalBackdrop')closeModal();});$('closeModal')?.addEventListener('click',closeModal);translateDom($('modalRoot'),language);}
