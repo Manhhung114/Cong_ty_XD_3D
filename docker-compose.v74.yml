@@ -1,0 +1,89 @@
+# Production-oriented reference stack. No secrets are stored in this repository.
+# Place an untracked .env.v74 and Streamlit secrets file on the deployment host.
+name: xd-mep-agent-v74
+x-runtime-env: &runtime_env
+  AGENT_RUNTIME_DATABASE_URL: postgresql+psycopg://xd_runtime:${XD_POSTGRES_PASSWORD}@postgres:5432/xd_runtime
+  CELERY_BROKER_URL: redis://redis:6379/1
+  AGENT_RUNTIME_SECRET: ${AGENT_RUNTIME_SECRET}
+  AGENT_QUEUE_MAX: ${AGENT_QUEUE_MAX:-100}
+  AGENT_MONTHLY_RESERVE_USD: ${AGENT_MONTHLY_RESERVE_USD:-10}
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: xd_runtime
+      POSTGRES_PASSWORD: ${XD_POSTGRES_PASSWORD}
+      POSTGRES_DB: xd_runtime
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U xd_runtime"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+    networks: [internal]
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server","--appendonly","yes","--maxmemory","512mb","--maxmemory-policy","noeviction"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD","redis-cli","ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+    networks: [internal]
+  agent-api:
+    build: {context: ., dockerfile: Dockerfile.agent-runtime}
+    restart: unless-stopped
+    command: ["uvicorn","agent_runtime.api:app","--host","0.0.0.0","--port","8082","--workers","1"]
+    environment: *runtime_env
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+    expose: ["8082"]
+    networks: [internal]
+  agent-worker:
+    build: {context: ., dockerfile: Dockerfile.agent-runtime}
+    restart: unless-stopped
+    command: ["celery","-A","agent_runtime.worker:celery_app","worker","--loglevel=INFO","--queues=agent_v74","--concurrency=${AGENT_WORKER_CONCURRENCY:-4}"]
+    environment:
+      <<: *runtime_env
+      XD_AUTH_COOKIE_SECRET: ${XD_AUTH_COOKIE_SECRET}
+      XD_OWNER_EMAIL: ${XD_OWNER_EMAIL}
+      XD_DRIVE_ROOT_FOLDER_ID: ${XD_DRIVE_ROOT_FOLDER_ID}
+      XD_DRIVE_CLIENT_ID: ${XD_DRIVE_CLIENT_ID}
+      XD_DRIVE_CLIENT_SECRET: ${XD_DRIVE_CLIENT_SECRET}
+      XD_DRIVE_REFRESH_TOKEN: ${XD_DRIVE_REFRESH_TOKEN}
+      AGENT_RUNTIME_OPTIONAL_PROVIDER: ${AGENT_RUNTIME_OPTIONAL_PROVIDER:-}
+      AGENT_RUNTIME_OPTIONAL_MODEL: ${AGENT_RUNTIME_OPTIONAL_MODEL:-}
+      AGENT_RUNTIME_ANTHROPIC_KEY: ${AGENT_RUNTIME_ANTHROPIC_KEY:-}
+      AGENT_RUNTIME_OLLAMA_URL: ${AGENT_RUNTIME_OLLAMA_URL:-http://127.0.0.1:11434}
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_healthy}
+      agent-api: {condition: service_started}
+    networks: [internal]
+    stop_grace_period: 90s
+  streamlit:
+    build: {context: ., dockerfile: Dockerfile.agent-runtime}
+    restart: unless-stopped
+    environment:
+      XD_RUNTIME_API_URL: http://agent-api:8082
+      AGENT_RUNTIME_SECRET: ${AGENT_RUNTIME_SECRET}
+      AGENT_RUNTIME_ALLOW_DOCKER_HTTP: "1"
+      STREAMLIT_SERVER_HEADLESS: "true"
+    volumes:
+      - ${XD_STREAMLIT_SECRETS_FILE}:/home/agent/.streamlit/secrets.toml:ro
+    ports: ["${XD_WEB_BIND:-127.0.0.1}:8501:8501"]
+    depends_on:
+      agent-api: {condition: service_started}
+    networks: [internal]
+volumes:
+  pgdata:
+  redisdata:
+networks:
+  internal:
+    driver: bridge
