@@ -54,6 +54,11 @@ def drive_and_identity(job):
 def ai_config(storage, secret, agent_id, mode):
     if mode not in {"llm","expert_llm"}:
         return {}
+    from .providers import optional_config
+    optional = optional_config()
+    if optional:
+        return {"provider":optional["provider"],"model":optional["model"],
+                "api_key":"worker_env_only"}
     from drive_storage.ai_vault import read_shared
     _, cfg = read_shared(storage, secret)
     if not cfg or cfg.get("disabled"):
@@ -127,8 +132,13 @@ def execute(self, job_id):
         started=True
         _stage(maker,job_id,"reading_and_analyzing",45)
         config=ai_config(storage,secret,job.agent_id,job.mode)
+        from .standards import query_refs
+        with maker() as refdb:
+            refs=query_refs(refdb,job.project_id,task["title"],limit=3)
+        citations="; ".join(r["citation"]+" ["+r["version"]+"]" for r in refs)
+        note=(job.note+(" | Tham khảo chưa xác minh: "+citations if citations else ""))[:700]
         kw={"project_id":job.project_id,"task_id":job.task_id,"agent_id":job.agent_id,
-            "mode":job.mode,"note":job.note,"consent":job.consent,
+            "mode":job.mode,"note":note,"consent":job.consent,
             "ai_config":config,"event_id":job.id}
         if job.mode in {"expert","expert_llm"}:
             from drive_storage.expert_orchestrator import run_expert
@@ -136,6 +146,11 @@ def execute(self, job_id):
         else:
             from drive_storage.company_agents import run_agent
             result=run_agent(workspace,identity,**kw)
+        from .graph import next_review
+        gate=next_review({"task_id":job.task_id,"qa_decision":"pending"},
+                         use_langgraph=True)
+        if gate["next_action"]!="human_qa_review":
+            raise RuntimeError("Không thể xác minh cổng kiểm duyệt")
         _stage(maker,job_id,"signed_draft_saved",95)
         with maker() as db:
             mark(db,job.id,"completed","human_review_required",
