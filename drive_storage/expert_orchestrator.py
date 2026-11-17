@@ -145,6 +145,7 @@ def run_expert(workspace, identity, *, project_id, task_id, agent_id,
     # One signed event for the full pipeline; no tools can approve/publish files.
     data = {
         "task_id": task_id, "agent_id": agent_id,
+        "attempt_id": str(event_id or ""),
         "file_id": fid, "mode": mode, "provider": vendor,
         "model": str((ai_config or {}).get("model") or "")[:90] if mode == "expert_llm" else "",
         "result": body, "workflowStages": stages,
