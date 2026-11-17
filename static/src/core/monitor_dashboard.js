@@ -47,7 +47,7 @@ function viewPeriod(at,period,now){
  const stamp=parseAt(at);
  if(!Number.isFinite(stamp)||stamp>now+300000)return false;
  if(period==='hour')return stamp>=now-3600000;
- if(period==='week')return stamp>=now-7*86400000;
+ if(period==='week')return localDay(stamp)>=localDay(now-6*86400000)&&localDay(stamp)<=localDay(now);
  return localDay(stamp)===localDay(now);
 }
 function isCross(row){
