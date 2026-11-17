@@ -263,6 +263,15 @@ def call_provider(config: dict, agent: dict, context: dict, *, opener=None) -> t
     provider = str(config.get("provider") or "none").strip().lower()
     key = str(config.get("api_key") or "").strip()
     model = str(config.get("model") or "").strip()
+    if provider in {"anthropic", "ollama"}:
+        # Worker-only adapters controlled by environment; no arbitrary URL/model.
+        from agent_runtime.providers import optional_config, call_optional
+        approved = optional_config()
+        if not approved or approved["provider"] != provider or approved["model"] != model:
+            raise PermissionError("Provider chưa được bật bởi quản trị viên worker")
+        raw = json.dumps(context, ensure_ascii=False)[:MAX_CONTEXT]
+        draft = call_optional(_system_prompt(agent) + "\n" + raw, consent=True)
+        return provider, draft["draft"][:MAX_RESULT]
     if provider not in {"openai", "gemini"} or not key or not ALLOWED_MODELS.fullmatch(model):
         raise ValueError("Chưa cấu hình AI thực trong [ai] Secrets (provider, api_key, model)")
     if len(key) > 500:
