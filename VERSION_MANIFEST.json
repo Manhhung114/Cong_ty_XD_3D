@@ -1,8 +1,8 @@
 {
   "project": "Công ty Xây dựng & MEP AI 3D",
-  "artifact_version": "0.7.5.3-agent-dialog-qa-guard-hotfix",
+  "artifact_version": "0.7.5.4-runtime-connectivity-diagnostics",
   "staged_release": {
-    "version": "7.5.3",
+    "version": "7.5.4",
     "catalog_agents": 20,
     "office_rooms": 18,
     "live_acceptance_recorded": false,
@@ -312,14 +312,15 @@
     "V6.7.5 corrects roof-only cropping with a dedicated 3200x120 SVG header composition; verify visibility in live 1910x898 Chrome session.",
     "V6.7.6 Agent runs remain explicit, synchronous and audited; assignment alone is NOT background execution. No worker heartbeat/queue.",
     "To restore encrypted AI API after auth.cookie_secret rotation, restore the previous secret. Admin must re-enter prior browser-local API key once to migrate to central Drive vault.",
-    "V7.5.3 fixes an early Streamlit Agent-run dialog UnboundLocalError by importing the existing QCX QA guard before use; permissions and original Drive data remain unchanged."
+    "V7.5.3 fixes an early Streamlit Agent-run dialog UnboundLocalError by importing the existing QCX QA guard before use; permissions and original Drive data remain unchanged.",
+    "V7.5.4 only enables V7.4 queue when the signed runtime API is reachable; Redis/Celery/PostgreSQL production deployment still requires an external service and is not provided by Streamlit Community Cloud alone."
   ],
   "divisions": {
     "shared": "Ban giám đốc",
     "mep": "Cơ điện",
     "construction": "Xây dựng"
   },
-  "current_version": "V7.5.3 (Agent Dialog QA Guard Hotfix)",
+  "current_version": "V7.5.4 (Runtime Connectivity Diagnostics)",
   "backend": {
     "framework": "FastAPI",
     "database": "PostgreSQL or SQLite local",
