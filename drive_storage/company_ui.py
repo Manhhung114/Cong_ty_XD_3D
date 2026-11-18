@@ -135,6 +135,8 @@ def company_dialog(st, action):
             if comparison_enabled:
                 st.caption("Đối chiếu hai IFC đã duyệt cùng mã hồ sơ. Chọn file hiện tại và IFC gốc, "
                            "sau đó chạy ngay trong Streamlit ở chế độ Chuyên gia.")
+            from agent_runtime.client import runtime_status
+            runtime_state = runtime_status(st, identity, pid)
             with st.form("v61_agent_run_form"):
                 choices = ["preflight", "expert"]
                 if configured["configured"] and agent_id != "QCX":
@@ -165,13 +167,15 @@ def company_dialog(st, action):
                     )
                 note = st.text_area("Yêu cầu bổ sung cho Agent (tùy chọn)",
                                     max_chars=700, height=110)
+                st.caption("Chế độ Checklist/Chuyên gia đọc tại Streamlit, không gửi "
+                           "dữ liệu cho Gemini. Chỉ hai chế độ có chữ AI mới "
+                           "gửi metadata hoặc mẫu trích xuất đến nhà cung cấp.")
                 consent = st.checkbox(
-                    "Nếu chạy AI: tôi đồng ý gửi metadata hoặc trích xuất MẪU "
-                    "từ file kỹ thuật đến nhà cung cấp AI. Không gửi tệp nhị phân.",
+                    "Chỉ khi chọn chế độ AI: tôi đồng ý gửi metadata hoặc trích xuất MẪU "
+                    "đến nhà cung cấp AI; không gửi tệp nhị phân.",
                     value=False,
                 )
-                from agent_runtime.client import configured_client
-                runtime_enabled = configured_client(st) is not None
+                runtime_enabled = runtime_state["connected"]
                 submit = st.form_submit_button(
                     "Chạy ngay trong Streamlit", type="secondary"
                 )
@@ -180,14 +184,12 @@ def company_dialog(st, action):
                     disabled=not runtime_enabled
                 )
             if runtime_enabled:
-                st.caption("V7.4: hàng đợi Redis/Celery thực, worker cập nhật heartbeat "
-                           "và báo cáo vẫn cần người kiểm duyệt. Không tự ký/duyệt.")
+                st.success(runtime_state["message"])
             else:
-                st.info("Hệ thống worker V7.4 chưa được kết nối. Có thể chạy trực tiếp "
-                        "với V7.0, hoặc Admin cấu hình runtime API/worker để chạy nền.")
+                st.warning(runtime_state["message"])
             if runtime_enabled:
-                from agent_runtime.client import public_jobs, configured_client
-                jobs=public_jobs(st,identity,pid)["jobs"]
+                from agent_runtime.client import configured_client
+                jobs = runtime_state["jobs"]
                 related_jobs=[j for j in jobs if j["taskId"]==task_id and j["agentId"]==agent_id]
                 if related_jobs:
                     with st.expander("📡 Phiên Agent nền · Tiến độ thực",expanded=True):
