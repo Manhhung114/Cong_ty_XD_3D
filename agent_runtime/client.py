@@ -59,6 +59,50 @@ def configured_client(st):
         return None
 
 
+
+def runtime_status(st, identity, project_id):
+    """Verify the signed API connection, not just the presence of Secrets.
+
+    A successful /jobs/query verifies HMAC + API + DB and project scope.
+    It cannot prove a live Celery worker: job enqueue itself still verifies
+    broker dispatch; heartbeat is evidence of worker execution.
+    Returns only nonsecret diagnostic strings to the Streamlit UI.
+    """
+    client = configured_client(st)
+    if client is None:
+        return {
+            "connected": False, "jobs": [], "reason": "not_configured",
+            "message": "V7.4 chưa được cấu hình API/khóa xác thực trên Streamlit. "
+                       "Cần triển khai PostgreSQL, Redis, Celery và Runtime API "
+                       "trên máy chủ riêng rồi kết nối HTTPS qua Secrets.",
+        }
+    try:
+        result = client.send("/api/runtime/jobs/query", {
+            "projectId": project_id, "identity": identity,
+        }, timeout=4)
+        jobs = result.get("jobs")
+        if not isinstance(jobs, list):
+            raise RuntimeError("Dữ liệu danh sách job từ runtime không hợp lệ")
+        return {
+            "connected": True, "jobs": jobs[:150], "reason": "api_connected",
+            "message": "V7.4: API đã xác thực và trả dữ liệu công việc. "
+                       "Chỉ coi worker đang chạy khi có job/heartbeat thật.",
+        }
+    except PermissionError:
+        return {
+            "connected": False, "jobs": [], "reason": "access_denied",
+            "message": "V7.4 có API nhưng bị từ chối xác thực hoặc quyền dự án. "
+                       "Admin kiểm tra API secret và quyền, không nhập khóa ở trình duyệt.",
+        }
+    except RuntimeError:
+        return {
+            "connected": False, "jobs": [], "reason": "api_unreachable",
+            "message": "V7.4 đã cấu hình Runtime API nhưng chưa kết nối hoặc "
+                       "dịch vụ không phản hồi. Admin kiểm tra HTTPS, API, "
+                       "PostgreSQL và Redis/Celery trên máy chủ worker.",
+        }
+
+
 def public_jobs(st, identity, project_id):
     client = configured_client(st)
     if client is None:
