@@ -1,6 +1,6 @@
 {
   "schema": "mepxd-official-discovery-v1",
-  "generatedAt": "2026-11-16T09:34:04.411801+00:00",
+  "generatedAt": "2026-11-23T10:42:32.217028+00:00",
   "sources": {
     "vbpl_moc": {
       "status": "unavailable",
@@ -12,19 +12,19 @@
     },
     "congbao": {
       "status": "ok",
-      "found": 3
+      "found": 8
     },
     "moc": {
       "status": "unavailable",
-      "reason": "SSLError"
+      "reason": "ConnectionError"
     },
     "vsqi": {
       "status": "unavailable",
       "reason": "SSLError"
     },
     "vsqi_xd": {
-      "status": "ok",
-      "found": 0
+      "status": "unavailable",
+      "reason": "SSLError"
     },
     "national_vbpl_search": {
       "status": "unavailable",
@@ -43,27 +43,63 @@
   "candidates": [
     {
       "linhVuc": "Xây dựng – Quản lý dự án",
-      "soHieu": "30/2026/VBHN-TT",
-      "ten": "Văn bản hợp nhất số 30/2026/VBHN-TT-BKHCN Hợp nhất Thông tư Quy định chi tiết và hướng dẫn về lập dự toán, quản lý sử dụng và quyết toán một số nội dung chi ngân sách nhà nước thực hiện nhiệm vụ khoa học, công nghệ và đổi mới sáng tạo",
-      "duongDan": "https://congbao.chinhphu.vn/van-ban/van-ban-hop-nhat-so-30-2026-vbhn-tt-bkhcn-470941.htm",
+      "soHieu": "403/2026/NĐ-CP",
+      "ten": "Nghị định số 403/2026/NĐ-CP sửa đổi, bổ sung một số điều của Nghị định số 52/2026/NĐ-CP ngày 02 tháng 02 năm 2026 của Chính phủ quy định việc quản lý, sử dụng tài sản tại cơ quan Đảng cộng sản Việt Nam",
+      "duongDan": "https://congbao.chinhphu.vn/van-ban/nghi-dinh-so-403-2026-nd-cp-470951.htm",
+      "nguon": "Công báo Chính phủ",
+      "tinhTrang": "Chờ đối chiếu nguồn và hiệu lực",
+      "kiemChung": "Chỉ phát hiện liên kết trên trang nguồn, chưa xác minh hiệu lực"
+    },
+    {
+      "linhVuc": "MEPF – Phòng cháy chữa cháy",
+      "soHieu": "407/2026/NĐ-CP",
+      "ten": "Nghị định số 407/2026/NĐ-CP quy định cơ chế hoạt động, cơ chế quản lý tài chính đặc thù đối với Tập đoàn Điện lực Việt Nam",
+      "duongDan": "https://congbao.chinhphu.vn/van-ban/nghi-dinh-so-407-2026-nd-cp-470952.htm",
       "nguon": "Công báo Chính phủ",
       "tinhTrang": "Chờ đối chiếu nguồn và hiệu lực",
       "kiemChung": "Chỉ phát hiện liên kết trên trang nguồn, chưa xác minh hiệu lực"
     },
     {
       "linhVuc": "Xây dựng – Quản lý dự án",
-      "soHieu": "402/2026/NĐ-CP",
-      "ten": "Nghị định số 402/2026/NĐ-CP sửa đổi, bổ sung một số điều của Nghị định số 114/2018/NĐ-CP ngày 04 tháng 9 năm 2018 của Chính phủ về quản lý an toàn đập, hồ chứa nước",
-      "duongDan": "https://congbao.chinhphu.vn/van-ban/nghi-dinh-so-402-2026-nd-cp-470930.htm",
+      "soHieu": "183/2026/TT-BCA",
+      "ten": "Thông tư số 183/2026/TT-BCA Ban hành Quy chuẩn kỹ thuật quốc gia về sinh trắc học ADN nhận dạng cá thể người",
+      "duongDan": "https://congbao.chinhphu.vn/van-ban/thong-tu-so-183-2026-tt-bca-470953.htm",
       "nguon": "Công báo Chính phủ",
       "tinhTrang": "Chờ đối chiếu nguồn và hiệu lực",
       "kiemChung": "Chỉ phát hiện liên kết trên trang nguồn, chưa xác minh hiệu lực"
     },
     {
       "linhVuc": "Xây dựng – Quản lý dự án",
-      "soHieu": "401/2026/NĐ-CP",
-      "ten": "Nghị định số 401/2026/NĐ-CP quy định xử phạt vi phạm hành chính trong lĩnh vực công nghiệp công nghệ số",
-      "duongDan": "https://congbao.chinhphu.vn/van-ban/nghi-dinh-so-401-2026-nd-cp-470923.htm",
+      "soHieu": "67/2026/TT-BKHCN",
+      "ten": "Thông tư số 67/2026/TT-BKHCN quy hoạch băng tần 874,4-880 MHz, 919,4-925 MHz và băng tần 1900-1910 MHz cho hệ thống thông tin di động đường sắt tại Việt Nam",
+      "duongDan": "https://congbao.chinhphu.vn/van-ban/thong-tu-so-67-2026-tt-bkhcn-470948.htm",
+      "nguon": "Công báo Chính phủ",
+      "tinhTrang": "Chờ đối chiếu nguồn và hiệu lực",
+      "kiemChung": "Chỉ phát hiện liên kết trên trang nguồn, chưa xác minh hiệu lực"
+    },
+    {
+      "linhVuc": "Xây dựng – Quản lý dự án",
+      "soHieu": "24/2026/TT-BNV",
+      "ten": "Thông tư số 24/2026/TT-BNV ban hành Nội quy và Quy chế thi tuyển, xét tuyển công chức, viên chức",
+      "duongDan": "https://congbao.chinhphu.vn/van-ban/thong-tu-so-24-2026-tt-bnv-470954.htm",
+      "nguon": "Công báo Chính phủ",
+      "tinhTrang": "Chờ đối chiếu nguồn và hiệu lực",
+      "kiemChung": "Chỉ phát hiện liên kết trên trang nguồn, chưa xác minh hiệu lực"
+    },
+    {
+      "linhVuc": "Xây dựng – Quản lý dự án",
+      "soHieu": "82/2026/TT-BXD",
+      "ten": "Thông tư số 82/2026/TT-BXD công bố vùng nước cảng biển, khu vực hàng hải thuộc địa phận tỉnh Quảng Ngãi và khu vực quản lý của Cảng vụ Hàng hải Quảng Ngãi",
+      "duongDan": "https://congbao.chinhphu.vn/van-ban/thong-tu-so-82-2026-tt-bxd-470947.htm",
+      "nguon": "Công báo Chính phủ",
+      "tinhTrang": "Chờ đối chiếu nguồn và hiệu lực",
+      "kiemChung": "Chỉ phát hiện liên kết trên trang nguồn, chưa xác minh hiệu lực"
+    },
+    {
+      "linhVuc": "Xây dựng – Quản lý dự án",
+      "soHieu": "38/2025/TT-NHNN",
+      "ten": "Quyết định số 2476/QĐ-NHNN Về việc tiếp tục có hiệu lực của Thông tư số 38/2025/TT-NHNN ban hành Quy chế kiểm soát nội bộ, kiểm toán nội bộ Ngân hàng Nhà nước Việt Nam",
+      "duongDan": "https://congbao.chinhphu.vn/van-ban/quyet-dinh-so-2476-qd-nhnn-470955.htm",
       "nguon": "Công báo Chính phủ",
       "tinhTrang": "Chờ đối chiếu nguồn và hiệu lực",
       "kiemChung": "Chỉ phát hiện liên kết trên trang nguồn, chưa xác minh hiệu lực"
