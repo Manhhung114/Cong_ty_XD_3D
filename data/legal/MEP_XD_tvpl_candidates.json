@@ -1,16 +1,23 @@
 {
   "schema": "mepxd-tvpl-discovery-v1",
-  "generatedAt": "2026-11-15",
-  "status": "reference-seed; live discovery pending GitHub Actions run",
-  "note": "Các mục dưới đây chỉ là đường dẫn metadata công khai để thử tính năng. Không phản ánh kết quả quét mới hoặc hiệu lực pháp luật; không lấy toàn văn TVPL/TCVN.",
-  "sources": [
-    "https://m.thuvienphapluat.vn/",
-    "https://thuvienphapluat.vn/page/Tim-Van-Ban.aspx"
-  ],
+  "generatedAt": "2026-11-24T14:12:33+00:00",
+  "status": "TVPL public links, unverified; not an official legal source",
+  "sourceLog": {
+    "https://m.thuvienphapluat.vn/": {
+      "status": "ok",
+      "found": 1
+    },
+    "https://thuvienphapluat.vn/page/Tim-Van-Ban.aspx": {
+      "status": "unavailable",
+      "reason": "HTTPError"
+    }
+  },
   "candidates": [
-    {"linhVuc":"Xây dựng – Quản lý dự án","soHieu":"135/2025/QH15","ten":"Luật Xây dựng 2025","duongDan":"https://m.thuvienphapluat.vn/van-ban/xay-dung-do-thi/Luat-Xay-dung-2025-so-135-2025-QH15-675213.aspx"},
-    {"linhVuc":"Xây dựng – Quản lý dự án","soHieu":"TCVN 2737:2023","ten":"Tiêu chuẩn quốc gia về tải trọng và tác động","duongDan":"https://thuvienphapluat.vn/TCVN/Xay-dung/TCVN-2737-2023-Tai-trong-va-tac-dong-920293.aspx"},
-    {"linhVuc":"MEPF – Phòng cháy chữa cháy","soHieu":"55/2024/QH15","ten":"Luật Phòng cháy, chữa cháy và cứu nạn, cứu hộ","duongDan":"https://m.thuvienphapluat.vn/van-ban/xay-dung-do-thi/Luat-Phong-chay-chua-chay-cuu-nan-cuu-ho-2024-so-55-2024-QH15-621347.aspx"},
-    {"linhVuc":"MEPF – Phòng cháy chữa cháy","soHieu":"TCVN 5687:2024","ten":"Tiêu chuẩn về thông gió, điều hòa không khí - Yêu cầu thiết kế","duongDan":"https://thuvienphapluat.vn/TCVN/Xay-dung/Tieu-chuan-quoc-gia-5687-2024-Thong-gio-dieu-hoa-khong-khi-Yeu-cau-thiet-ke-921033.aspx"}
+    {
+      "linhVuc": "Xây dựng – Quản lý dự án",
+      "soHieu": "152/2026/QĐ-UBND",
+      "ten": "Quyết định 152/2026/QĐ-UBND quy định quy trình bảo trì mẫu cho công trình được đầu tư xây dựng theo cơ chế tổ chức thực hiện dự án quy mô nhỏ, tính chất kỹ thuật đơn giản, có sự tham gia của người dân thuộc các Chương trình mục tiêu quốc gia trên địa bàn tỉnh Đắk Lắk",
+      "duongDan": "https://m.thuvienphapluat.vn/van-ban/Dau-tu/Quyet-dinh-166-2026-QD-UBND-quy-trinh-bao-tri-mau-cong-trinh-Dak-Lak-735073.aspx"
+    }
   ]
 }
